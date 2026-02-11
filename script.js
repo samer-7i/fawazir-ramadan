@@ -85,34 +85,26 @@ function checkAnswer(selected, qIndex) {
         const timestamp = firebase.database.ServerValue.TIMESTAMP;
         const safeName = userName.replace(/[.#$/[\]]/g, "_");
 
-        // 1. تسجيل الإجابة في winners (لمعرفة الترتيب)
-        const newAnsRef = db.ref('winners/' + qIndex).push({ 
-            name: userName, 
-            time: timestamp 
-        });
+        // 1. تسجيل الإجابة في winners
+        const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp });
 
-        // 2. التحقق من السيرفر: هل أنا الأول؟
+        // 2. التحقق فوراً: هل أنا الأول؟
         db.ref('winners/' + qIndex).orderByChild('time').limitToFirst(1).once('value', (snapshot) => {
             let firstKey = "";
             snapshot.forEach(child => { firstKey = child.key; });
 
             if (newAnsRef.key === firstKey) {
-                // أنا الأول فعلياً -> أضف لي نقطة في totalPoints
-                db.ref('totalPoints/' + safeName).transaction((pts) => {
-                    return (pts || 0) + 1;
-                });
+                // أنا الأول فعلياً -> أضف لي نقطة تراكمية
+                db.ref('totalPoints/' + safeName).transaction((pts) => (pts || 0) + 1);
                 alert("🥇 مبروك! أنت الأسرع وحصلت على النقطة.");
+                document.getElementById("question-container").innerHTML = `<h2>🥇 حصلت على النقطة!</h2><p>انتظر السؤال التالي من Remy</p>`;
             } else {
                 // لست الأول
-                alert("صح! لكن شخص آخر كان أسرع منك. النقطة للأول فقط.");
+                alert("إجابة صحيحة ✅ لكن شخص آخر كان أسرع. النقطة للأول فقط.");
+                document.getElementById("question-container").innerHTML = `<h2>إجابة صحيحة ✅</h2><p>لكن لست الأسرع، حاول في السؤال القادم!</p>`;
             }
-            
-            // تحديث الشاشة للمتسابق
-            document.getElementById("question-container").innerHTML = `<h2>تم تسجيل إجابتك ✅</h2><p>انتظر السؤال التالي من Remy</p>`;
         });
     } else {
         alert("إجابة خاطئة! ❌");
     }
 }
-
-
