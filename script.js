@@ -8,6 +8,7 @@ const firebaseConfig = {
   appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
 };
 
+// تشغيل Firebase
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
@@ -24,45 +25,44 @@ const allQuestions = [
     { q: "أين تقع الكعبة المشرفة؟", options: ["المدينة", "القدس", "مكة"], correct: 2 }
 ];
 
-let userName = localStorage.getItem("remy_user_name");
+let userName = "";
 
-window.onload = () => {
-    // إذا كان الاسم موجوداً مسبقاً، ادخل مباشرة
-    if (userName && userName !== "") {
-        showQuiz(userName);
+// عند تحميل الصفحة، فحص هل الاسم مخزن مسبقاً
+window.onload = function() {
+    let savedName = localStorage.getItem("remy_user_name");
+    if (savedName) {
+        userName = savedName;
+        startApp();
     }
 };
 
+// دالة الضغط على زر الدخول
 function enterQuiz() {
-    const nameInput = document.getElementById("username").value.trim();
-    if (nameInput !== "") {
-        localStorage.setItem("remy_user_name", nameInput);
-        userName = nameInput; // تحديث المتغير العالمي
-        showQuiz(nameInput);
-    } else {
-        alert("يرجى إدخال اسمك أولاً!");
+    let input = document.getElementById("username").value.trim();
+    if (input === "") {
+        alert("يرجى كتابة الاسم أولاً");
+        return;
     }
+    userName = input;
+    localStorage.setItem("remy_user_name", userName);
+    startApp();
 }
 
-function showQuiz(name) {
-    userName = name;
-    // تبديل الواجهات
+// دالة تشغيل التطبيق بعد الحصول على الاسم
+function startApp() {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("quiz-box").style.display = "block";
     document.getElementById("user-display").innerText = "المتسابق: " + userName;
     
-    // تشغيل الأنظمة بعد الدخول الناجح
+    // تشغيل الأنظمة
     trackLiveScore();
     listenToAdmin();
 }
 
 function trackLiveScore() {
-    if(!userName) return;
     const safeName = userName.replace(/[.#$/[\]]/g, "_");
     db.ref('totalPoints/' + safeName).on('value', (snapshot) => {
-        const score = snapshot.val() || 0;
-        const scoreElement = document.getElementById("score-display");
-        if(scoreElement) scoreElement.innerText = "النقاط: " + score;
+        document.getElementById("score-display").innerText = "النقاط: " + (snapshot.val() || 0);
     });
 }
 
@@ -74,15 +74,13 @@ function listenToAdmin() {
         if (qIndex === -1 || qIndex === null) {
             container.innerHTML = "<h2>⏳ بانتظار Remy يبدأ السؤال...</h2>";
         } else {
-            // فحص هل جاوب المتسابق مسبقاً
+            // فحص هل الاسم موجود في قائمة من جاوبوا
             db.ref('winners/' + qIndex).once('value', (snap) => {
                 let found = false;
-                snap.forEach(child => {
-                    if(child.val().name === userName) found = true;
-                });
+                snap.forEach(child => { if(child.val().name === userName) found = true; });
                 
                 if (found) {
-                    container.innerHTML = "<h2>✅ تم تسجيل إجابتك</h2><p>انتظر السؤال التالي من Remy</p>";
+                    container.innerHTML = "<h2>✅ تم تسجيل إجابتك مسبقاً</h2><p>انتظر السؤال التالي</p>";
                 } else {
                     loadQuestion(qIndex);
                 }
@@ -93,7 +91,6 @@ function listenToAdmin() {
 
 function loadQuestion(index) {
     const qData = allQuestions[index];
-    if(!qData) return;
     const container = document.getElementById("question-container");
     container.innerHTML = `<h2 id="q-text">${qData.q}</h2><div id="options"></div>`;
     
@@ -107,35 +104,25 @@ function loadQuestion(index) {
 }
 
 function checkAnswer(selected, qIndex) {
-    // قفل الواجهة فوراً
-    document.getElementById("question-container").innerHTML = "<h2>جاري الحفظ...</h2>";
-
+    document.getElementById("question-container").innerHTML = "<h2>جاري التسجيل...</h2>";
     const timestamp = firebase.database.ServerValue.TIMESTAMP;
     const safeName = userName.replace(/[.#$/[\]]/g, "_");
     const isCorrect = (selected === allQuestions[qIndex].correct);
 
-    // تسجيل الإجابة في winners لمنع التكرار
-    const newAnsRef = db.ref('winners/' + qIndex).push({ 
-        name: userName, 
-        time: timestamp, 
-        correct: isCorrect 
-    });
+    const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp, correct: isCorrect });
 
     if (isCorrect) {
         db.ref('winners/' + qIndex).orderByChild('time').limitToFirst(1).once('value', (snapshot) => {
             let firstKey = "";
-            snapshot.forEach(child => { firstKey = child.key; });
-
+            snapshot.forEach(c => firstKey = c.key);
             if (newAnsRef.key === firstKey) {
-                db.ref('totalPoints/' + safeName).transaction((pts) => (pts || 0) + 1);
-                alert("🥇 مبروك! أنت الأسرع وحصلت على النقطة.");
+                db.ref('totalPoints/' + safeName).transaction(pts => (pts || 0) + 1);
+                alert("🥇 مبروك! حصلت على نقطة");
             } else {
-                alert("إجابة صحيحة ✅ لكن لست الأسرع.");
+                alert("صح! لكن لست الأسرع");
             }
-            document.getElementById("question-container").innerHTML = "<h2>✅ تم تسجيل إجابتك</h2>";
         });
     } else {
-        alert("إجابة خاطئة! ❌");
-        document.getElementById("question-container").innerHTML = "<h2>❌ إجابة خاطئة</h2>";
+        alert("خطأ! ❌");
     }
 }
