@@ -1,4 +1,3 @@
-// 1. بيانات الربط الخاصة بك (Remy-9)
 const firebaseConfig = {
   apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
   authDomain: "fawazir-jaco.firebaseapp.com",
@@ -9,13 +8,9 @@ const firebaseConfig = {
   appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
 };
 
-// تشغيل فايربيس
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
-// 2. بنك الأسئلة (يمكنك إضافة المزيد حتى 50 بنفس الطريقة)
 const allQuestions = [
     { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["إبراهيم", "موسى", "عيسى"], correct: 1 },
     { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["آل عمران", "النساء", "البقرة"], correct: 2 },
@@ -26,22 +21,15 @@ const allQuestions = [
     { q: "كم عدد سجدات التلاوة في القرآن؟", options: ["12", "15", "10"], correct: 1 },
     { q: "من هو أول من صام؟", options: ["آدم عليه السلام", "نوح عليه السلام", "محمد ﷺ"], correct: 0 },
     { q: "ما هو العضو الذي يغلق تلقائياً عند العطس؟", options: ["الأذن", "العين", "الفم"], correct: 1 },
-    { q: "أين تقع الكعبة المشرفة؟", options: ["المدينة", "القدس", "مكة"], correct: 2 },
-    { q: "ما هو الكوكب الأحمر؟", options: ["المريخ", "المشتري", "زحل"], correct: 0 },
-    { q: "ما هو أسرع حيوان بري؟", options: ["الأسد", "الفهد", "الغزال"], correct: 1 },
-    { q: "ما هو الشيء الذي تذبحه وتبكي عليه؟", options: ["البصل", "الليمون", "البطيخ"], correct: 0 },
-    { q: "سورة في القرآن تسمى سورة المنجية؟", options: ["يس", "الملك", "الكهف"], correct: 1 },
-    { q: "من هو الصحابي الذي لُقب بذي النورين؟", options: ["علي بن أبي طالب", "عمر بن الخطاب", "عثمان بن عفان"], correct: 2 }
+    { q: "أين تقع الكعبة المشرفة؟", options: ["المدينة", "القدس", "مكة"], correct: 2 }
 ];
 
-// 3. نظام قفل الاسم (localStorage)
 let userName = localStorage.getItem("remy_user_name");
 let lastUpdate = localStorage.getItem("remy_user_date");
 const monthInMs = 30 * 24 * 60 * 60 * 1000;
-const isExpired = lastUpdate && (new Date().getTime() - lastUpdate > monthInMs);
 
 window.onload = () => {
-    if (userName && !isExpired) {
+    if (userName && (new Date().getTime() - lastUpdate < monthInMs)) {
         showQuiz(userName);
     }
 };
@@ -49,11 +37,11 @@ window.onload = () => {
 function enterQuiz() {
     const nameInput = document.getElementById("username").value;
     if (nameInput.trim() !== "") {
-        localStorage.setItem("remy_user_name", nameInput);
+        localStorage.setItem("remy_user_name", nameInput.trim());
         localStorage.setItem("remy_user_date", new Date().getTime());
-        showQuiz(nameInput);
+        showQuiz(nameInput.trim());
     } else {
-        alert("يرجى إدخال اسمك أولاً!");
+        alert("اكتب اسمك للمشاركة!");
     }
 }
 
@@ -65,7 +53,6 @@ function showQuiz(name) {
     listenToAdmin();
 }
 
-// 4. الربط المباشر مع لوحة تحكم Remy
 function listenToAdmin() {
     db.ref('currentQuestion').on('value', (snapshot) => {
         const qIndex = snapshot.val();
@@ -93,39 +80,29 @@ function loadQuestion(index) {
     });
 }
 
-// 5. تسجيل الإجابة وتحديد المركز فوراً
 function checkAnswer(selected, qIndex) {
     if (selected === allQuestions[qIndex].correct) {
         const timestamp = firebase.database.ServerValue.TIMESTAMP;
         
-        // إرسال الإجابة
-        const newAnswerRef = db.ref('winners/' + qIndex).push({
-            name: userName,
-            time: timestamp
-        });
+        // 1. تسجيل الإجابة للسؤال (أسرع واحد)
+        const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp });
 
-        // جلب الترتيب
+        // 2. تحديث النقاط التراكمية (دائمة)
+        const safeName = userName.replace(/[.#$/[\]]/g, "_"); // تنظيف الاسم لفايربيس
+        db.ref('totalPoints/' + safeName).transaction((pts) => (pts || 0) + 1);
+
+        // 3. عرض المركز فوراً
         db.ref('winners/' + qIndex).once('value', (snapshot) => {
-            const answers = [];
-            snapshot.forEach((child) => {
-                answers.push({ key: child.key, ...child.val() });
-            });
-
-            answers.sort((a, b) => a.time - b.time);
-            const myRank = answers.findIndex(a => a.key === newAnswerRef.key) + 1;
-
-            let resultMsg = "";
-            if (myRank === 1) resultMsg = "🥇 مبروك! أنت الأول (الأسرع)";
-            else if (myRank === 2) resultMsg = "🥈 ممتاز! أنت في المركز الثاني";
-            else if (myRank === 3) resultMsg = "🥉 بطل! أنت في المركز الثالث";
-            else resultMsg = `صح! مركزك الحالي: ${myRank}`;
-
-            alert(resultMsg);
-            document.getElementById("question-container").innerHTML = `<h2>${resultMsg}</h2><p>انتظر السؤال التالي من Remy ⏳</p>`;
+            const results = [];
+            snapshot.forEach(c => { results.push({key: c.key, ...c.val()}); });
+            results.sort((a,b) => a.time - b.time);
+            const rank = results.findIndex(a => a.key === newAnsRef.key) + 1;
+            
+            let msg = rank === 1 ? "🥇 مبروك! أنت الأول" : `صح! مركزك: ${rank}`;
+            alert(msg);
+            document.getElementById("question-container").innerHTML = `<h2>${msg}</h2><p>انتظر السؤال التالي...</p>`;
         });
-
     } else {
-        alert("للأسف إجابة خاطئة!");
-        document.getElementById("question-container").innerHTML = "<h2>إجابة خاطئة.. ركز في السؤال الجاي! ⏳</h2>";
+        alert("إجابة خاطئة!");
     }
 }
