@@ -2,34 +2,38 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم Remy 🎮</title>
+    <title>لوحة تحكم Remy - الإدارة</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         body { background: #1a1a2e; color: white; text-align: center; font-family: sans-serif; padding: 20px; }
-        .btn { padding: 12px; background: #e94560; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; }
-        #winners-list { background: #16213e; margin-top: 30px; padding: 20px; border-radius: 10px; border: 1px solid #0f3460; text-align: right; max-width: 500px; margin-left: auto; margin-right: auto; }
-        .winner-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #444; }
-        .winner-item:first-child { color: #ffd700; font-weight: bold; border-left: 5px solid #ffd700; padding-left: 10px; } /* المركز الأول */
+        .btn { padding: 12px; background: #e94560; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; transition: 0.3s; }
+        .btn:hover { background: #ff2e63; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 20px; }
+        .box { background: #16213e; padding: 20px; border-radius: 10px; border: 1px solid #0f3460; min-width: 300px; max-width: 450px; text-align: right; }
+        .winner-item, .leader-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333; }
+        .gold { color: #ffd700; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <h1>🎮 لوحة تحكم Remy</h1>
-    <p>اضغط على رقم السؤال لإرساله للمتابعين وعرض الفائزين</p>
-    
-    <div id="admin-buttons">
+    <div id="admin-buttons"></div>
+    <button onclick="sendQ(-1)" class="btn" style="background:red; margin-top:20px; width: 200px;">إيقاف المسابقة ⏳</button>
+
+    <div class="container">
+        <div class="box">
+            <h3 style="color: #e94560;">🏆 أسرع 10 فائزين بالسؤال:</h3>
+            <div id="list-content">اضغط سؤالاً للفرز...</div>
         </div>
 
-    <button onclick="sendQ(-1)" class="btn" style="background:red; margin-top:20px;">إيقاف المسابقة ⏳</button>
-
-    <div id="winners-list">
-        <h3>🏆 أسرع 10 إجابات صحيحة:</h3>
-        <div id="list-content">اضغط على أي سؤال لرؤية الفائزين هنا...</div>
+        <div class="box">
+            <h3 style="color: #ffd700;">⭐ جدول النقاط العام (تراكمي):</h3>
+            <div id="leaderboard-content">جاري تحميل النقاط...</div>
+        </div>
     </div>
 
     <script>
-        // بياناتك الصحيحة من واقع الصور المرفقة
         const firebaseConfig = {
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -39,56 +43,63 @@
             messagingSenderId: "862747657100",
             appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
         };
-
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // إنشاء 50 زر للتحكم
-        const container = document.getElementById("admin-buttons");
+        // توليد الأزرار
+        const btnContainer = document.getElementById("admin-buttons");
         for(let i=0; i<50; i++) {
             let btn = document.createElement("button");
-            btn.className = "btn";
-            btn.innerText = "سؤال " + (i+1);
+            btn.className = "btn"; btn.innerText = "سؤال " + (i+1);
             btn.onclick = () => sendQ(i);
-            container.appendChild(btn);
+            btnContainer.appendChild(btn);
         }
 
         function sendQ(index) {
-            // إرسال رقم السؤال للمتابعين
             database.ref('currentQuestion').set(index);
-            
-            // إذا كان سؤالاً حقيقياً وليس إيقافاً، اعرض فائزيه
-            if (index !== -1) {
-                showTopWinners(index);
-            } else {
-                document.getElementById("list-content").innerHTML = "المسابقة متوقفة الآن.";
-            }
+            if (index !== -1) showTopWinners(index);
         }
 
+        // 1. عرض أسرع المتفاعلين مع السؤال الحالي
         function showTopWinners(qIndex) {
             const listContent = document.getElementById("list-content");
-            listContent.innerHTML = "جاري جلب الأسرع...";
-
-            // سحب أول 10 مرتبين زمنياً (الأقدم هو الأسرع)
             database.ref('winners/' + qIndex).orderByChild('time').limitToFirst(10).on('value', (snapshot) => {
                 listContent.innerHTML = "";
-                
-                if (!snapshot.exists()) {
-                    listContent.innerHTML = "لم يجاوب أحد صح بعد.";
-                    return;
-                }
-
+                if (!snapshot.exists()) { listContent.innerHTML = "لا يوجد إجابات لهذا السؤال بعد."; return; }
                 let rank = 1;
                 snapshot.forEach((child) => {
                     const data = child.val();
-                    const div = document.createElement("div");
-                    div.className = "winner-item";
-                    div.innerHTML = `<span>#${rank} - ${data.name}</span> <span>✅</span>`;
-                    listContent.appendChild(div);
+                    listContent.innerHTML += `<div class="winner-item"><span>#${rank} - ${data.name}</span> ✅</div>`;
                     rank++;
                 });
             });
         }
+
+        // 2. عرض جدول النقاط التراكمي للكل
+        function loadLeaderboard() {
+            database.ref('totalPoints').on('value', (snapshot) => {
+                const board = document.getElementById("leaderboard-content");
+                board.innerHTML = "";
+                if (!snapshot.exists()) { board.innerHTML = "لا توجد نقاط مسجلة بعد."; return; }
+                
+                let players = [];
+                snapshot.forEach((child) => {
+                    players.push({ name: child.key.replace(/_/g, ' '), points: child.val() });
+                });
+                
+                players.sort((a, b) => b.points - a.points); // ترتيب من الأكثر للأقل
+
+                players.forEach((p, index) => {
+                    const isGold = index === 0 ? "gold" : "";
+                    board.innerHTML += `
+                        <div class="leader-item ${isGold}">
+                            <span>#${index+1} - ${p.name}</span>
+                            <span>${p.points} نقطة</span>
+                        </div>`;
+                });
+            });
+        }
+        loadLeaderboard();
     </script>
 </body>
 </html>
