@@ -26,29 +26,43 @@ const allQuestions = [
 
 let userName = localStorage.getItem("remy_user_name");
 
-window.onload = () => { if (userName) showQuiz(userName); };
+window.onload = () => {
+    // إذا كان الاسم موجوداً مسبقاً، ادخل مباشرة
+    if (userName && userName !== "") {
+        showQuiz(userName);
+    }
+};
 
 function enterQuiz() {
     const nameInput = document.getElementById("username").value.trim();
     if (nameInput !== "") {
         localStorage.setItem("remy_user_name", nameInput);
+        userName = nameInput; // تحديث المتغير العالمي
         showQuiz(nameInput);
-    } else { alert("اكتب اسمك للمشاركة!"); }
+    } else {
+        alert("يرجى إدخال اسمك أولاً!");
+    }
 }
 
 function showQuiz(name) {
     userName = name;
+    // تبديل الواجهات
     document.getElementById("login-box").style.display = "none";
     document.getElementById("quiz-box").style.display = "block";
     document.getElementById("user-display").innerText = "المتسابق: " + userName;
+    
+    // تشغيل الأنظمة بعد الدخول الناجح
     trackLiveScore();
     listenToAdmin();
 }
 
 function trackLiveScore() {
+    if(!userName) return;
     const safeName = userName.replace(/[.#$/[\]]/g, "_");
     db.ref('totalPoints/' + safeName).on('value', (snapshot) => {
-        document.getElementById("score-display").innerText = "النقاط: " + (snapshot.val() || 0);
+        const score = snapshot.val() || 0;
+        const scoreElement = document.getElementById("score-display");
+        if(scoreElement) scoreElement.innerText = "النقاط: " + score;
     });
 }
 
@@ -60,10 +74,12 @@ function listenToAdmin() {
         if (qIndex === -1 || qIndex === null) {
             container.innerHTML = "<h2>⏳ بانتظار Remy يبدأ السؤال...</h2>";
         } else {
-            // فحص قاعدة البيانات: هل الاسم موجود في قائمة الفائزين لهذا السؤال؟
+            // فحص هل جاوب المتسابق مسبقاً
             db.ref('winners/' + qIndex).once('value', (snap) => {
                 let found = false;
-                snap.forEach(child => { if(child.val().name === userName) found = true; });
+                snap.forEach(child => {
+                    if(child.val().name === userName) found = true;
+                });
                 
                 if (found) {
                     container.innerHTML = "<h2>✅ تم تسجيل إجابتك</h2><p>انتظر السؤال التالي من Remy</p>";
@@ -77,6 +93,7 @@ function listenToAdmin() {
 
 function loadQuestion(index) {
     const qData = allQuestions[index];
+    if(!qData) return;
     const container = document.getElementById("question-container");
     container.innerHTML = `<h2 id="q-text">${qData.q}</h2><div id="options"></div>`;
     
@@ -90,18 +107,21 @@ function loadQuestion(index) {
 }
 
 function checkAnswer(selected, qIndex) {
-    // إخفاء الخيارات فوراً لمنع الضغط المتكرر
-    document.getElementById("question-container").innerHTML = "<h2>جاري تسجيل إجابتك...</h2>";
+    // قفل الواجهة فوراً
+    document.getElementById("question-container").innerHTML = "<h2>جاري الحفظ...</h2>";
 
     const timestamp = firebase.database.ServerValue.TIMESTAMP;
     const safeName = userName.replace(/[.#$/[\]]/g, "_");
-
-    // 1. تسجيل الإجابة (سواء صح أو خطأ) لمنع المحاولة مرة أخرى
     const isCorrect = (selected === allQuestions[qIndex].correct);
-    const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp, correct: isCorrect });
+
+    // تسجيل الإجابة في winners لمنع التكرار
+    const newAnsRef = db.ref('winners/' + qIndex).push({ 
+        name: userName, 
+        time: timestamp, 
+        correct: isCorrect 
+    });
 
     if (isCorrect) {
-        // 2. فحص هل هو الأول ليأخذ النقطة
         db.ref('winners/' + qIndex).orderByChild('time').limitToFirst(1).once('value', (snapshot) => {
             let firstKey = "";
             snapshot.forEach(child => { firstKey = child.key; });
@@ -112,10 +132,10 @@ function checkAnswer(selected, qIndex) {
             } else {
                 alert("إجابة صحيحة ✅ لكن لست الأسرع.");
             }
-            document.getElementById("question-container").innerHTML = "<h2>✅ تم تسجيل إجابتك</h2><p>انتظر السؤال التالي...</p>";
+            document.getElementById("question-container").innerHTML = "<h2>✅ تم تسجيل إجابتك</h2>";
         });
     } else {
         alert("إجابة خاطئة! ❌");
-        document.getElementById("question-container").innerHTML = "<h2>❌ إجابة خاطئة</h2><p>تعوضها في السؤال القادم!</p>";
+        document.getElementById("question-container").innerHTML = "<h2>❌ إجابة خاطئة</h2>";
     }
 }
