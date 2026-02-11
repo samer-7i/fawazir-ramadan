@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم Remy - الإدارة</title>
+    <title>لوحة تحكم Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
@@ -23,7 +23,7 @@
 
     <div class="container">
         <div class="box">
-            <h3 style="color: #e94560;">🏆 أسرع 10 فائزين بالسؤال:</h3>
+            <h3 style="color: #e94560;">🏆 أسرع 10 إجابات (للسؤال الحالي):</h3>
             <div id="list-content">اضغط سؤالاً للفرز...</div>
         </div>
 
@@ -46,7 +46,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // توليد الأزرار
+        // توليد أزرار الأسئلة
         const btnContainer = document.getElementById("admin-buttons");
         for(let i=0; i<50; i++) {
             let btn = document.createElement("button");
@@ -60,7 +60,6 @@
             if (index !== -1) showTopWinners(index);
         }
 
-        // 1. عرض أسرع المتفاعلين مع السؤال الحالي
         function showTopWinners(qIndex) {
             const listContent = document.getElementById("list-content");
             database.ref('winners/' + qIndex).orderByChild('time').limitToFirst(10).on('value', (snapshot) => {
@@ -75,41 +74,23 @@
             });
         }
 
-       <script>
-    // هذه الدالة داخل admin.html ستقوم بعرض النقاط الصحيحة فقط
-    function loadLeaderboard() {
-        // نراقب فرع totalPoints لأنه هو الذي يحتوي على النقاط الحقيقية للأوائل
-        database.ref('totalPoints').on('value', (snapshot) => {
-            const board = document.getElementById("leaderboard-content");
-            board.innerHTML = "";
-            
-            if (!snapshot.exists()) {
-                board.innerHTML = "لا توجد نقاط مسجلة بعد.";
-                return;
-            }
-
-            let players = [];
-            snapshot.forEach((child) => {
-                players.push({ 
-                    name: child.key.replace(/_/g, ' '), 
-                    points: child.val() 
+        function loadLeaderboard() {
+            database.ref('totalPoints').on('value', (snapshot) => {
+                const board = document.getElementById("leaderboard-content");
+                board.innerHTML = "";
+                if (!snapshot.exists()) { board.innerHTML = "لا توجد نقاط مسجلة بعد."; return; }
+                let players = [];
+                snapshot.forEach((child) => {
+                    players.push({ name: child.key.replace(/_/g, ' '), points: child.val() });
+                });
+                players.sort((a, b) => b.points - a.points);
+                players.forEach((p, index) => {
+                    const isGold = index === 0 ? "gold" : "";
+                    board.innerHTML += `<div class="leader-item ${isGold}"><span>#${index+1} - ${p.name}</span><span>${p.points} نقطة</span></div>`;
                 });
             });
-
-            // ترتيب المتصدرين من الأكثر نقاطاً للأقل
-            players.sort((a, b) => b.points - a.points);
-
-            players.forEach((p, index) => {
-                const isFirst = index === 0 ? "style='color:#ffd700; font-weight:bold;'" : "";
-                board.innerHTML += `
-                    <div class="leader-item" ${isFirst}>
-                        <span>#${index+1} - ${p.name}</span>
-                        <span>${p.points} نقطة</span>
-                    </div>`;
-            });
-        });
-    }
-    loadLeaderboard();
-</script>
+        }
+        loadLeaderboard();
+    </script>
 </body>
 </html>
