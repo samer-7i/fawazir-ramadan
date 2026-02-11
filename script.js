@@ -64,11 +64,30 @@ function listenToAdmin() {
         if (qIndex === -1 || qIndex === null) {
             container.innerHTML = "<h2>⏳ بانتظار Remy يبدأ السؤال...</h2>";
         } else {
-            db.ref('winners/' + qIndex).once('value', (snap) => {
-                let found = false;
-                snap.forEach(child => { if(child.val().name === userName) found = true; });
-                if (found) {
-                    container.innerHTML = "<h2>✅ تم تسجيل إجابتك</h2><p>انتظر السؤال التالي</p>";
+            // فحص هل جاوب المتسابق مسبقاً وما هو مركزه؟
+            db.ref('winners/' + qIndex).orderByChild('time').once('value', (snap) => {
+                let myAnswerData = null;
+                let correctAnswers = [];
+                
+                snap.forEach(child => {
+                    let data = child.val();
+                    if(data.correct === true) {
+                        correctAnswers.push(child.val().name);
+                    }
+                    if(data.name === userName) {
+                        myAnswerData = data;
+                    }
+                });
+
+                if (myAnswerData) {
+                    if (myAnswerData.correct) {
+                        // حساب المركز الترتيبي من قائمة الإجابات الصحيحة
+                        let rank = correctAnswers.indexOf(userName) + 1;
+                        let rankMsg = rank === 1 ? "🥇 مبروك! كنت المركز الأول" : `✅ إجابتك كانت صحيحة ومركزك: ${rank}`;
+                        container.innerHTML = `<h2>${rankMsg}</h2><p>انتظر السؤال التالي من Remy</p>`;
+                    } else {
+                        container.innerHTML = `<h2>❌ إجابتك كانت خاطئة</h2><p>ركز في السؤال القادم!</p>`;
+                    }
                 } else {
                     loadQuestion(qIndex);
                 }
@@ -98,28 +117,26 @@ function checkAnswer(selected, qIndex) {
     const safeName = userName.replace(/[.#$/[\]]/g, "_");
     const isCorrect = (selected === allQuestions[qIndex].correct);
 
-    // تسجيل الإجابة
-    const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp, correct: isCorrect });
+    const newAnsRef = db.ref('winners/' + qIndex).push({ 
+        name: userName, 
+        time: timestamp, 
+        correct: isCorrect 
+    });
 
     if (isCorrect) {
-        // حساب الترتيب (المركز)
         db.ref('winners/' + qIndex).orderByChild('time').once('value', (snapshot) => {
-            let answers = [];
+            let correctOnes = [];
             snapshot.forEach(child => {
-                // نحسب فقط أصحاب الإجابات الصحيحة في الترتيب
-                if(child.val().correct === true) {
-                    answers.push({ key: child.key, name: child.val().name });
-                }
+                if(child.val().correct === true) correctOnes.push(child.key);
             });
 
-            // معرفة ترتيب اللاعب الحالي في المصفوفة
-            const myRank = answers.findIndex(a => a.key === newAnsRef.key) + 1;
+            const myRank = correctOnes.indexOf(newAnsRef.key) + 1;
 
             if (myRank === 1) {
                 db.ref('totalPoints/' + safeName).transaction(pts => (pts || 0) + 1);
                 container.innerHTML = "<h2>🥇 مبروك! أنت الأول وحصلت على نقطة</h2>";
             } else {
-                container.innerHTML = `<h2>✅ إجابة صحيحة</h2><p>مركزك هو: <b>${myRank}</b></p><p>النقطة تذهب للأول فقط.</p>`;
+                container.innerHTML = `<h2>✅ إجابة صحيحة</h2><p>مركزك: <b>${myRank}</b></p>`;
             }
         });
     } else {
