@@ -8,7 +8,6 @@ const firebaseConfig = {
   appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
 };
 
-// تشغيل Firebase
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
@@ -27,7 +26,6 @@ const allQuestions = [
 
 let userName = "";
 
-// عند تحميل الصفحة، فحص هل الاسم مخزن مسبقاً
 window.onload = function() {
     let savedName = localStorage.getItem("remy_user_name");
     if (savedName) {
@@ -36,25 +34,18 @@ window.onload = function() {
     }
 };
 
-// دالة الضغط على زر الدخول
 function enterQuiz() {
     let input = document.getElementById("username").value.trim();
-    if (input === "") {
-        alert("يرجى كتابة الاسم أولاً");
-        return;
-    }
+    if (input === "") { alert("يرجى كتابة الاسم أولاً"); return; }
     userName = input;
     localStorage.setItem("remy_user_name", userName);
     startApp();
 }
 
-// دالة تشغيل التطبيق بعد الحصول على الاسم
 function startApp() {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("quiz-box").style.display = "block";
     document.getElementById("user-display").innerText = "المتسابق: " + userName;
-    
-    // تشغيل الأنظمة
     trackLiveScore();
     listenToAdmin();
 }
@@ -70,17 +61,14 @@ function listenToAdmin() {
     db.ref('currentQuestion').on('value', (snapshot) => {
         const qIndex = snapshot.val();
         const container = document.getElementById("question-container");
-        
         if (qIndex === -1 || qIndex === null) {
             container.innerHTML = "<h2>⏳ بانتظار Remy يبدأ السؤال...</h2>";
         } else {
-            // فحص هل الاسم موجود في قائمة من جاوبوا
             db.ref('winners/' + qIndex).once('value', (snap) => {
                 let found = false;
                 snap.forEach(child => { if(child.val().name === userName) found = true; });
-                
                 if (found) {
-                    container.innerHTML = "<h2>✅ تم تسجيل إجابتك مسبقاً</h2><p>انتظر السؤال التالي</p>";
+                    container.innerHTML = "<h2>✅ تم تسجيل إجابتك</h2><p>انتظر السؤال التالي</p>";
                 } else {
                     loadQuestion(qIndex);
                 }
@@ -93,7 +81,6 @@ function loadQuestion(index) {
     const qData = allQuestions[index];
     const container = document.getElementById("question-container");
     container.innerHTML = `<h2 id="q-text">${qData.q}</h2><div id="options"></div>`;
-    
     qData.options.forEach((opt, i) => {
         const btn = document.createElement("button");
         btn.innerText = opt;
@@ -104,25 +91,38 @@ function loadQuestion(index) {
 }
 
 function checkAnswer(selected, qIndex) {
-    document.getElementById("question-container").innerHTML = "<h2>جاري التسجيل...</h2>";
+    const container = document.getElementById("question-container");
+    container.innerHTML = "<h2>جاري التسجيل...</h2>";
+    
     const timestamp = firebase.database.ServerValue.TIMESTAMP;
     const safeName = userName.replace(/[.#$/[\]]/g, "_");
     const isCorrect = (selected === allQuestions[qIndex].correct);
 
+    // تسجيل الإجابة
     const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp, correct: isCorrect });
 
     if (isCorrect) {
-        db.ref('winners/' + qIndex).orderByChild('time').limitToFirst(1).once('value', (snapshot) => {
-            let firstKey = "";
-            snapshot.forEach(c => firstKey = c.key);
-            if (newAnsRef.key === firstKey) {
+        // حساب الترتيب (المركز)
+        db.ref('winners/' + qIndex).orderByChild('time').once('value', (snapshot) => {
+            let answers = [];
+            snapshot.forEach(child => {
+                // نحسب فقط أصحاب الإجابات الصحيحة في الترتيب
+                if(child.val().correct === true) {
+                    answers.push({ key: child.key, name: child.val().name });
+                }
+            });
+
+            // معرفة ترتيب اللاعب الحالي في المصفوفة
+            const myRank = answers.findIndex(a => a.key === newAnsRef.key) + 1;
+
+            if (myRank === 1) {
                 db.ref('totalPoints/' + safeName).transaction(pts => (pts || 0) + 1);
-                alert("🥇 مبروك! حصلت على نقطة");
+                container.innerHTML = "<h2>🥇 مبروك! أنت الأول وحصلت على نقطة</h2>";
             } else {
-                alert("صح! لكن لست الأسرع");
+                container.innerHTML = `<h2>✅ إجابة صحيحة</h2><p>مركزك هو: <b>${myRank}</b></p><p>النقطة تذهب للأول فقط.</p>`;
             }
         });
     } else {
-        alert("خطأ! ❌");
+        container.innerHTML = "<h2>❌ إجابة خاطئة!</h2><p>تعوضها في السؤال الجاي</p>";
     }
 }
