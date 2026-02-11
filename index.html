@@ -15,19 +15,19 @@
     <div class="container">
         <div id="login-box">
             <h1>🌙 فوازير رمضان</h1>
-            <p>سجل اسمك للمشاركة (لا يمكن تغييره لاحقاً)</p>
-            <input type="text" id="username" placeholder="يوزرك في جاكو..." autocomplete="off">
+            <p>سجل اسمك للمشاركة في المسابقة</p>
+            <input type="text" id="username" placeholder="اكتب اسمك هنا..." autocomplete="off">
             <br>
-            <button onclick="enterQuiz()" style="margin-top: 15px; padding: 12px 30px; cursor: pointer; background: #e94560; color: white; border: none; border-radius: 8px; font-weight: bold;">دخول المسابقة</button>
+            <button onclick="enterQuiz()" class="main-btn">دخول المسابقة</button>
         </div>
 
         <div id="quiz-box" style="display: none;">
-            <div class="header-info" style="display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px;">
-                <span id="user-display" style="font-weight: bold; color: #ffd700;"></span>
-                <span id="score-display">النقاط: 0</span>
+            <div class="header-info">
+                <span id="user-display" class="user-tag"></span>
+                <span id="score-display" class="score-tag">النقاط: 0</span>
             </div>
 
-            <div id="question-container">
+            <div id="question-container" class="q-card">
                 <h2 id="q-text">⏳ بانتظار Remy يبدأ السؤال...</h2>
                 <div id="options"></div>
             </div>
@@ -35,6 +35,24 @@
     </div>
 
     <script src="script.js"></script>
+
+    <style>
+        /* تنسيقات سريعة لضمان ظهور النقاط بشكل واضح */
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e94560;
+        }
+        .user-tag { color: #ffd700; font-weight: bold; font-size: 1.1em; }
+        .score-tag { background: #e94560; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; }
+        .main-btn { margin-top: 15px; padding: 12px 30px; cursor: pointer; background: #e94560; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1em; }
+        .q-card { background: #16213e; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    </style>
 
 </body>
 </html>
