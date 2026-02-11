@@ -75,31 +75,41 @@
             });
         }
 
-        // 2. عرض جدول النقاط التراكمي للكل
-        function loadLeaderboard() {
-            database.ref('totalPoints').on('value', (snapshot) => {
-                const board = document.getElementById("leaderboard-content");
-                board.innerHTML = "";
-                if (!snapshot.exists()) { board.innerHTML = "لا توجد نقاط مسجلة بعد."; return; }
-                
-                let players = [];
-                snapshot.forEach((child) => {
-                    players.push({ name: child.key.replace(/_/g, ' '), points: child.val() });
-                });
-                
-                players.sort((a, b) => b.points - a.points); // ترتيب من الأكثر للأقل
+       <script>
+    // هذه الدالة داخل admin.html ستقوم بعرض النقاط الصحيحة فقط
+    function loadLeaderboard() {
+        // نراقب فرع totalPoints لأنه هو الذي يحتوي على النقاط الحقيقية للأوائل
+        database.ref('totalPoints').on('value', (snapshot) => {
+            const board = document.getElementById("leaderboard-content");
+            board.innerHTML = "";
+            
+            if (!snapshot.exists()) {
+                board.innerHTML = "لا توجد نقاط مسجلة بعد.";
+                return;
+            }
 
-                players.forEach((p, index) => {
-                    const isGold = index === 0 ? "gold" : "";
-                    board.innerHTML += `
-                        <div class="leader-item ${isGold}">
-                            <span>#${index+1} - ${p.name}</span>
-                            <span>${p.points} نقطة</span>
-                        </div>`;
+            let players = [];
+            snapshot.forEach((child) => {
+                players.push({ 
+                    name: child.key.replace(/_/g, ' '), 
+                    points: child.val() 
                 });
             });
-        }
-        loadLeaderboard();
-    </script>
+
+            // ترتيب المتصدرين من الأكثر نقاطاً للأقل
+            players.sort((a, b) => b.points - a.points);
+
+            players.forEach((p, index) => {
+                const isFirst = index === 0 ? "style='color:#ffd700; font-weight:bold;'" : "";
+                board.innerHTML += `
+                    <div class="leader-item" ${isFirst}>
+                        <span>#${index+1} - ${p.name}</span>
+                        <span>${p.points} نقطة</span>
+                    </div>`;
+            });
+        });
+    }
+    loadLeaderboard();
+</script>
 </body>
 </html>
