@@ -84,25 +84,37 @@ function checkAnswer(selected, qIndex) {
     if (selected === allQuestions[qIndex].correct) {
         const timestamp = firebase.database.ServerValue.TIMESTAMP;
         
-        // 1. تسجيل الإجابة للسؤال (أسرع واحد)
+        // 1. تسجيل الإجابة للسؤال (لكل من أجاب صح لمعرفة مركزه)
         const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp });
 
-        // 2. تحديث النقاط التراكمية (دائمة)
-        const safeName = userName.replace(/[.#$/[\]]/g, "_"); // تنظيف الاسم لفايربيس
-        db.ref('totalPoints/' + safeName).transaction((pts) => (pts || 0) + 1);
+        // 2. التحقق: هل هذا المستخدم هو أول من أجاب؟
+        db.ref('winners/' + qIndex).orderByChild('time').limitToFirst(1).once('value', (snapshot) => {
+            let firstKey = "";
+            snapshot.forEach(child => { firstKey = child.key; });
 
-        // 3. عرض المركز فوراً
-        db.ref('winners/' + qIndex).once('value', (snapshot) => {
-            const results = [];
-            snapshot.forEach(c => { results.push({key: c.key, ...c.val()}); });
-            results.sort((a,b) => a.time - b.time);
-            const rank = results.findIndex(a => a.key === newAnsRef.key) + 1;
-            
-            let msg = rank === 1 ? "🥇 مبروك! أنت الأول" : `صح! مركزك: ${rank}`;
-            alert(msg);
-            document.getElementById("question-container").innerHTML = `<h2>${msg}</h2><p>انتظر السؤال التالي...</p>`;
+            // إذا كان مفتاح الإجابة الحالية هو نفسه مفتاح المركز الأول
+            if (newAnsRef.key === firstKey) {
+                // إضافة النقطة التراكمية للأول فقط
+                const safeName = userName.replace(/[.#$/[\]]/g, "_");
+                db.ref('totalPoints/' + safeName).transaction((pts) => (pts || 0) + 1);
+                
+                alert("🥇 مبروك! أنت الأسرع وحصلت على نقطة");
+                document.getElementById("question-container").innerHTML = `<h2>🥇 أنت الأول وحصلت على النقطة!</h2>`;
+            } else {
+                // إخبار البقية أن إجابتهم صحيحة لكنهم لم يحصلوا على نقطة
+                db.ref('winners/' + qIndex).once('value', (snap) => {
+                    const results = [];
+                    snap.forEach(c => { results.push({key: c.key, ...c.val()}); });
+                    results.sort((a,b) => a.time - b.time);
+                    const rank = results.findIndex(a => a.key === newAnsRef.key) + 1;
+                    
+                    alert(`صح! لكن مركزك ${rank}. النقطة تذهب للأول فقط.`);
+                    document.getElementById("question-container").innerHTML = `<h2>صح! مركزك: ${rank}</h2><p>النقطة تذهب للأسرع فقط ⏳</p>`;
+                });
+            }
         });
     } else {
         alert("إجابة خاطئة!");
     }
 }
+
