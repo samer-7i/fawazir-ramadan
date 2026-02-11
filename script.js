@@ -38,7 +38,7 @@ function listenToAdmin() {
         const container = document.getElementById("question-container");
         
         if (qIndex === -1 || qIndex === null) {
-            container.innerHTML = "<h2>⏳ بانتظار سامر يبدأ السؤال...</h2>";
+            container.innerHTML = "<h2>⏳ بانتظار Remy يبدأ السؤال...</h2>";
             container.style.display = "block";
         } else {
             // هنا تظهر الأسئلة (سنضع دالة loadQuestion لاحقاً)
@@ -46,3 +46,4 @@ function listenToAdmin() {
         }
     });
 }
+
