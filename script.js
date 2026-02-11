@@ -1,4 +1,4 @@
-// بيانات الربط الخاصة بك (Firebase Config)
+// 1. بيانات الربط (Firebase Config)
 const firebaseConfig = {
   apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
   authDomain: "fawazir-jaco.firebaseapp.com",
@@ -9,16 +9,10 @@ const firebaseConfig = {
   appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
 };
 
-// تشغيل فايربيس
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.database();
 
-let currentScore = 0;
-let userName = "";
-
-// --- هنا تضع أسئلتك (أضف حتى 50 سؤالاً بنفس الطريقة) ---
+// 2. بنك الأسئلة (يمكنك إضافة المزيد بنفس النمط حتى 50)
 const allQuestions = [
     { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["إبراهيم", "موسى", "عيسى"], correct: 1 },
     { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["آل عمران", "النساء", "البقرة"], correct: 2 },
@@ -29,26 +23,49 @@ const allQuestions = [
     { q: "كم عدد سجدات التلاوة في القرآن؟", options: ["12", "15", "10"], correct: 1 },
     { q: "من هو أول من صام؟", options: ["آدم عليه السلام", "نوح عليه السلام", "محمد ﷺ"], correct: 0 },
     { q: "ما هو العضو الذي يغلق تلقائياً عند العطس؟", options: ["الأذن", "العين", "الفم"], correct: 1 },
-    { q: "أين تقع الكعبة المشرفة؟", options: ["المدينة", "القدس", "مكة"], correct: 2 }
+    { q: "أين تقع الكعبة المشرفة؟", options: ["المدينة", "القدس", "مكة"], correct: 2 },
+    { q: "ما هو الكوكب الأحمر؟", options: ["المريخ", "المشتري", "زحل"], correct: 0 },
+    { q: "ما هو أسرع حيوان بري؟", options: ["الأسد", "الفهد", "الغزال"], correct: 1 }
 ];
 
+// 3. نظام قفل الاسم لمدة شهر (localStorage)
+let userName = localStorage.getItem("remy_user_name");
+let lastUpdate = localStorage.getItem("remy_user_date");
+const monthInMs = 30 * 24 * 60 * 60 * 1000;
+const isExpired = lastUpdate && (new Date().getTime() - lastUpdate > monthInMs);
+
+window.onload = () => {
+    if (userName && !isExpired) {
+        showQuiz(userName);
+    }
+};
+
 function enterQuiz() {
-    userName = document.getElementById("username").value;
-    if (userName.trim() !== "") {
-        document.getElementById("login-box").style.display = "none";
-        document.getElementById("quiz-box").style.display = "block";
-        document.getElementById("user-display").innerText = "المتسابق: " + userName;
-        listenToAdmin();
+    const nameInput = document.getElementById("username").value;
+    if (nameInput.trim() !== "") {
+        localStorage.setItem("remy_user_name", nameInput);
+        localStorage.setItem("remy_user_date", new Date().getTime());
+        showQuiz(nameInput);
     } else {
         alert("يرجى إدخال اسمك!");
     }
 }
 
+function showQuiz(name) {
+    userName = name;
+    document.getElementById("login-box").style.display = "none";
+    document.getElementById("quiz-box").style.display = "block";
+    document.getElementById("user-display").innerText = "المتسابق: " + userName;
+    listenToAdmin();
+}
+
+// 4. الربط المباشر مع لوحة تحكم Remy
 function listenToAdmin() {
     db.ref('currentQuestion').on('value', (snapshot) => {
         const qIndex = snapshot.val();
+        const container = document.getElementById("question-container");
         if (qIndex === -1 || qIndex === null) {
-            document.getElementById("question-container").innerHTML = "<h2>⏳ بانتظار Remy يبدأ السؤال...</h2>";
+            container.innerHTML = "<h2>⏳ بانتظار Remy يبدأ السؤال...</h2>";
         } else {
             loadQuestion(qIndex);
         }
@@ -57,6 +74,7 @@ function listenToAdmin() {
 
 function loadQuestion(index) {
     const qData = allQuestions[index];
+    if(!qData) return;
     const container = document.getElementById("question-container");
     container.innerHTML = `<h2 id="q-text">${qData.q}</h2><div id="options"></div>`;
     
@@ -68,14 +86,16 @@ function loadQuestion(index) {
     });
 }
 
+// 5. تسجيل الإجابة وتحديد الأسرع
 function checkAnswer(selected, qIndex) {
     if (selected === allQuestions[qIndex].correct) {
-        const timeAnswered = new Date().getTime();
+        // استخدام ServerValue.TIMESTAMP لضمان عدالة التوقيت بين الجميع
+        const timestamp = firebase.database.ServerValue.TIMESTAMP;
         db.ref('winners/' + qIndex).push({
             name: userName,
-            time: timeAnswered
+            time: timestamp
         });
-        alert("إجابة صحيحة!");
+        alert("صح! سيتم التحقق من سرعتك...");
     } else {
         alert("للأسف إجابة خاطئة!");
     }
