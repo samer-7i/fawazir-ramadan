@@ -83,38 +83,36 @@ function loadQuestion(index) {
 function checkAnswer(selected, qIndex) {
     if (selected === allQuestions[qIndex].correct) {
         const timestamp = firebase.database.ServerValue.TIMESTAMP;
-        
-        // 1. تسجيل الإجابة للسؤال (لكل من أجاب صح لمعرفة مركزه)
-        const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp });
+        const safeName = userName.replace(/[.#$/[\]]/g, "_");
 
-        // 2. التحقق: هل هذا المستخدم هو أول من أجاب؟
+        // 1. تسجيل الإجابة في winners (لمعرفة الترتيب)
+        const newAnsRef = db.ref('winners/' + qIndex).push({ 
+            name: userName, 
+            time: timestamp 
+        });
+
+        // 2. التحقق من السيرفر: هل أنا الأول؟
         db.ref('winners/' + qIndex).orderByChild('time').limitToFirst(1).once('value', (snapshot) => {
             let firstKey = "";
             snapshot.forEach(child => { firstKey = child.key; });
 
-            // إذا كان مفتاح الإجابة الحالية هو نفسه مفتاح المركز الأول
             if (newAnsRef.key === firstKey) {
-                // إضافة النقطة التراكمية للأول فقط
-                const safeName = userName.replace(/[.#$/[\]]/g, "_");
-                db.ref('totalPoints/' + safeName).transaction((pts) => (pts || 0) + 1);
-                
-                alert("🥇 مبروك! أنت الأسرع وحصلت على نقطة");
-                document.getElementById("question-container").innerHTML = `<h2>🥇 أنت الأول وحصلت على النقطة!</h2>`;
-            } else {
-                // إخبار البقية أن إجابتهم صحيحة لكنهم لم يحصلوا على نقطة
-                db.ref('winners/' + qIndex).once('value', (snap) => {
-                    const results = [];
-                    snap.forEach(c => { results.push({key: c.key, ...c.val()}); });
-                    results.sort((a,b) => a.time - b.time);
-                    const rank = results.findIndex(a => a.key === newAnsRef.key) + 1;
-                    
-                    alert(`صح! لكن مركزك ${rank}. النقطة تذهب للأول فقط.`);
-                    document.getElementById("question-container").innerHTML = `<h2>صح! مركزك: ${rank}</h2><p>النقطة تذهب للأسرع فقط ⏳</p>`;
+                // أنا الأول فعلياً -> أضف لي نقطة في totalPoints
+                db.ref('totalPoints/' + safeName).transaction((pts) => {
+                    return (pts || 0) + 1;
                 });
+                alert("🥇 مبروك! أنت الأسرع وحصلت على النقطة.");
+            } else {
+                // لست الأول
+                alert("صح! لكن شخص آخر كان أسرع منك. النقطة للأول فقط.");
             }
+            
+            // تحديث الشاشة للمتسابق
+            document.getElementById("question-container").innerHTML = `<h2>تم تسجيل إجابتك ✅</h2><p>انتظر السؤال التالي من Remy</p>`;
         });
     } else {
-        alert("إجابة خاطئة!");
+        alert("إجابة خاطئة! ❌");
     }
 }
+
 
