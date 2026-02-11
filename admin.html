@@ -2,57 +2,55 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم سامر 🎮</title>
+    <title>لوحة التحكم - سامر</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
-<body style="background:#1a1a2e; color:white; text-align:center; font-family:sans-serif; padding:20px;">
-    <h1>🎮 لوحة تحكم الستريمر</h1>
-    <p>اضغط على زر السؤال لإرساله فوراً للمتابعين</p>
-    
-    <div id="admin-buttons" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:20px;">
-        </div>
+<body style="background:#1a1a2e; color:white; text-align:center; padding:20px; font-family:sans-serif;">
 
-    <hr style="margin:40px 0; opacity:0.2;">
-    <button onclick="resetGame()" style="background:#ff4b2b; color:white; padding:15px 30px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
-        إخفاء السؤال (شاشة انتظار) ⏳
+    <h1>🎮 لوحة تحكم الستريمر سامر</h1>
+    <p>إذا ضغطت الزر سيتغير السؤال عند الجميع فوراً</p>
+
+    <div id="admin-buttons" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:20px;">
+        <button onclick="sendQ(0)" style="padding:15px; background:#e94560; color:white; border:none; border-radius:5px; cursor:pointer;">السؤال 1</button>
+        <button onclick="sendQ(1)" style="padding:15px; background:#e94560; color:white; border:none; border-radius:5px; cursor:pointer;">السؤال 2</button>
+        <button onclick="sendQ(2)" style="padding:15px; background:#e94560; color:white; border:none; border-radius:5px; cursor:pointer;">السؤال 3</button>
+        <button onclick="sendQ(3)" style="padding:15px; background:#e94560; color:white; border:none; border-radius:5px; cursor:pointer;">السؤال 4</button>
+        <button onclick="sendQ(4)" style="padding:15px; background:#e94560; color:white; border:none; border-radius:5px; cursor:pointer;">السؤال 5</button>
+    </div>
+
+    <br><br>
+    <button onclick="sendQ(-1)" style="padding:20px; background:red; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold;">
+        إيقاف المسابقة (شاشة انتظار)
     </button>
 
     <script>
-        // بيانات الربط الخاصة بك من لقطات الشاشة
+        // إعداداتك الخاصة من الصور
         const firebaseConfig = {
-          apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
-          authDomain: "fawazir-jaco.firebaseapp.com",
-          databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "fawazir-jaco",
-          storageBucket: "fawazir-jaco.firebasestorage.app",
-          messagingSenderId: "862747657100",
-          appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
+            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
+            authDomain: "fawazir-jaco.firebaseapp.com",
+            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fawazir-jaco",
+            storageBucket: "fawazir-jaco.firebasestorage.app",
+            messagingSenderId: "862747657100",
+            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
         };
 
-        // تشغيل فايربيس
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.database();
+        // تشغيل Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        // إنشاء 50 زر للتحكم
-        const container = document.getElementById("admin-buttons");
-        for(let i=0; i<50; i++) {
-            let btn = document.createElement("button");
-            btn.innerText = "سؤال " + (i+1);
-            btn.style = "padding:12px; min-width:90px; cursor:pointer; background:#e94560; color:white; border:none; border-radius:5px; font-weight:bold;";
-            
-            // الوظيفة التي ترسل رقم السؤال للقاعدة
-            btn.onclick = function() {
-                db.ref('currentQuestion').set(i);
-                alert("تم إرسال السؤال " + (i+1));
-            };
-            container.appendChild(btn);
-        }
-
-        function resetGame() {
-            db.ref('currentQuestion').set(-1);
+        // وظيفة إرسال السؤال
+        function sendQ(index) {
+            database.ref('currentQuestion').set(index)
+            .then(() => {
+                console.log("تم تحديث السؤال إلى: " + index);
+                alert("تم إرسال الأمر بنجاح!");
+            })
+            .catch((error) => {
+                console.error("خطأ: ", error);
+                alert("فشل الإرسال: " + error.message);
+            });
         }
     </script>
 </body>
