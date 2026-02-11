@@ -50,7 +50,19 @@ function showQuiz(name) {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("quiz-box").style.display = "block";
     document.getElementById("user-display").innerText = "المتسابق: " + userName;
+    
+    // مراقبة النقاط مباشرة
+    trackLiveScore();
     listenToAdmin();
+}
+
+// دالة جديدة لتحديث عداد النقاط فوراً
+function trackLiveScore() {
+    const safeName = userName.replace(/[.#$/[\]]/g, "_");
+    db.ref('totalPoints/' + safeName).on('value', (snapshot) => {
+        const score = snapshot.val() || 0;
+        document.getElementById("score-display").innerText = "النقاط: " + score;
+    });
 }
 
 function listenToAdmin() {
@@ -85,23 +97,19 @@ function checkAnswer(selected, qIndex) {
         const timestamp = firebase.database.ServerValue.TIMESTAMP;
         const safeName = userName.replace(/[.#$/[\]]/g, "_");
 
-        // 1. تسجيل الإجابة في winners
         const newAnsRef = db.ref('winners/' + qIndex).push({ name: userName, time: timestamp });
 
-        // 2. التحقق فوراً: هل أنا الأول؟
         db.ref('winners/' + qIndex).orderByChild('time').limitToFirst(1).once('value', (snapshot) => {
             let firstKey = "";
             snapshot.forEach(child => { firstKey = child.key; });
 
             if (newAnsRef.key === firstKey) {
-                // أنا الأول فعلياً -> أضف لي نقطة تراكمية
                 db.ref('totalPoints/' + safeName).transaction((pts) => (pts || 0) + 1);
                 alert("🥇 مبروك! أنت الأسرع وحصلت على النقطة.");
-                document.getElementById("question-container").innerHTML = `<h2>🥇 حصلت على النقطة!</h2><p>انتظر السؤال التالي من Remy</p>`;
+                document.getElementById("question-container").innerHTML = `<h2>✅ مبروك! حصلت على النقطة</h2><p>انتظر السؤال التالي من Remy</p>`;
             } else {
-                // لست الأول
                 alert("إجابة صحيحة ✅ لكن شخص آخر كان أسرع. النقطة للأول فقط.");
-                document.getElementById("question-container").innerHTML = `<h2>إجابة صحيحة ✅</h2><p>لكن لست الأسرع، حاول في السؤال القادم!</p>`;
+                document.getElementById("question-container").innerHTML = `<h2>✅ إجابة صحيحة</h2><p>لكن لست الأسرع، حاول في المرة القادمة!</p>`;
             }
         });
     } else {
