@@ -50,13 +50,10 @@ function showQuiz(name) {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("quiz-box").style.display = "block";
     document.getElementById("user-display").innerText = "المتسابق: " + userName;
-    
-    // مراقبة النقاط مباشرة
     trackLiveScore();
     listenToAdmin();
 }
 
-// دالة جديدة لتحديث عداد النقاط فوراً
 function trackLiveScore() {
     const safeName = userName.replace(/[.#$/[\]]/g, "_");
     db.ref('totalPoints/' + safeName).on('value', (snapshot) => {
@@ -69,10 +66,19 @@ function listenToAdmin() {
     db.ref('currentQuestion').on('value', (snapshot) => {
         const qIndex = snapshot.val();
         const container = document.getElementById("question-container");
+        
         if (qIndex === -1 || qIndex === null) {
+            // عند إيقاف المسابقة، نمسح ذاكرة الإجابة للسؤال السابق ليكون جاهزاً للسؤال الجديد
+            localStorage.removeItem("answered_q");
             container.innerHTML = "<h2>⏳ بانتظار Remy يبدأ السؤال...</h2>";
         } else {
-            loadQuestion(qIndex);
+            // التحقق إذا كان قد جاوب على هذا السؤال تحديداً
+            const lastAnswered = localStorage.getItem("answered_q");
+            if (lastAnswered == qIndex) {
+                container.innerHTML = "<h2>✅ تم تسجيل إجابتك مسبقاً</h2><p>انتظر السؤال التالي من Remy</p>";
+            } else {
+                loadQuestion(qIndex);
+            }
         }
     });
 }
@@ -93,6 +99,9 @@ function loadQuestion(index) {
 }
 
 function checkAnswer(selected, qIndex) {
+    // تخزين رقم السؤال فور الإجابة (سواء صح أو خطأ) لمنع التكرار حتى عند التحديث
+    localStorage.setItem("answered_q", qIndex);
+
     if (selected === allQuestions[qIndex].correct) {
         const timestamp = firebase.database.ServerValue.TIMESTAMP;
         const safeName = userName.replace(/[.#$/[\]]/g, "_");
@@ -108,11 +117,17 @@ function checkAnswer(selected, qIndex) {
                 alert("🥇 مبروك! أنت الأسرع وحصلت على النقطة.");
                 document.getElementById("question-container").innerHTML = `<h2>✅ مبروك! حصلت على النقطة</h2><p>انتظر السؤال التالي من Remy</p>`;
             } else {
-                alert("إجابة صحيحة ✅ لكن شخص آخر كان أسرع. النقطة للأول فقط.");
+                alert("إجابة صحيحة ✅ لكن لست الأسرع.");
                 document.getElementById("question-container").innerHTML = `<h2>✅ إجابة صحيحة</h2><p>لكن لست الأسرع، حاول في المرة القادمة!</p>`;
             }
         });
     } else {
         alert("إجابة خاطئة! ❌");
+        document.getElementById("question-container").innerHTML = `<h2>❌ إجابة خاطئة</h2><p>انتظر السؤال التالي من Remy</p>`;
     }
 }
+    } else {
+        alert("إجابة خاطئة! ❌");
+    }
+}
+
