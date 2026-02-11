@@ -89,15 +89,43 @@ function loadQuestion(index) {
 // 5. تسجيل الإجابة وتحديد الأسرع
 function checkAnswer(selected, qIndex) {
     if (selected === allQuestions[qIndex].correct) {
-        // استخدام ServerValue.TIMESTAMP لضمان عدالة التوقيت بين الجميع
         const timestamp = firebase.database.ServerValue.TIMESTAMP;
-        db.ref('winners/' + qIndex).push({
+        
+        // 1. إرسال الإجابة أولاً
+        const newAnswerRef = db.ref('winners/' + qIndex).push({
             name: userName,
             time: timestamp
         });
-        alert("صح! سيتم التحقق من سرعتك...");
+
+        // 2. حساب المركز فوراً من قاعدة البيانات
+        db.ref('winners/' + qIndex).once('value', (snapshot) => {
+            let count = 0;
+            const answers = [];
+            
+            snapshot.forEach((child) => {
+                answers.push({ key: child.key, ...child.val() });
+            });
+
+            // ترتيب الإجابات حسب الوقت للتأكد من المركز
+            answers.sort((a, b) => a.time - b.time);
+            
+            // البحث عن ترتيب اللاعب الحالي
+            const myRank = answers.findIndex(a => a.key === newAnswerRef.key) + 1;
+
+            // 3. إظهار النتيجة للمتسابقة بالمركز
+            let rankText = "";
+            if (myRank === 1) rankText = "🥇 مبروك! أنت الأول (الأسرع)";
+            else if (myRank === 2) rankText = "🥈 ممتاز! أنت في المركز الثاني";
+            else if (myRank === 3) rankText = "🥉 بطل! أنت في المركز الثالث";
+            else rankText = `صح! مركزك الحالي: ${myRank}`;
+
+            alert(rankText);
+            document.getElementById("question-container").innerHTML = `<h2>${rankText}</h2><p>انتظر السؤال التالي من Remy ⏳</p>`;
+        });
+
     } else {
         alert("للأسف إجابة خاطئة!");
+        document.getElementById("question-container").innerHTML = "<h2>إجابة خاطئة.. تعوضها في السؤال الجاي! ⏳</h2>";
     }
-    document.getElementById("question-container").innerHTML = "<h2>تم تسجيل إجابتك.. انتظر السؤال التالي من Remy ⏳</h2>";
-}
+
+
