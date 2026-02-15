@@ -6,30 +6,34 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            color: white;
-            text-align: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            
-            /* ضبط الخلفية لتظهر كاملة وشفافة وتتحرك مع السكرول */
-            background: linear-gradient(rgba(10, 20, 40, 0.75), rgba(10, 20, 40, 0.75)), 
-                        url('logo.png');
-            background-size: cover; 
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
-        }
+    body {
+        margin: 0;
+        padding: 20px;
+        color: white;
+        text-align: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        
+        /* تقليل الزوم لإظهار الصورة كاملة */
+        background: linear-gradient(rgba(10, 20, 40, 0.75), rgba(10, 20, 40, 0.75)), 
+                    url('logo.png');
+        
+        /* هذا السطر هو الحل: يمنع قص الأطراف ويظهر الصورة كاملة */
+        background-size: contain; 
+        background-position: center; 
+        background-attachment: fixed;
+        background-repeat: no-repeat; /* لعدم تكرار الصورة */
+        background-color: #0a1428; /* لون مكمل للفراغات لضمان مظهر احترافي */
+    }
 
-        .admin-logo {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            border: 3px solid #e94560;
-            box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
-            margin-bottom: 10px;
-            object-fit: cover;
+    /* باقي التنسيقات (اللوجو، الصناديق، الأزرار) تبقى كما هي في الكود السابق */
+    .admin-logo {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        border: 3px solid #e94560;
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        margin-bottom: 10px;
+        object-fit: cover;
         }
 
         .box {
