@@ -5,114 +5,142 @@
     <title>لوحة تحكم Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-   <style>
-    body {
-        margin: 0;
-        padding: 20px;
-        color: white;
-        text-align: center;
-        font-family: 'Segoe UI', sans-serif;
+    <style>
+        :root {
+            --bg-color: #0f172a; /* لون خلفية عميق وراقي */
+            --card-bg: #1e293b;
+            --primary: #38bdf8; /* لون أزرق سماوي للأزرار */
+            --accent: #e94560;  /* لون أحمر للتنبيه والإيقاف */
+            --text-main: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* اللوجو في الأعلى بشكل أنيق */
+        .admin-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .admin-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
+
+        h1 { margin: 0; font-size: 1.8em; color: var(--primary); }
+
+        /* الصناديق */
+        .box {
+            background-color: var(--card-bg);
+            width: 90%;
+            max-width: 900px;
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* شبكة أزرار الأسئلة */
+        #admin-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .q-btn {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 12px 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .q-btn:hover {
+            background-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .q-btn.active {
+            background-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary);
+        }
+
+        /* زر الإيقاف */
+        .stop-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .stop-btn:hover { opacity: 0.9; }
+
+        /* القوائم والترتيب */
+        .list-container {
+            text-align: right;
+            line-height: 1.8;
+        }
         
-        /* لون خلفية يطابق أطراف اللوجو لدمج الأطراف */
-        background-color: #050a18; 
+        .rank-row {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+        }
 
-        /* إعدادات الخلفية الذكية */
-        background-image: linear-gradient(rgba(5, 10, 24, 0.7), rgba(5, 10, 24, 0.7)), 
-                          url('logo.png');
-        
-        /* لإظهار الصورة كاملة دون قص الأطراف */
-        background-size: contain; 
-        background-position: center top; 
-        background-attachment: fixed;
-        background-repeat: no-repeat;
-    }
-
-    /* اللوجو الدائري الصغير المتميز */
-    .admin-logo {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 3px solid #e94560;
-        box-shadow: 0 0 20px rgba(233, 69, 96, 0.6);
-        margin-top: 10px;
-        object-fit: cover;
-    }
-
-    /* الصناديق الشفافة الفخمة (التي طلبتها) */
-    .box {
-        background: rgba(15, 25, 50, 0.5); /* شفافية عالية لبروز الخلفية */
-        padding: 25px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(12px); /* تأثير ضبابي لزيادة الفخامة */
-        margin: 20px auto;
-        max-width: 950px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-
-    /* أزرار الأسئلة الاحترافية */
-    #admin-buttons {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-        gap: 10px;
-        padding: 15px;
-    }
-
-    .q-btn {
-        background: rgba(233, 69, 96, 0.2);
-        border: 1px solid #e94560;
-        color: white;
-        padding: 12px 5px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s ease;
-    }
-
-    .q-btn:hover, .q-btn.active {
-        background: #e94560;
-        box-shadow: 0 0 15px #e94560;
-        transform: translateY(-3px);
-    }
-
-    .stop-btn {
-        background: #ff2e63;
-        padding: 15px 40px;
-        border: none;
-        border-radius: 10px;
-        color: white;
-        font-weight: bold;
-        font-size: 1.1em;
-        cursor: pointer;
-        margin-top: 15px;
-        box-shadow: 0 4px 15px rgba(255, 46, 99, 0.3);
-    }
-</style>
+        .gold { color: #fbbf24; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-    <img src="logo.png" class="admin-logo">
-    <h1>لوحة تحكم المسابقة 🎮</h1>
+    <div class="admin-header">
+        <img src="logo.png" class="admin-logo" alt="Remy">
+        <h1>لوحة تحكم المسابقة</h1>
+    </div>
 
     <div class="box">
-        <h3>اختيار السؤال الحالي:</h3>
+        <h3>🎯 اختر السؤال لتفعيله:</h3>
         <div id="admin-buttons">
             </div>
-        <button class="stop-btn" onclick="stopQuiz()">🛑 إيقاف المسابقة مؤقتاً</button>
+        <button class="stop-btn" onclick="stopQuiz()">🛑 إيقاف المسابقة</button>
     </div>
 
     <div class="box">
-        <h2>🏆 أسرع إجابات للسؤال:</h2>
-        <div id="fastest-list">اضغط سؤالاً للفرز...</div>
+        <h3>⏱️ أسرع الإجابات للسؤال الحالي:</h3>
+        <div id="fastest-list" class="list-container">اضغط سؤالاً للفرز...</div>
     </div>
 
     <div class="box">
-        <h2>🌟 جدول النقاط العام:</h2>
-        <div id="leaderboard">جاري التحميل...</div>
+        <h3>🏆 الترتيب العام للنقاط:</h3>
+        <div id="leaderboard" class="list-container">جاري التحميل...</div>
     </div>
 
     <script>
-        // --- إعدادات Firebase --- (تأكد من مطابقتها لبياناتك)
+        // سكريبت الـ Firebase المعتاد
         const firebaseConfig = {
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -125,56 +153,49 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- توليد أزرار الأسئلة (50 سؤال) ---
+        // توليد الـ 50 زر
         const btnContainer = document.getElementById("admin-buttons");
         for (let i = 0; i < 50; i++) {
             let btn = document.createElement("button");
             btn.innerText = "سؤال " + (i + 1);
             btn.className = "q-btn";
-            btn.onclick = function() {
-                // إزالة اللون من الزر السابق
+            btn.onclick = () => {
                 document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
-                // إضافة اللون للزر الحالي
                 btn.classList.add('active');
                 sendQuestion(i);
             };
             btnContainer.appendChild(btn);
         }
 
-        function sendQuestion(index) {
-            db.ref('currentQuestion').set(index);
-            db.ref('winners/' + index).on('value', showFastest);
+        function sendQuestion(idx) {
+            db.ref('currentQuestion').set(idx);
+            db.ref('winners/' + idx).on('value', showFastest);
         }
 
         function stopQuiz() {
             db.ref('currentQuestion').set(-1);
             document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
-            alert("تم إيقاف المسابقة مؤقتاً");
+            alert("تم إيقاف المسابقة");
         }
 
-        function showFastest(snapshot) {
+        function showFastest(snap) {
             const list = document.getElementById("fastest-list");
             list.innerHTML = "";
-            let winners = [];
-            snapshot.forEach(child => {
-                if(child.val().correct) winners.push(child.val());
-            });
-            winners.forEach((w, i) => {
-                list.innerHTML += `<p>#${i+1} - ${w.name}</p>`;
+            let data = [];
+            snap.forEach(c => { if(c.val().correct) data.push(c.val()); });
+            data.forEach((w, i) => {
+                list.innerHTML += `<div class="rank-row"><span>${w.name}</span><span class="gold">#${i+1}</span></div>`;
             });
         }
 
-        // تحديث جدول النقاط العام
-        db.ref('totalPoints').on('value', (snapshot) => {
+        db.ref('totalPoints').on('value', (snap) => {
             const board = document.getElementById("leaderboard");
             board.innerHTML = "";
             let users = [];
-            snapshot.forEach(child => {
-                users.push({ name: child.key.replace(/_/g, " "), points: child.val() });
-            });
-            users.sort((a, b) => b.points - a.points);
+            snap.forEach(c => { users.push({name: c.key.replace(/_/g, ' '), pts: c.val()}); });
+            users.sort((a,b) => b.pts - a.pts);
             users.forEach((u, i) => {
-                board.innerHTML += `<p>#${i+1} - ${u.name} (${u.points} نقطة)</p>`;
+                board.innerHTML += `<div class="rank-row"><span>${u.name}</span><span class="gold">${u.pts} نقطة</span></div>`;
             });
         });
     </script>
