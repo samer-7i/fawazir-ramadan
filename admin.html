@@ -5,102 +5,173 @@
     <title>لوحة تحكم Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-   <style>
-    body {
-        margin: 0;
-        padding: 20px;
-        color: white;
-        text-align: center;
-        font-family: 'Cairo', sans-serif;
-        
-        /* إعدادات الخلفية لتظهر كاملة وشفافة */
-        background: linear-gradient(rgba(26, 26, 46, 0.7), rgba(26, 26, 46, 0.7)), 
-                    url('logo.png');
-        
-        /* لضمان ظهور الصورة كاملة دون قص */
-        background-size: cover; 
-        background-position: center top; /* لجعل التركيز على رأس الصورة */
-        background-attachment: fixed;
-        background-repeat: no-repeat;
-    }
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            
+            /* ضبط الخلفية لتظهر كاملة وشفافة وتتحرك مع السكرول */
+            background: linear-gradient(rgba(10, 20, 40, 0.75), rgba(10, 20, 40, 0.75)), 
+                        url('logo.png');
+            background-size: cover; 
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
 
-    /* الشعار العلوي (الذي كان جميلاً في البداية) */
-    .admin-logo {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        border: 4px solid #e94560;
-        box-shadow: 0 0 25px rgba(233, 69, 96, 0.6);
-        margin-bottom: 15px;
-        object-fit: cover;
-    }
+        .admin-logo {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 3px solid #e94560;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
 
-    /* جعل الصناديق شفافة "Glassmorphism" لتظهر الخلفية من خلالها */
-    .control-panel, .box {
-        background: rgba(15, 25, 50, 0.6) !important; /* درجة شفافية عالية */
-        backdrop-filter: blur(10px); /* تأثير ضبابي لزيادة الفخامة */
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
+        .box {
+            background: rgba(15, 25, 50, 0.6); /* شفافية الصناديق */
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 20px auto;
+            max-width: 900px;
+        }
 
-    /* تحسين أزرار الأسئلة */
-    .btn-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-        gap: 8px;
-        padding: 10px;
-    }
+        /* حاوية الأزرار التي اختفت - أعدناها هنا */
+        #admin-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px;
+        }
 
-    .q-btn {
-        background: rgba(233, 69, 96, 0.2);
-        border: 1px solid #e94560;
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s;
-    }
+        .q-btn {
+            width: 75px;
+            padding: 10px 5px;
+            background: rgba(233, 69, 96, 0.2);
+            color: white;
+            border: 1px solid #e94560;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: 0.3s;
+        }
 
-    .q-btn:hover, .q-btn.active {
-        background: #e94560;
-        box-shadow: 0 0 15px #e94560;
-    }
-</style>
+        .q-btn:hover, .q-btn.active {
+            background: #e94560;
+            box-shadow: 0 0 10px #e94560;
+            transform: scale(1.05);
+        }
+
+        .stop-btn {
+            background: #ff2e63;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 15px 0;
+        }
+
+        h2 { color: #ffd700; margin-bottom: 15px; }
+    </style>
 </head>
 <body>
 
-    <div class="header">
-        <img src="logo.png" class="admin-logo" alt="Remy">
-        <h1>لوحة تحكم المسابقة 🎮</h1>
+    <img src="logo.png" class="admin-logo">
+    <h1>لوحة تحكم المسابقة 🎮</h1>
+
+    <div class="box">
+        <h3>اختيار السؤال الحالي:</h3>
+        <div id="admin-buttons">
+            </div>
+        <button class="stop-btn" onclick="stopQuiz()">🛑 إيقاف المسابقة مؤقتاً</button>
     </div>
 
-    <div class="main-grid">
-        <div class="control-panel">
-            <h3>اختيار السؤال الحالي:</h3>
-            <div class="btn-grid" id="admin-buttons">
-                </div>
-            <button class="stop-btn" onclick="stopQuiz()">🛑 إيقاف المسابقة مؤقتاً</button>
-        </div>
+    <div class="box">
+        <h2>🏆 أسرع إجابات للسؤال:</h2>
+        <div id="fastest-list">اضغط سؤالاً للفرز...</div>
+    </div>
 
-        <div class="stats-panel">
-            <div class="box">
-                <h3 style="color: var(--gold);">🏆 أسرع إجابات (للسؤال):</h3>
-                <div id="fastest-list">اضغط سؤالاً للفرز...</div>
-            </div>
-
-            <div class="box">
-                <h3 style="color: var(--primary);">🌟 الترتيب العام (تراكمي):</h3>
-                <div id="leaderboard">جاري التحميل...</div>
-            </div>
-        </div>
+    <div class="box">
+        <h2>🌟 جدول النقاط العام:</h2>
+        <div id="leaderboard">جاري التحميل...</div>
     </div>
 
     <script>
-        // هنا تضع كود الـ Firebase والـ JavaScript الخاص بالأدمن كما كان سابقاً
-        // تأكد من إضافة دالة لتغيير لون الزر عند الضغط (Active class)
+        // --- إعدادات Firebase --- (تأكد من مطابقتها لبياناتك)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
+            authDomain: "fawazir-jaco.firebaseapp.com",
+            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fawazir-jaco",
+            storageBucket: "fawazir-jaco.firebasestorage.app",
+            messagingSenderId: "862747657100",
+            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // --- توليد أزرار الأسئلة (50 سؤال) ---
+        const btnContainer = document.getElementById("admin-buttons");
+        for (let i = 0; i < 50; i++) {
+            let btn = document.createElement("button");
+            btn.innerText = "سؤال " + (i + 1);
+            btn.className = "q-btn";
+            btn.onclick = function() {
+                // إزالة اللون من الزر السابق
+                document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
+                // إضافة اللون للزر الحالي
+                btn.classList.add('active');
+                sendQuestion(i);
+            };
+            btnContainer.appendChild(btn);
+        }
+
+        function sendQuestion(index) {
+            db.ref('currentQuestion').set(index);
+            db.ref('winners/' + index).on('value', showFastest);
+        }
+
+        function stopQuiz() {
+            db.ref('currentQuestion').set(-1);
+            document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
+            alert("تم إيقاف المسابقة مؤقتاً");
+        }
+
+        function showFastest(snapshot) {
+            const list = document.getElementById("fastest-list");
+            list.innerHTML = "";
+            let winners = [];
+            snapshot.forEach(child => {
+                if(child.val().correct) winners.push(child.val());
+            });
+            winners.forEach((w, i) => {
+                list.innerHTML += `<p>#${i+1} - ${w.name}</p>`;
+            });
+        }
+
+        // تحديث جدول النقاط العام
+        db.ref('totalPoints').on('value', (snapshot) => {
+            const board = document.getElementById("leaderboard");
+            board.innerHTML = "";
+            let users = [];
+            snapshot.forEach(child => {
+                users.push({ name: child.key.replace(/_/g, " "), points: child.val() });
+            });
+            users.sort((a, b) => b.points - a.points);
+            users.forEach((u, i) => {
+                board.innerHTML += `<p>#${i+1} - ${u.name} (${u.points} نقطة)</p>`;
+            });
+        });
     </script>
 </body>
 </html>
