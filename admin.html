@@ -5,15 +5,42 @@
     <title>لوحة تحكم Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <style>
-        body { background: #1a1a2e; color: white; text-align: center; font-family: sans-serif; padding: 20px; }
-        .btn { padding: 12px; background: #e94560; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; transition: 0.3s; }
-        .btn:hover { background: #ff2e63; }
-        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 20px; }
-        .box { background: #16213e; padding: 20px; border-radius: 10px; border: 1px solid #0f3460; min-width: 300px; max-width: 450px; text-align: right; }
-        .winner-item, .leader-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #333; }
-        .gold { color: #ffd700; font-weight: bold; }
-    </style>
+   <style>
+    body { 
+        /* نضع طبقة لون داكنة فوق الصورة لكي تظهر النصوص بوضوح */
+        background: linear-gradient(rgba(26, 26, 46, 0.85), rgba(26, 26, 46, 0.85)), 
+                    url('logo.png'); /* تأكد أن الاسم يطابق اسم الصورة التي رفعتها */
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        color: white; 
+        text-align: center; 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        padding: 20px; 
+    }
+
+    .box { 
+        background: rgba(22, 33, 62, 0.7); /* صندوق شفاف قليلاً */
+        padding: 20px; 
+        border-radius: 15px; 
+        border: 1px solid rgba(255, 215, 0, 0.3); 
+        min-width: 300px; 
+        max-width: 450px; 
+        text-align: right; 
+        backdrop-filter: blur(10px); /* تأثير ضبابي رائع */
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    /* إضافة لوقو صغير في أعلى الصفحة أيضاً لمزيد من الأناقة */
+    .admin-logo {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 2px solid #ffd700;
+        margin-bottom: 10px;
+        object-fit: cover;
+    }
+</style>
 </head>
 <body>
 
