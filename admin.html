@@ -13,54 +13,53 @@
         text-align: center;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         
-        /* إعدادات الخلفية لتظهر كاملة وتتحرك مع النزول والطلوع */
+        /* إعادة الصورة لتملأ الخلفية بالكامل داخل الإطار */
         background-image: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), 
                           url('logo.png');
         
-        /* هذا السطر يخلي الصورة تتحرك مع السكرول (Parallax) */
+        /* جعل الصورة تتحرك بانسيابية مع سكرول الصفحة (النزول والطلوع) */
         background-attachment: fixed; 
         
-        /* هذا السطر يضمن أن الصورة تغطي المساحة وتظهر بشكل متناسق */
-        background-size: contain; /* جرب "contain" لرؤية الصورة كاملة أو "cover" لتملأ الشاشة */
-        background-repeat: no-repeat;
+        /* العودة لخاصية cover لتملأ كامل الشاشة بدون فراغات */
+        background-size: cover; 
         background-position: center;
-        background-color: #0d1117; /* لون خلفية غامق لملء الفراغات */
+        background-repeat: no-repeat;
+        background-color: #000;
     }
 
-    /* تحسين شكل الحاويات لتكون شفافة وفخمة */
+    /* صناديق البيانات - جعلتها شفافة قليلاً لبروز الخلفية */
     .box {
-        background: rgba(22, 33, 62, 0.8);
-        padding: 20px;
+        background: rgba(15, 25, 50, 0.8);
+        padding: 25px;
         border-radius: 15px;
-        border: 1px solid rgba(233, 69, 96, 0.5);
-        margin: 20px auto;
-        max-width: 900px;
-        backdrop-filter: blur(10px);
+        border: 1.5px solid #e94560;
+        backdrop-filter: blur(8px);
         box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        margin: 20px auto;
+        max-width: 90%;
     }
 
-    /* تنسيق أزرار الأسئلة لتكون مصفوفة بشكل أفضل */
+    /* ترتيب أزرار الأسئلة */
     #admin-buttons {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
         gap: 5px;
-        padding: 10px;
     }
 
     .btn {
-        padding: 8px 12px;
+        padding: 10px 15px;
         background: #e94560;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 5px;
         cursor: pointer;
         font-weight: bold;
-        transition: 0.2s;
+        transition: 0.3s;
     }
 
     .btn:hover {
-        background: #0f3460;
+        background: #ff2e63;
         transform: scale(1.05);
     }
 </style>
