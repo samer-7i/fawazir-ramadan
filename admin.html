@@ -5,88 +5,89 @@
     <title>لوحة تحكم Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <style>
+   <style>
     body {
         margin: 0;
         padding: 20px;
         color: white;
         text-align: center;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Segoe UI', sans-serif;
         
-        /* تقليل الزوم لإظهار الصورة كاملة */
-        background: linear-gradient(rgba(10, 20, 40, 0.75), rgba(10, 20, 40, 0.75)), 
-                    url('logo.png');
+        /* لون خلفية يطابق أطراف اللوجو لدمج الأطراف */
+        background-color: #050a18; 
+
+        /* إعدادات الخلفية الذكية */
+        background-image: linear-gradient(rgba(5, 10, 24, 0.7), rgba(5, 10, 24, 0.7)), 
+                          url('logo.png');
         
-        /* هذا السطر هو الحل: يمنع قص الأطراف ويظهر الصورة كاملة */
+        /* لإظهار الصورة كاملة دون قص الأطراف */
         background-size: contain; 
-        background-position: center; 
+        background-position: center top; 
         background-attachment: fixed;
-        background-repeat: no-repeat; /* لعدم تكرار الصورة */
-        background-color: #0a1428; /* لون مكمل للفراغات لضمان مظهر احترافي */
+        background-repeat: no-repeat;
     }
 
-    /* باقي التنسيقات (اللوجو، الصناديق، الأزرار) تبقى كما هي في الكود السابق */
+    /* اللوجو الدائري الصغير المتميز */
     .admin-logo {
-        width: 140px;
-        height: 140px;
+        width: 120px;
+        height: 120px;
         border-radius: 50%;
         border: 3px solid #e94560;
-        box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
-        margin-bottom: 10px;
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.6);
+        margin-top: 10px;
         object-fit: cover;
-        }
+    }
 
-        .box {
-            background: rgba(15, 25, 50, 0.6); /* شفافية الصناديق */
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            margin: 20px auto;
-            max-width: 900px;
-        }
+    /* الصناديق الشفافة الفخمة (التي طلبتها) */
+    .box {
+        background: rgba(15, 25, 50, 0.5); /* شفافية عالية لبروز الخلفية */
+        padding: 25px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(12px); /* تأثير ضبابي لزيادة الفخامة */
+        margin: 20px auto;
+        max-width: 950px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
 
-        /* حاوية الأزرار التي اختفت - أعدناها هنا */
-        #admin-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 8px;
-            padding: 15px;
-        }
+    /* أزرار الأسئلة الاحترافية */
+    #admin-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+        gap: 10px;
+        padding: 15px;
+    }
 
-        .q-btn {
-            width: 75px;
-            padding: 10px 5px;
-            background: rgba(233, 69, 96, 0.2);
-            color: white;
-            border: 1px solid #e94560;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
-            transition: 0.3s;
-        }
+    .q-btn {
+        background: rgba(233, 69, 96, 0.2);
+        border: 1px solid #e94560;
+        color: white;
+        padding: 12px 5px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s ease;
+    }
 
-        .q-btn:hover, .q-btn.active {
-            background: #e94560;
-            box-shadow: 0 0 10px #e94560;
-            transform: scale(1.05);
-        }
+    .q-btn:hover, .q-btn.active {
+        background: #e94560;
+        box-shadow: 0 0 15px #e94560;
+        transform: translateY(-3px);
+    }
 
-        .stop-btn {
-            background: #ff2e63;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 15px 0;
-        }
-
-        h2 { color: #ffd700; margin-bottom: 15px; }
-    </style>
+    .stop-btn {
+        background: #ff2e63;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1em;
+        cursor: pointer;
+        margin-top: 15px;
+        box-shadow: 0 4px 15px rgba(255, 46, 99, 0.3);
+    }
+</style>
 </head>
 <body>
 
