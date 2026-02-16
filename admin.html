@@ -10,26 +10,28 @@
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --text: #ffffff; --accent: #10b981; --gold: #f59e0b; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; }
         
-        .main-layout { display: grid; grid-template-columns: 1fr 350px; gap: 20px; width: 100%; max-width: 1100px; }
+        .main-layout { display: grid; grid-template-columns: 1fr 350px; gap: 20px; width: 100%; max-width: 1150px; }
         .panel { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
         .admin-logo { width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 10px; }
         
         /* شبكة الـ 30 سؤال */
         .q-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 15px 0; }
-        .q-btn { background: rgba(255, 255, 255, 0.05); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.3); padding: 10px 5px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.8em; transition: 0.3s; }
+        .q-btn { background: rgba(255, 255, 255, 0.05); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.3); padding: 12px 5px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85em; transition: 0.3s; }
         .q-btn.active { background: var(--blue); color: #000; box-shadow: 0 0 15px var(--blue); }
         
-        .section-title { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 15px; color: var(--blue); font-size: 1.1em; display: flex; align-items: center; gap: 8px; }
+        .section-title { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 15px; color: var(--blue); font-size: 1.1em; font-weight: bold; }
         
-        /* قوائم الأسماء */
-        .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
-        .name-item { display: flex; justify-content: space-between; padding: 8px 12px; margin-bottom: 5px; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 0.9em; }
-        .fast-track { border-right: 3px solid var(--accent); }
-        .leader-track { border-right: 3px solid var(--gold); }
+        #question-text-area { margin: 15px 0; font-size: 1.3em; color: #fff; font-weight: bold; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-right: 4px solid var(--blue); min-height: 50px; display: flex; align-items: center; justify-content: center; }
 
-        .btn-danger { background: var(--red); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-warning { background: var(--gold); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
+        .name-item { display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
+        .fast-track { border-right-color: var(--accent); }
+        .leader-track { border-right-color: var(--gold); }
+
+        .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-danger:hover, .btn-warning:hover { opacity: 0.8; transform: scale(0.98); }
 
         @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
     </style>
@@ -41,16 +43,17 @@
             <div class="panel" style="text-align: center;">
                 <img src="logo.png" class="admin-logo" onerror="this.src='https://via.placeholder.com/70'">
                 <h2 style="margin:0">لوحة تحكم Remy 👑</h2>
-                <div id="question-display" style="margin: 15px 0; font-size: 1.2em; color: var(--blue); font-weight: bold; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px;">
-                    اختر سؤالاً للبدء...
-                </div>
+                
+                <div style="margin-top: 15px; font-size: 0.9em; color: var(--blue);">السؤال المباشر الآن:</div>
+                <div id="question-text-area">اختر سؤالاً من الشبكة بالأسفل...</div>
+                <div style="color: var(--accent); font-weight: bold;">الفائز: <span id="winner-name">---</span></div>
             </div>
 
             <div class="panel">
                 <div class="section-title">🎮 التحكم بالأسئلة (30 سؤال)</div>
                 <div class="q-grid" id="btn-container"></div>
-                <button class="btn-danger" onclick="sendQ(-1)">🛑 إخفاء السؤال الحالي</button>
-                <button class="btn-warning" onclick="resetRound()">🔄 جولة جديدة (تصفير الأجهزة)</button>
+                <button class="btn-danger" onclick="sendQ(-1)">🛑 إيقاف وإخفاء السؤال من عند الجميع</button>
+                <button class="btn-warning" onclick="resetRound()">🔄 جولة جديدة (تصفير إجابات الأجهزة)</button>
             </div>
         </div>
 
@@ -58,7 +61,7 @@
             <div class="panel">
                 <div class="section-title">⚡ أسرع 10 في السؤال الحالي</div>
                 <div id="fastest-list" class="list-container">
-                    <p style="color:#666; font-size: 0.8em;">بانتظار الإجابات...</p>
+                    <p style="color:#666; font-size: 0.9em; text-align: center;">بانتظار الإجابات...</p>
                 </div>
             </div>
 
@@ -70,6 +73,7 @@
     </div>
 
     <script>
+        // --- ضع هنا بيانات الـ Firebase الخاصة بك ---
         const config = { 
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -82,7 +86,22 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        // توليد 30 زر
+        // مصفوفة الـ 30 سؤال (قم بتغيير النصوص هنا لتظهر لك في اللوحة)
+        const myQuestions = [
+            { q: "من هو النبي الذي لُقب بكليم الله؟" },
+            { q: "ما هي أطول سورة في القرآن الكريم؟" },
+            { q: "أكمل المثل: القرد في عين أمه..." },
+            { q: "ما هي عاصمة المملكة العربية السعودية؟" },
+            { q: "كم عدد أركان الإسلام؟" },
+            { q: "من هو أول الخلفاء الراشدين؟" },
+            { q: "ما هو أكبر كوكب في المجموعة الشمسية؟" },
+            { q: "في أي مدينة ولد النبي محمد ﷺ؟" },
+            { q: "كم عدد سور القرآن الكريم؟" },
+            { q: "ما هو لون العلم السعودي؟" },
+            // أضف نصوص الأسئلة حتى رقم 30 بنفس الطريقة...
+        ];
+
+        // توليد الأزرار
         const container = document.getElementById("btn-container");
         for(let i=0; i<30; i++) {
             let b = document.createElement("button");
@@ -94,44 +113,53 @@
 
         function sendQ(idx) {
             db.ref('currentQuestion').set(idx);
-            // تصفير قائمة "أسرع 10" مؤقتاً عند تغيير السؤال
-            document.getElementById("fastest-list").innerHTML = "بانتظار الإجابات...";
+            document.getElementById("winner-name").innerText = "---";
         }
 
         function resetRound() {
-            if(confirm("تنبيه: سيتم مسح ذاكرة الإجابات عند جميع المتابعين. هل تريد الاستمرار؟")) {
+            if(confirm("هل تريد تصفير ذاكرة الأجهزة للسماح للجميع بالإجابة مرة أخرى؟")) {
                 db.ref('roundVersion').transaction(v => (v || 0) + 1);
                 db.ref('winners').remove();
-                db.ref('answers_logs').remove(); // تصفير سجل السرعة
+                db.ref('answers_logs').remove();
             }
         }
 
-        // مراقبة السؤال الحالي
         db.ref('currentQuestion').on('value', snap => {
             const idx = snap.val();
             document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
+            
             if(idx !== -1 && idx !== null) {
-                document.getElementById("q"+idx).classList.add("active");
-                document.getElementById("question-display").innerText = "السؤال الحالي: رقم " + (idx+1);
+                if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
                 
-                // مراقبة أسرع 10 للسؤال الحالي
+                // عرض نص السؤال من المصفوفة
+                const qData = myQuestions[idx];
+                document.getElementById("question-text-area").innerText = qData ? qData.q : "سؤال رقم " + (idx+1);
+
+                // مراقبة أسرع 10
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
                     const list = document.getElementById("fastest-list");
                     list.innerHTML = "";
-                    if(!s.exists()) { list.innerHTML = "بانتظار الإجابات..."; return; }
+                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
                     
                     let count = 1;
                     s.forEach(child => {
                         const data = child.val();
                         list.innerHTML += `<div class="name-item fast-track">
-                            <span>${count}. ${data.name}</span>
-                            <span style="color:var(--accent)">${count === 1 ? 'الأسرع 🥇' : 'تمت الإجابة'}</span>
+                            <span>${count}. <b>${data.name}</b></span>
+                            <span style="color:var(--accent)">${count === 1 ? '🥇 الأول' : '✓ جاوب'}</span>
                         </div>`;
                         count++;
                     });
                 });
+
+                // مراقبة الفائز بالنقطة
+                db.ref('winners/'+idx).on('value', s => {
+                    document.getElementById("winner-name").innerText = s.exists() ? s.val().name : "---";
+                });
+
             } else {
-                document.getElementById("question-display").innerText = "المسابقة متوقفة حالياً";
+                document.getElementById("question-text-area").innerText = "المسابقة متوقفة حالياً";
+                document.getElementById("winner-name").innerText = "---";
             }
         });
 
@@ -143,8 +171,8 @@
             list.innerHTML = "";
             sorted.forEach((p, i) => {
                 list.innerHTML += `<div class="name-item leader-track">
-                    <span>${i+1}. ${p.name}</span>
-                    <span style="color:var(--gold)">${p.points || 0} ن</span>
+                    <span>${i+1}. <b>${p.name}</b></span>
+                    <span style="color:var(--gold)">${p.points || 0} نقطة</span>
                 </div>`;
             });
         });
