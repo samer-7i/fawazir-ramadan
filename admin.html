@@ -9,7 +9,10 @@
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --text: #ffffff; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
-        .panel { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); width: 100%; max-width: 600px; margin-bottom: 20px; text-align: center; }
+        .panel {<div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
+    <img src="logo.png" alt="Logo" style="width: 60px; height: 60px; border-radius: 50%; border: 1px solid var(--blue);">
+    <h2 style="color: var(--blue); margin: 0;">لوحة تحكم Remy 👑</h2>
+</div> background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); width: 100%; max-width: 600px; margin-bottom: 20px; text-align: center; }
         .q-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 15px 0; }
         .q-btn { background: rgba(56, 189, 248, 0.1); color: var(--blue); border: 1px solid var(--blue); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .q-btn.active { background: var(--blue); color: #000; }
