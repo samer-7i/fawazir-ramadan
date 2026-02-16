@@ -1,79 +1,170 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مسابقة Remy 🎮</title>
-    
-    <script src="script.js"></script>
+    <title>مسابقة Remy | المتابعين 🎮</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="script.js"></script>
 
     <style>
         :root {
-            --bg-color: #0a1120;
-            --card-bg: #162136;
-            --primary: #38bdf8;
-            --accent: #e94560;
-            --text-main: #f8fafc;
+            --bg: #0a1120;
+            --card: #162136;
+            --blue: #38bdf8;
+            --red: #e94560;
+            --gold: #fbbf24;
+            --white: #f8fafc;
         }
 
         body {
             margin: 0; padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--bg);
+            color: var(--white);
             font-family: 'Segoe UI', sans-serif;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
         }
 
+        /* تنسيق الهيدر واللوجو */
         .header-section {
             display: flex; flex-direction: column; align-items: center;
             padding: 40px 20px 10px; width: 100%;
+            background: linear-gradient(180deg, rgba(56, 189, 248, 0.05) 0%, rgba(10, 17, 32, 0) 100%);
         }
 
-        .main-logo {
-            width: 110px; height: 110px; border-radius: 50%;
-            border: 3px solid var(--primary);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            object-fit: cover; margin-bottom: 15px;
+        .logo-img {
+            width: 115px; height: 115px; border-radius: 50%;
+            border: 3px solid var(--blue);
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+            object-fit: cover; margin-bottom: 20px;
         }
 
-        #question-status { font-size: 1.8em; color: var(--primary); margin: 5px 0; }
-        #question-text { font-size: 1.2em; color: #fbbf24; text-align: center; margin-bottom: 20px; min-height: 30px; }
+        #q-status {
+            font-size: 2em; color: var(--blue); margin: 0;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
 
-        .container { width: 90%; max-width: 450px; }
+        #q-text {
+            font-size: 1.3em; color: var(--gold); text-align: center;
+            margin: 15px 25px; min-height: 40px; font-weight: bold;
+        }
 
+        /* كرت المتسابق */
         .user-card {
-            background-color: var(--card-bg); padding: 15px;
-            border-radius: 15px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom: 20px;
+            background-color: var(--card); padding: 20px;
+            border-radius: 20px; text-align: center;
+            width: 85%; max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);
         }
 
         .points-box {
-            background: var(--accent); padding: 8px 15px;
-            border-radius: 10px; display: inline-block; font-weight: bold;
+            background: var(--red); color: white;
+            padding: 10px 25px; border-radius: 12px;
+            font-weight: bold; font-size: 1.2em;
+            display: inline-block; margin-top: 15px;
         }
 
-        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        /* شبكة الأزرار */
+        .grid-container {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 15px; width: 90%; max-width: 450px; margin-bottom: 50px;
+        }
 
-        .answer-btn {
-            background-color: var(--card-bg); color: white;
-            border: 2px solid var(--primary); padding: 22px 10px;
-            border-radius: 15px; font-size: 1.1em; font-weight: bold;
+        .btn-option {
+            background-color: var(--card); color: white;
+            border: 2px solid var(--blue); padding: 25px 10px;
+            border-radius: 15px; font-size: 1.2em; font-weight: bold;
             cursor: pointer; transition: 0.2s;
         }
 
-        .answer-btn:active { transform: scale(0.95); background-color: var(--primary); }
+        .btn-option:active { transform: scale(0.95); background-color: var(--blue); }
+
         .hidden { display: none !important; }
+
+        /* حركات الظهور */
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div class="header-section">
-        <img src="logo.png" class="main-logo">
+        <img src="logo.png" class="logo-img">
+        <h1 id="q-status">بانتظار السؤال...</h1>
+        <p id="q-text"></p>
+    </div>
+
+    <div class="user-card fade-in">
+        <h3 id="display-name" style="margin:0; font-size: 1.1em;">المتسابق: جاري التحميل...</h3>
+        <div class="points-box">النقاط: <span id="points-count">0</span></div>
+    </div>
+
+    <div id="quiz-area" class="hidden">
+        <div class="grid-container" id="btns-grid">
+            </div>
+    </div>
+
+    <script>
+        function updateQuestion(idx) {
+            const statusLabel = document.getElementById("q-status");
+            const textLabel = document.getElementById("q-text");
+            const quizDiv = document.getElementById("quiz-area");
+            const grid = document.getElementById("btns-grid");
+
+            if (idx === -1 || idx === null || idx === undefined) {
+                statusLabel.innerText = "بانتظار السؤال القادم...";
+                textLabel.innerText = "استعد يا بطل! 🔥";
+                quizDiv.classList.add("hidden");
+            } else {
+                statusLabel.innerText = "السؤال " + (parseInt(idx) + 1);
+                
+                const currentQuestionData = window.allQuestions ? window.allQuestions[idx] : null;
+
+                if (currentQuestionData) {
+                    textLabel.innerText = currentQuestionData.q;
+                    grid.innerHTML = ""; // تنظيف الأزرار السابقة
+
+                    currentQuestionData.options.forEach((opt, i) => {
+                        const btn = document.createElement("button");
+                        btn.className = "btn-option fade-in";
+                        btn.innerText = opt;
+                        btn.onclick = () => handleSubmission(idx, i);
+                        grid.appendChild(btn);
+                    });
+
+                    quizDiv.classList.remove("hidden");
+                }
+            }
+        }
+
+        // الاستماع لـ Firebase
+        db.ref('currentQuestion').on('value', (snap) => {
+            updateQuestion(snap.val());
+        });
+
+        // متابعة النقاط
+        let userStoredName = localStorage.getItem("userName") || "متسابق جديد";
+        db.ref('totalPoints/' + userStoredName.replace(/ /g, '_')).on('value', s => {
+            document.getElementById("points-count").innerText = s.val() || 0;
+            document.getElementById("display-name").innerText = "المتسابق: " + userStoredName;
+        });
+
+        function handleSubmission(qIndex, choiceIndex) {
+            db.ref('winners/' + qIndex + '/' + userStoredName.replace(/ /g, '_')).set({
+                name: userStoredName,
+                answer: choiceIndex,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            document.getElementById("quiz-area").classList.add("hidden");
+            document.getElementById("q-text").innerText = "تم إرسال إجابتك بنجاح! ✅";
+        }
+    </script>
+</body>
+</html>>
         <h1 id="question-status">بانتظار السؤال...</h1>
         <p id="question-text"></p>
     </div>
@@ -151,3 +242,4 @@
     </script>
 </body>
 </html>
+
