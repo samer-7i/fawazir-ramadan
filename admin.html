@@ -4,103 +4,220 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم Remy 🚀</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="script.js"></script>
+
     <style>
         :root {
-            --bg: #0a1120;
-            --card: #162136;
-            --blue: #38bdf8;
-            --red: #e94560;
+            --bg: #0a1120;      /* لون الخلفية الأصلي */
+            --card: #162136;    /* لون الصناديق */
+            --blue: #38bdf8;    /* اللون الأزرق للهوية */
+            --red: #e94560;     /* لون زر الإيقاف */
             --text: #ffffff;
         }
 
         body {
-            margin: 0;
-            padding: 20px;
+            margin: 0; padding: 20px;
             background: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex; flex-direction: column; align-items: center;
         }
 
+        /* تنسيق الهيدر واللوجو */
         .header { text-align: center; margin-bottom: 20px; }
-        
         .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 2px solid var(--blue);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+            width: 80px; height: 80px;
+            border-radius: 50%; border: 2px solid var(--blue);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
             margin-bottom: 10px;
         }
 
-        /* شاشة المعاينة */
+        /* شاشة المعاينة (ما يراه المتابعون) */
         .preview-card {
             background: var(--card);
-            width: 90%;
-            max-width: 700px;
-            padding: 20px;
-            border-radius: 20px;
+            width: 95%; max-width: 750px;
+            padding: 20px; border-radius: 20px;
             border: 1px solid rgba(56, 189, 248, 0.2);
-            margin-bottom: 25px;
-            display: none; 
-            text-align: center;
+            margin-bottom: 25px; display: none; text-align: center;
         }
 
-        .live-tag {
-            color: var(--red);
-            font-size: 0.8em;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-
-        .dot { height: 8px; width: 8px; background: var(--red); border-radius: 50%; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* الإحصائيات (أسرع إجابة والمتصدرين) */
-        .stats-container {
-            display: flex;
-            gap: 15px;
-            width: 95%;
-            max-width: 800px;
+        /* قسم الإحصائيات (أسرع إجابة + المتصدرين) */
+        .stats-row {
+            display: flex; gap: 15px;
+            width: 95%; max-width: 800px;
             margin-bottom: 20px;
         }
-        .stat-card {
-            flex: 1;
-            background: var(--card);
-            padding: 15px;
-            border-radius: 15px;
-            border: 1px solid rgba(56, 189, 248, 0.1);
+        .stat-box {
+            flex: 1; background: var(--card);
+            padding: 15px; border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             text-align: right;
         }
-        .stat-card h4 { margin: 0 0 10px 0; color: #64748b; font-size: 0.8em; text-transform: uppercase; }
-        .leader-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+        .stat-box h4 { margin: 0 0 8px 0; color: #64748b; font-size: 0.85em; }
+        .leader-entry {
+            display: flex; justify-content: space-between;
+            padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
             font-size: 0.9em;
         }
 
-        /* شبكة الأزرار */
-        .grid-container {
+        /* شبكة الأزرار الـ 50 */
+        .grid-holder {
             background: var(--card);
-            padding: 20px;
-            border-radius: 20px;
-            width: 95%;
-            max-width: 800px;
+            padding: 20px; border-radius: 20px;
+            width: 95%; max-width: 800px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .q-btn {
+            background: rgba(56, 189, 248, 0.05);
+            color: var(--blue);
+            border: 1px solid var(--blue);
+            padding: 12px 5px; border-radius: 10px;
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .q-btn:hover { background: var(--blue); color: var(--bg); transform: scale(1.05); }
+
+        .stop-btn {
+            background: var(--red); color: white;
+            border: none; padding: 18px; border-radius: 15px;
+            width: 95%; max-width: 800px;
+            font-size: 1.1em; font-weight: bold;
+            cursor: pointer; margin-top: 25px;
+        }
+
+        .opt-tag {
+            display: inline-block; margin: 5px;
+            padding: 6px 12px; background: rgba(255,255,255,0.08);
+            border-radius: 8px; font-size: 0.85em; color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="logo.png" class="logo" alt="Remy Logo">
+        <h2 style="margin:0">لوحة تحكم Remy 🎮</h2>
+    </div>
+
+    <div id="live-preview" class="preview-card">
+        <div style="color:var(--red); font-weight:bold; font-size:0.8em; margin-bottom:10px;">🔴 يظهر الآن للمتابعين:</div>
+        <h3 id="preview-text" style="color: var(--blue); margin: 5px 0;"></h3>
+        <div id="preview-opts"></div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-box">
+            <h4>⚡ أسرع إجابة صحيحة</h4>
+            <div id="fastest-display" style="color:var(--blue); font-weight: bold; font-size:1.1em;">بانتظار الإجابات...</div>
+        </div>
+        <div class="stat-box">
+            <h4>🏆 أعلى 5 نقاط</h4>
+            <div id="top-list"></div>
+        </div>
+    </div>
+
+    <div class="grid-holder" id="buttons-grid"></div>
+
+    <button class="stop-btn" onclick="updateFB(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
+
+    <script>
+        // إعدادات Firebase الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
+            authDomain: "fawazir-jaco.firebaseapp.com",
+            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fawazir-jaco",
+            storageBucket: "fawazir-jaco.firebasestorage.app",
+            messagingSenderId: "862747657100",
+            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        // مصفوفة الأسئلة المأخوذة من الكود الخاص بك
+        const questionsList = [
+            { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 },
+            { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["البقرة", "النساء", "آل عمران"], correct: 0 },
+            { q: "...أكمل المثل: القرد في عين أمه", options: ["حصان", "فيل", "غزال"], correct: 2 },
+            { q: "ما هو الشيء الذي يقرصك ولا تراه؟", options: ["النملة", "الجوع", "البرد"], correct: 1 },
+            { q: "سورة تُسمى قلب القرآن؟", options: ["الرحمن", "الملك", "يس"], correct: 2 },
+            { q: "ما هو الشيء الذي له أسنان ولا يعض؟", options: ["المفتاح", "المشط", "المنشار"], correct: 1 },
+            { q: "كم عدد سجدات التلاوة في القرآن؟", options: ["12", "15", "10"], correct: 1 },
+            { q: "من هو أول من صام؟", options: ["محمد ﷺ", "نوح عليه السلام", "آدم عليه السلام"], correct: 2 },
+            { q: "ما هو العضو الذي يغلق تلقائياً عند العطس؟", options: ["الفم", "العين", "الأذن"], correct: 1 },
+            { q: "أين تقع الكعبة المشرفة؟", options: ["مكة", "القدس", "المدينة"], correct: 0 }
+            // يمكنك إضافة حتى 50 سؤالاً هنا بنفس التنسيق
+        ];
+
+        // توليد الأزرار يدوياً لضمان عدم الاختفاء
+        const grid = document.getElementById("buttons-grid");
+        for (let i = 0; i < 50; i++) {
+            const btn = document.createElement("button");
+            btn.className = "q-btn";
+            btn.innerText = "سؤال " + (i + 1);
+            btn.onclick = () => updateFB(i);
+            grid.appendChild(btn);
+        }
+
+        function updateFB(val) { db.ref('currentQuestion').set(val); }
+
+        // مراقبة التغييرات في Firebase
+        db.ref('currentQuestion').on('value', (snap) => {
+            const idx = snap.val();
+            const preview = document.getElementById("live-preview");
+            const fastestDiv = document.getElementById("fastest-display");
+
+            if (idx === -1 || idx === null) {
+                preview.style.display = "none";
+                fastestDiv.innerText = "لا يوجد سؤال نشط";
+            } else {
+                preview.style.display = "block";
+                const data = questionsList[idx];
+                if (data) {
+                    document.getElementById("preview-text").innerText = "س" + (idx + 1) + ": " + data.q;
+                    const optDiv = document.getElementById("preview-opts");
+                    optDiv.innerHTML = "";
+                    data.options.forEach(opt => {
+                        const s = document.createElement("span");
+                        s.className = "opt-tag"; s.innerText = opt;
+                        optDiv.appendChild(s);
+                    });
+                }
+                
+                // جلب أسرع إجابة صحيحة للسؤال الحالي
+                db.ref('winners/' + idx).orderByChild('time').on('value', (wSnap) => {
+                    let winnerFound = false;
+                    wSnap.forEach(child => {
+                        const val = child.val();
+                        if (val.correct && !winnerFound) {
+                            fastestDiv.innerHTML = `🥇 ${val.name}`;
+                            winnerFound = true;
+                        }
+                    });
+                    if (!winnerFound) fastestDiv.innerText = "بانتظار الإجابة...";
+                });
+            }
+        });
+
+        // جلب قائمة أعلى المتصدرين (Top 5)
+        db.ref('totalPoints').on('value', (snap) => {
+            const listDiv = document.getElementById("top-list");
+            const points = snap.val() || {};
+            const sorted = Object.entries(points)
+                .map(([name, pts]) => ({ name: name.replace(/_/g, ' '), pts }))
+                .sort((a, b) => b.pts - a.pts).slice(0, 5);
+
+            listDiv.innerHTML = "";
+            sorted.forEach((u, i) => {
+                listDiv.innerHTML += `<div class="leader-entry"><span>${i+1}. ${u.name}</span><span style="color:var(--blue)">${u.pts} ن</span></div>`;
+            });
+        });
+    </script>
+</body>
+</html>
