@@ -5,72 +5,26 @@
     <title>لوحة التحكم - Remy</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="script.js"></script> 
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f2f5; margin: 0; padding: 20px; }
-        
-        /* شاشة معاينة السؤال المختار (بدون الجواب الصحيح) */
-        .preview-box {
-            background: white;
-            max-width: 600px;
-            margin: 0 auto 20px;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-right: 5px solid #007bff;
-            display: none; /* تختفي إذا لم يتم اختيار سؤال */
-        }
-
-        .btn-grid { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 10px; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px; 
-        }
-
-        button { padding: 15px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; font-weight: bold; }
-        button:hover { background: #0056b3; }
-
-        .stop-btn { background: #dc3545; margin-top: 20px; padding: 20px; width: 80%; max-width: 800px; font-size: 1.1em; }
-        .stop-btn:hover { background: #a71d2a; }
-
-        .opt-view {
-            display: inline-block;
-            margin: 5px;
-            padding: 5px 12px;
-            background: #e9ecef;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
+        body { font-family: sans-serif; text-align: center; background: #f0f2f5; }
+        .btn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        button { padding: 15px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; }
+        .stop-btn { background: #dc3545; margin-top: 20px; padding: 20px; width: 80%; }
     </style>
 </head>
 <body>
-
     <h2>اختيار السؤال للمتابعين 🚀</h2>
-
-    <div id="preview" class="preview-box">
-        <p style="color: #666; font-size: 0.9em; margin: 0;">يظهر الآن للمتابعين:</p>
-        <h3 id="current-q-title" style="margin: 10px 0;"></h3>
-        <div id="current-q-opts"></div>
-    </div>
-
     <div class="btn-grid" id="buttons"></div>
-    
-    <button class="stop-btn" onclick="setQuestion(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
+    <button class="stop-btn" onclick="setQuestion(-1)">إيقاف المسابقة / إخفاء السؤال</button>
 
     <script>
-        // استخدام الإعدادات الموجودة في ملف script.js تلقائياً
-        const btnContainer = document.getElementById("buttons");
-        const previewBox = document.getElementById("preview");
-        const qTitle = document.getElementById("current-q-title");
-        const qOpts = document.getElementById("current-q-opts");
+        const firebaseConfig = { /* نفس إعداداتك بالأعلى */ };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // توليد أزرار الأسئلة (سيأخذ العدد من مصفوفة allQuestions في script.js)
-        const totalQs = window.allQuestions ? window.allQuestions.length : 50;
-        
-        for (let i = 0; i < totalQs; i++) {
+        // توليد 50 زر للأسئلة
+        const btnContainer = document.getElementById("buttons");
+        for (let i = 0; i < 50; i++) {
             let btn = document.createElement("button");
             btn.innerText = "سؤال " + (i + 1);
             btn.onclick = () => setQuestion(i);
@@ -79,29 +33,8 @@
 
         function setQuestion(idx) {
             db.ref('currentQuestion').set(idx);
-            // لا حاجة لـ alert هنا لأن المعاينة ستظهر أمامك
+            alert(idx === -1 ? "تم إخفاء الأسئلة" : "تم تفعيل السؤال رقم " + (idx + 1));
         }
-
-        // الاستماع للتغييرات لتحديث المعاينة عندك كأدمن
-        db.ref('currentQuestion').on('value', (snapshot) => {
-            const idx = snapshot.val();
-            if (idx === -1 || idx === null) {
-                previewBox.style.display = "none";
-            } else {
-                previewBox.style.display = "block";
-                const data = window.allQuestions[idx];
-                qTitle.innerText = "س" + (idx + 1) + ": " + data.q;
-                
-                // عرض الخيارات بدون تمييز الصحيح
-                qOpts.innerHTML = "";
-                data.options.forEach(opt => {
-                    const span = document.createElement("span");
-                    span.className = "opt-view";
-                    span.innerText = opt;
-                    qOpts.appendChild(span);
-                });
-            }
-        });
     </script>
 </body>
 </html>
