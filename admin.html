@@ -6,10 +6,10 @@
     <title>لوحة تحكم Remy 🚀</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="script.js"></script>
+    
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --text: #ffffff; }
-        body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; }
         .header { text-align: center; margin-bottom: 20px; }
         .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 10px; }
         
@@ -18,17 +18,18 @@
         
         /* الإحصائيات */
         .stats-row { display: flex; gap: 15px; width: 95%; max-width: 800px; margin-bottom: 20px; }
-        .stat-box { flex: 1; background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.05); text-align: right; min-height: 120px; }
-        .stat-box h4 { margin: 0 0 15px 0; color: #64748b; font-size: 0.9em; }
-        
-        .leader-entry { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .stat-box { flex: 1; background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.05); text-align: right; min-height: 100px; }
+        .stat-box h4 { margin: 0 0 10px 0; color: #64748b; font-size: 0.85em; }
+
+        .leader-entry { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .points-tag { color: var(--blue); font-weight: bold; }
 
-        /* الأزرار */
-        .grid-holder { background: var(--card); padding: 20px; border-radius: 20px; width: 95%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
-        .q-btn { background: rgba(56, 189, 248, 0.05); color: var(--blue); border: 1px solid var(--blue); padding: 12px 5px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        /* شبكة الأزرار - التأكد من ظهورها */
+        .grid-holder { background: var(--card); padding: 20px; border-radius: 20px; width: 95%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+        .q-btn { background: rgba(56, 189, 248, 0.1); color: var(--blue); border: 1px solid var(--blue); padding: 10px 5px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .q-btn:hover { background: var(--blue); color: var(--bg); }
+
         .stop-btn { background: var(--red); color: white; border: none; padding: 18px; border-radius: 15px; width: 95%; max-width: 800px; font-size: 1.1em; font-weight: bold; margin-top: 25px; cursor: pointer; }
-        .opt-preview { display: inline-block; margin: 5px; padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.8em; color: #ccc; }
     </style>
 </head>
 <body>
@@ -39,105 +40,26 @@
     </div>
 
     <div id="live-preview" class="preview-card">
-        <div style="color:var(--red); font-size:0.8em; margin-bottom:10px;">🔴 يظهر الآن للمتابعين:</div>
+        <div style="color:var(--red); font-weight:bold; font-size:0.8em; margin-bottom:5px;">🔴 مباشر الآن:</div>
         <h3 id="preview-text" style="color: var(--blue); margin: 5px 0;"></h3>
-        <div id="preview-opts"></div>
     </div>
 
     <div class="stats-row">
         <div class="stat-box">
             <h4>⚡ أسرع إجابة صحيحة</h4>
-            <div id="fastest-display" style="color:var(--blue); font-size: 1.2em; font-weight: bold;">بانتظار الإجابات...</div>
+            <div id="fastest-name" style="color:var(--blue); font-size: 1.2em; font-weight: bold;">بانتظار الإجابات...</div>
         </div>
         <div class="stat-box">
-            <h4>🏆 أعلى 5 نقاط</h4>
+            <h4>🏆 المتصدرين</h4>
             <div id="top-list"></div>
         </div>
     </div>
 
-    <div class="grid-holder" id="buttons-grid"></div>
-    <button class="stop-btn" onclick="updateFB(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
+    <div class="grid-holder" id="btn-container"></div>
+
+    <button class="stop-btn" onclick="sendQ(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
 
     <script>
-        // تأكد من وضع إعداداتك هنا
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
-            authDomain: "fawazir-jaco.firebaseapp.com",
-            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "fawazir-jaco",
-            storageBucket: "fawazir-jaco.firebasestorage.app",
-            messagingSenderId: "862747657100",
-            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
-        };
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const db = firebase.database();
-
-        // توليد الأزرار
-        const grid = document.getElementById("buttons-grid");
-        for (let i = 0; i < 50; i++) {
-            const btn = document.createElement("button");
-            btn.className = "q-btn"; btn.innerText = "سؤال " + (i + 1);
-            btn.onclick = () => updateFB(i); grid.appendChild(btn);
-        }
-
-        function updateFB(val) { 
-            db.ref('currentQuestion').set(val); 
-            // تصفير خانة الأسرع عند تغيير السؤال
-            document.getElementById("fastest-display").innerText = "بانتظار الإجابات...";
-        }
-
-        // مراقبة السؤال والإحصائيات
-        db.ref('currentQuestion').on('value', (snap) => {
-            const idx = snap.val();
-            const preview = document.getElementById("live-preview");
-            const pText = document.getElementById("preview-text");
-            const pOpts = document.getElementById("preview-opts");
-
-            if (idx === -1 || idx === null) {
-                preview.style.display = "none";
-            } else {
-                preview.style.display = "block";
-                // جلب السؤال من مصفوفة allQuestions في script.js
-                const data = window.allQuestions ? window.allQuestions[idx] : null;
-                if (data) {
-                    pText.innerText = "س" + (idx + 1) + ": " + data.q;
-                    pOpts.innerHTML = "";
-                    data.options.forEach(opt => {
-                        const s = document.createElement("span");
-                        s.className = "opt-preview"; s.innerText = opt;
-                        pOpts.appendChild(s);
-                    });
-                }
-
-                // إصلاح جلب أسرع واحد جاوب
-                db.ref('answers').orderByChild('qIdx').equalTo(idx).on('value', (ansSnap) => {
-                    let answers = [];
-                    ansSnap.forEach(child => {
-                        const val = child.val();
-                        if (val.isCorrect) answers.push(val);
-                    });
-                    
-                    if (answers.length > 0) {
-                        // ترتيب حسب الوقت الأصغر (الأسرع)
-                        answers.sort((a, b) => a.timestamp - b.timestamp);
-                        document.getElementById("fastest-display").innerHTML = "🥇 " + answers[0].userName;
-                    }
-                });
-            }
-        });
-
-        // تحديث المتصدرين
-        db.ref('totalPoints').on('value', (snap) => {
-            const listDiv = document.getElementById("top-list");
-            const points = snap.val() || {};
-            const sorted = Object.entries(points)
-                .map(([name, pts]) => ({ name: name.replace(/_/g, ' '), pts }))
-                .sort((a, b) => b.pts - a.pts).slice(0, 5);
-            listDiv.innerHTML = "";
-            sorted.forEach((u, i) => {
-                listDiv.innerHTML += `<div class="leader-entry"><span>${i+1}. ${u.name}</span><span class="points-tag">${u.pts} نقاط</span></div>`;
-            });
-        });
-    </script>
-</body>
-</html>
+        // إعدادات Firebase
+        const config = {
+            apiKey: "AIzaSyBx
