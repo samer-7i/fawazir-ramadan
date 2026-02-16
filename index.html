@@ -4,98 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مسابقة Remy 🎮</title>
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="script.js"></script>
-
     <style>
-        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --gold: #fbbf24; }
-        body { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        
-        .header { padding: 40px 20px 10px; text-align: center; width: 100%; }
-        .logo { width: 115px; height: 115px; border-radius: 50%; border: 3px solid var(--blue); box-shadow: 0 0 20px rgba(56,189,248,0.4); margin-bottom: 20px; }
-        
-        #q-status { font-size: 2em; color: var(--blue); margin: 0; }
-        #q-text { font-size: 1.2em; color: var(--gold); margin: 15px 20px; font-weight: bold; min-height: 30px; }
-
-        .user-card { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; width: 85%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
-        .pts-box { background: var(--red); color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: inline-block; margin-top: 10px; }
-
-        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 400px; }
-        .btn-opt { background: var(--card); color: #fff; border: 2px solid var(--blue); padding: 20px 10px; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-opt:active { transform: scale(0.95); background: var(--blue); }
-        
-        .hidden { display: none !important; }
+        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --gold: #fbbf24; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; text-align: center; }
+        .container { padding: 20px; max-width: 500px; margin: auto; }
+        .logo { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--blue); margin-top: 20px; }
+        input { padding: 15px; width: 80%; border-radius: 10px; border: none; margin-bottom: 10px; }
+        button { padding: 15px 30px; background: var(--blue); border: none; border-radius: 10px; color: #000; font-weight: bold; cursor: pointer; }
+        .opt-btn { display: block; width: 100%; padding: 20px; margin: 10px 0; background: var(--card); border: 2px solid var(--blue); color: #fff; border-radius: 15px; font-size: 1.1em; }
+        .hidden { display: none; }
+        #score-display { background: #e94560; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-top: 10px; }
     </style>
 </head>
 <body>
-
-    <div class="header">
+    <div class="container">
         <img src="logo.png" class="logo">
-        <h1 id="q-status">بانتظار السؤال...</h1>
-        <p id="q-text"></p>
+        
+        <div id="login-box">
+            <h2>مرحباً بك في مسابقة Remy</h2>
+            <input type="text" id="username" placeholder="اكتب اسمك هنا...">
+            <br>
+            <button onclick="enterQuiz()">دخول المسابقة</button>
+        </div>
+
+        <div id="quiz-box" class="hidden">
+            <h3 id="user-display">المتسابق: </h3>
+            <div id="score-display">النقاط: 0</div>
+            <hr style="opacity: 0.2; margin: 20px 0;">
+            <div id="question-container">
+                <h2>⏳ بانتظار Remy يبدأ السؤال...</h2>
+            </div>
+        </div>
     </div>
-
-    <div class="user-card">
-        <h3 id="display-name" style="margin:0">المتسابق: جاري التحميل...</h3>
-        <div class="pts-box">النقاط: <span id="points-count">0</span></div>
-    </div>
-
-    <div id="quiz-area" class="hidden">
-        <div class="answers-grid" id="grid-btns"></div>
-    </div>
-
-    <script>
-        // دالة عرض السؤال (تمنع التكرار لأنها تمسح المحتوى القديم قبل الإضافة)
-        function showQuestion(idx) {
-            const status = document.getElementById("q-status");
-            const text = document.getElementById("q-text");
-            const area = document.getElementById("quiz-area");
-            const grid = document.getElementById("grid-btns");
-
-            if (idx === -1 || idx === null) {
-                status.innerText = "بانتظار السؤال...";
-                text.innerText = "استعد للجولة القادمة 🔥";
-                area.classList.add("hidden");
-            } else {
-                const data = window.allQuestions ? window.allQuestions[idx] : null;
-                if (data) {
-                    status.innerText = "السؤال " + (parseInt(idx) + 1);
-                    text.innerText = data.q;
-                    grid.innerHTML = ""; // مسح الأزرار القديمة تماماً لعدم التكرار
-
-                    data.options.forEach((opt, i) => {
-                        const b = document.createElement("button");
-                        b.className = "btn-opt";
-                        b.innerText = opt;
-                        b.onclick = () => submitAns(idx, i);
-                        grid.appendChild(b);
-                    });
-                    area.classList.remove("hidden");
-                }
-            }
-        }
-
-        // الاستماع لـ Firebase للسؤال الحالي
-        db.ref('currentQuestion').on('value', snap => showQuestion(snap.val()));
-
-        // اسم المتسابق والنقاط (إصلاح مشكلة عدم ظهور النقاط)
-        let myName = localStorage.getItem("userName") || "متسابق جديد";
-        document.getElementById("display-name").innerText = "المتسابق: " + myName;
-
-        // دالة جلب النقاط الصحيحة
-        db.ref('totalPoints/' + myName.replace(/ /g, '_')).on('value', s => {
-            document.getElementById("points-count").innerText = s.val() || 0;
-        });
-
-        function submitAns(qIdx, cIdx) {
-            db.ref('winners/' + qIdx + '/' + myName.replace(/ /g, '_')).set({
-                name: myName, answer: cIdx, timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-            document.getElementById("quiz-area").classList.add("hidden");
-            document.getElementById("q-text").innerText = "تم إرسال إجابتك بنجاح! ✅";
-        }
-    </script>
 </body>
 </html>
