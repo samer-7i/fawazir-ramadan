@@ -9,7 +9,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
-
+<div class="user-header">
+    <img src="logo.png" class="user-logo" alt="Remy">
+    <h1 id="question-title">انتظر السؤال القادم...</h1>
+</div>
     <div class="container">
         <div id="login-box">
             <h1>🌙 فوازير رمضان</h1>
@@ -35,6 +38,31 @@
     <script src="script.js?v=1.2"></script>
 
     <style>
+        /* تنسيق رأس الصفحة للمتابعين */
+.user-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.user-logo {
+    width: 100px; /* حجم مناسب للموبايل والكمبيوتر */
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+/* تعديل العنوان ليكون متناسقاً */
+#question-title {
+    font-size: 1.5em;
+    color: #38bdf8;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    margin: 0;
+}
         .header-info { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.2); padding: 10px 15px; border-radius: 10px; margin-bottom: 20px; border-bottom: 2px solid #e94560; }
         .user-tag { color: #ffd700; font-weight: bold; }
         .score-tag { background: #e94560; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; }
@@ -45,4 +73,5 @@
     </style>
 </body>
 </html>
+
 
