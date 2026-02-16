@@ -2,204 +2,39 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة تحكم Remy 🎮</title>
+    <title>لوحة التحكم - Remy</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #38bdf8;
-            --accent: #e94560;
-            --text-main: #f8fafc;
-        }
-
-        body {
-            margin: 0;
-            padding: 20px;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .admin-header {
-            text-align: center;
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .admin-logo {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 3px solid var(--primary);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
-            object-fit: cover;
-            margin-bottom: 10px;
-        }
-
-        h1 { color: var(--primary); margin: 0; font-size: 1.8em; }
-
-        .question-box {
-            background-color: var(--card-bg);
-            width: 95%;
-            max-width: 1100px;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        #admin-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .q-btn {
-            background-color: #334155;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .q-btn:hover, .q-btn.active {
-            background-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-        }
-
-        .stop-btn {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            width: 95%;
-            max-width: 1100px;
-        }
-
-        .result-box {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.05);
-            min-height: 400px;
-        }
-
-        .rank-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .gold { color: #fbbf24; font-weight: bold; }
-
-        @media (max-width: 768px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
+        body { font-family: sans-serif; text-align: center; background: #f0f2f5; }
+        .btn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        button { padding: 15px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; }
+        .stop-btn { background: #dc3545; margin-top: 20px; padding: 20px; width: 80%; }
     </style>
 </head>
 <body>
-
-    <div class="admin-header">
-        <img src="logo.png" class="admin-logo">
-        <h1>لوحة تحكم Remy 🎮</h1>
-    </div>
-
-    <div class="question-box">
-        <h3>🎯 اختيار السؤال:</h3>
-        <div id="admin-buttons"></div>
-        <button class="stop-btn" onclick="stopQuiz()">🛑 إيقاف المسابقة</button>
-    </div>
-
-    <div class="dashboard-grid">
-        <div class="result-box">
-            <h3 style="color: #fbbf24;">⏱️ أسرع الإجابات</h3>
-            <div id="fastest-list"></div>
-        </div>
-        <div class="result-box">
-            <h3 style="color: var(--primary);">🌟 الترتيب العام</h3>
-            <div id="leaderboard"></div>
-        </div>
-    </div>
+    <h2>اختيار السؤال للمتابعين 🚀</h2>
+    <div class="btn-grid" id="buttons"></div>
+    <button class="stop-btn" onclick="setQuestion(-1)">إيقاف المسابقة / إخفاء السؤال</button>
 
     <script>
-        // ... (هنا تضع كود الـ Firebase الذي نستخدمه دائماً) ...
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
-            authDomain: "fawazir-jaco.firebaseapp.com",
-            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "fawazir-jaco",
-            storageBucket: "fawazir-jaco.firebasestorage.app",
-            messagingSenderId: "862747657100",
-            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
-        };
+        const firebaseConfig = { /* نفس إعداداتك بالأعلى */ };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const btnContainer = document.getElementById("admin-buttons");
+        // توليد 50 زر للأسئلة
+        const btnContainer = document.getElementById("buttons");
         for (let i = 0; i < 50; i++) {
             let btn = document.createElement("button");
             btn.innerText = "سؤال " + (i + 1);
-            btn.className = "q-btn";
-            btn.onclick = () => {
-                document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                sendQuestion(i);
-            };
+            btn.onclick = () => setQuestion(i);
             btnContainer.appendChild(btn);
         }
 
-        function sendQuestion(idx) {
+        function setQuestion(idx) {
             db.ref('currentQuestion').set(idx);
-            db.ref('winners/' + idx).on('value', showFastest);
+            alert(idx === -1 ? "تم إخفاء الأسئلة" : "تم تفعيل السؤال رقم " + (idx + 1));
         }
-
-        function stopQuiz() {
-            db.ref('currentQuestion').set(-1);
-            document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
-        }
-
-        function showFastest(snap) {
-            const list = document.getElementById("fastest-list");
-            list.innerHTML = "";
-            let data = [];
-            snap.forEach(c => { if(c.val().correct) data.push(c.val()); });
-            data.forEach((w, i) => {
-                list.innerHTML += `<div class="rank-row"><span>${w.name}</span><span class="gold">#${i+1}</span></div>`;
-            });
-        }
-
-        db.ref('totalPoints').on('value', (snap) => {
-            const board = document.getElementById("leaderboard");
-            board.innerHTML = "";
-            let users = [];
-            snap.forEach(c => { users.push({name: c.key.replace(/_/g, ' '), pts: c.val()}); });
-            users.sort((a,b) => b.pts - a.pts);
-            users.forEach((u, i) => {
-                board.innerHTML += `<div class="rank-row"><span>${u.name}</span><span class="gold">${u.pts} نقطة</span></div>`;
-            });
-        });
     </script>
 </body>
 </html>
