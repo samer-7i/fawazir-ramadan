@@ -2,39 +2,136 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - Remy</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="script.js"></script>
+    
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f2f5; }
-        .btn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
-        button { padding: 15px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; }
-        .stop-btn { background: #dc3545; margin-top: 20px; padding: 20px; width: 80%; }
+        body { font-family: sans-serif; text-align: center; background: #f0f2f5; margin: 0; padding: 20px; }
+        
+        /* شاشة المعاينة في الأعلى */
+        .preview-area {
+            background: white;
+            max-width: 700px;
+            margin: 0 auto 20px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-top: 5px solid #007bff;
+            display: none; /* تظهر فقط عند اختيار سؤال */
+        }
+
+        /* شبكة الأزرار المنظمة (5 أزرار في كل صف) */
+        .btn-grid { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 12px; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        button { 
+            padding: 15px 5px; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 8px; 
+            background: #007bff; 
+            color: white; 
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: 0.2s;
+        }
+        button:hover { background: #0056b3; transform: translateY(-2px); }
+
+        .stop-btn { 
+            background: #dc3545; 
+            margin-top: 25px; 
+            padding: 20px; 
+            width: 100%; 
+            max-width: 800px; 
+            font-size: 1.1em; 
+            border-radius: 12px;
+        }
+        .stop-btn:hover { background: #a71d2a; }
+
+        .opt-item {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background: #e9ecef;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #333;
+        }
     </style>
 </head>
 <body>
-    <h2>اختيار السؤال للمتابعين 🚀</h2>
-    <div class="btn-grid" id="buttons"></div>
-    <button class="stop-btn" onclick="setQuestion(-1)">إيقاف المسابقة / إخفاء السؤال</button>
+
+    <h2>🎮 تحكم مسابقة Remy</h2>
+    <p>اختر السؤال لتفعيله للمتابعين</p>
+
+    <div id="preview-section" class="preview-area">
+        <p style="color: #dc3545; font-weight: bold; margin: 0;">🔴 يظهر الآن للمتابعين:</p>
+        <h3 id="current-q-text" style="margin: 15px 0;"></h3>
+        <div id="current-q-options"></div>
+    </div>
+
+    <div class="btn-grid" id="buttons-container"></div>
+    
+    <button class="stop-btn" onclick="setQuestion(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
 
     <script>
-        const firebaseConfig = { /* نفس إعداداتك بالأعلى */ };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const container = document.getElementById("buttons-container");
+        const preview = document.getElementById("preview-section");
+        const qText = document.getElementById("current-q-text");
+        const qOptions = document.getElementById("current-q-options");
 
-        // توليد 50 زر للأسئلة
-        const btnContainer = document.getElementById("buttons");
+        // 1. توليد 50 زر للأسئلة بشكل تلقائي
         for (let i = 0; i < 50; i++) {
             let btn = document.createElement("button");
             btn.innerText = "سؤال " + (i + 1);
             btn.onclick = () => setQuestion(i);
-            btnContainer.appendChild(btn);
+            container.appendChild(btn);
         }
 
+        // 2. دالة تفعيل السؤال في Firebase
         function setQuestion(idx) {
             db.ref('currentQuestion').set(idx);
-            alert(idx === -1 ? "تم إخفاء الأسئلة" : "تم تفعيل السؤال رقم " + (idx + 1));
         }
+
+        // 3. مستمع لتحديث شاشة المعاينة عند الأدمن (بدون إظهار الإجابة الصحيحة)
+        db.ref('currentQuestion').on('value', (snapshot) => {
+            const idx = snapshot.val();
+            
+            if (idx === -1 || idx === null) {
+                preview.style.display = "none";
+            } else {
+                preview.style.display = "block";
+                
+                // جلب بيانات السؤال من مصفوفة allQuestions الموجودة في script.js
+                const data = window.allQuestions[idx];
+                
+                if (data) {
+                    qText.innerText = "س" + (idx + 1) + ": " + data.q;
+                    qOptions.innerHTML = "";
+                    data.options.forEach(opt => {
+                        const span = document.createElement("span");
+                        span.className = "opt-item";
+                        span.innerText = opt;
+                        qOptions.appendChild(span);
+                    });
+                } else {
+                    qText.innerText = "تم تفعيل السؤال رقم " + (idx + 1);
+                    qOptions.innerHTML = "<small>(بيانات السؤال غير مدرجة في script.js)</small>";
+                }
+            }
+        });
     </script>
 </body>
 </html>
