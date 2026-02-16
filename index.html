@@ -3,41 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مسابقة Remy 🎮</title>
+    <title>مسابقة Remy 🎮 - دخول المتسابقين</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="script.js"></script>
+
     <style>
-        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --gold: #fbbf24; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: sans-serif; text-align: center; }
-        .container { padding: 20px; max-width: 500px; margin: auto; }
-        .logo { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--blue); margin-top: 20px; }
-        input { padding: 15px; width: 80%; border-radius: 10px; border: none; margin-bottom: 10px; }
-        button { padding: 15px 30px; background: var(--blue); border: none; border-radius: 10px; color: #000; font-weight: bold; cursor: pointer; }
-        .opt-btn { display: block; width: 100%; padding: 20px; margin: 10px 0; background: var(--card); border: 2px solid var(--blue); color: #fff; border-radius: 15px; font-size: 1.1em; }
-        .hidden { display: none; }
-        #score-display { background: #e94560; padding: 5px 15px; border-radius: 5px; display: inline-block; margin-top: 10px; }
+        :root { 
+            --bg: #0a1120; 
+            --card: #162136; 
+            --blue: #38bdf8; 
+            --red: #e94560; 
+            --text: #ffffff; 
+        }
+
+        body { 
+            margin: 0; padding: 20px; 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;
+        }
+
+        /* --- تصميم شاشة القوانين --- */
+        #rules-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 2000;
+        }
+        .rules-card {
+            background: var(--card);
+            padding: 30px; border-radius: 25px;
+            border: 2px solid var(--blue);
+            max-width: 400px; width: 85%;
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+        }
+        .rules-list {
+            text-align: right; margin: 20px 0;
+            padding-right: 15px; line-height: 2;
+            color: #cbd5e1;
+        }
+        .rules-list li { margin-bottom: 10px; }
+
+        /* --- التصميم العام للمسابقة --- */
+        .main-card { 
+            background: var(--card); padding: 30px; 
+            border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); 
+            max-width: 500px; width: 100%;
+            display: none; /* مخفي حتى يوافق على القوانين */
+        }
+
+        .logo { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 15px; }
+        .q-text { font-size: 1.5em; font-weight: bold; margin: 20px 0; color: var(--blue); }
+        
+        .opt-btn { 
+            display: block; width: 100%; padding: 15px; margin: 12px 0; 
+            border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); 
+            color: white; border-radius: 12px; cursor: pointer; 
+            font-size: 1.1em; transition: 0.2s; font-weight: bold;
+        }
+        .opt-btn:hover { background: var(--blue); color: var(--bg); transform: scale(1.02); }
+
+        .btn-accept {
+            background: var(--blue); color: var(--bg);
+            border: none; padding: 15px 30px; border-radius: 12px;
+            font-weight: bold; cursor: pointer; width: 100%; font-size: 1.1em;
+        }
+
+        #status-msg { margin-top: 20px; font-weight: bold; font-size: 1.1em; }
+
+        /* حالة الانتظار */
+        #waiting-msg { display: none; text-align: center; }
+        .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid var(--blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img src="logo.png" class="logo">
-        
-        <div id="login-box">
-            <h2>مرحباً بك في مسابقة Remy</h2>
-            <input type="text" id="username" placeholder="اكتب اسمك هنا...">
-            <br>
-            <button onclick="enterQuiz()">دخول المسابقة</button>
-        </div>
 
-        <div id="quiz-box" class="hidden">
-            <h3 id="user-display">المتسابق: </h3>
-            <div id="score-display">النقاط: 0</div>
-            <hr style="opacity: 0.2; margin: 20px 0;">
-            <div id="question-container">
-                <h2>⏳ بانتظار Remy يبدأ السؤال...</h2>
-            </div>
+    <div id="rules-overlay">
+        <div class="rules-card">
+            <img src="logo.png" class="logo" onerror="this.src='https://via.placeholder.com/90'">
+            <h2 style="color: var(--blue); margin-top: 0;">📜 قوانين المسابقة</h2>
+            <ul class="rules-list">
+                <li>✅ السرعة في الإجابة هي مفتاح الفوز.</li>
+                <li>✅ كل إجابة صحيحة تمنحك (1) نقطة.</li>
+                <li>✅ يُمنع تكرار الإجابة أو محاولة الغش.</li>
+                <li>✅ الالتزام بالروح الرياضية والهدوء.</li>
+                <li>✅ استمتع باللعب مع Remy!</li>
+            </ul>
+            <button class="btn-accept" onclick="acceptRules()">الموافقة ودخول المسابقة ✅</button>
         </div>
     </div>
+
+    <div id="waiting-msg">
+        <img src="logo.png" class="logo">
+        <h2>بانتظار انطلاق السؤال... ⌛</h2>
+        <div class="spinner"></div>
+        <p style="color: #64748b;">خليك مستعد يا بطل!</p>
+    </div>
+
+    <div id="quiz-container" class="main-card">
+        <div id="question-text" class="q-text">جاري التحميل...</div>
+        <div id="options-container"></div>
+        <div id="status-msg"></div>
+    </div>
+
+    <script>
+        // إعدادات Firebase الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
+            authDomain: "fawazir-jaco.firebaseapp.com",
+            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fawazir-jaco",
+            storageBucket: "fawazir-jaco.firebasestorage.app",
+            messagingSenderId: "862747657100",
+            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
+        };
+
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        // مصفوفة الأسئلة (يجب أن تطابق الموجودة عند الأدمن)
+        const myQuestions = [
+            { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 },
+            { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["البقرة", "النساء", "آل عمران"], correct: 0 },
+            { q: "أكمل المثل: القرد في عين أمه", options: ["حصان", "فيل", "غزال"], correct: 2 },
+            { q: "ما هو الشيء الذي يقرصك ولا تراه؟", options: ["النملة", "الجوع", "البرد"], correct: 1 }
+        ];
+
+        let currentQIdx = -1;
+        let userName = localStorage.getItem("remy_user") || "لاعب_" + Math.floor(Math.random() * 9000 + 1000);
+        localStorage.setItem("remy_user", userName); // تثبيت الاسم
+
+        // وظيفة الموافقة على القوانين
+        function acceptRules() {
+            document.getElementById("rules-overlay").style.display = "none";
+            checkCurrentStatus();
+        }
+
+        // مراقبة السؤال الحالي
+        function checkCurrentStatus() {
+            db.ref('currentQuestion').on('value', (snap) => {
+                const idx = snap.val();
+                currentQIdx = idx;
+                const quizBox = document.getElementById("quiz-container");
+                const waitBox = document.getElementById("waiting-msg");
+
+                if (idx === -1 || idx === null) {
+                    quizBox.style.display = "none";
+                    waitBox.style.display = "block";
+                } else {
+                    waitBox.style.display = "none";
+                    quizBox.style.display = "block";
+                    showQuestion(idx);
+                }
+            });
+        }
+
+        function showQuestion(idx) {
+            const data = myQuestions[idx];
+            const qText = document.getElementById("question-text");
+            const optBox = document.getElementById("options-container");
+            const status = document.getElementById("status-msg");
+
+            status.innerText = "";
+            if (!data) {
+                qText.innerText = "سؤال غير مدرج بعد...";
+                optBox.innerHTML = "";
+                return;
+            }
+
+            qText.innerText = data.q;
+            optBox.innerHTML = "";
+            data.options.forEach((opt, i) => {
+                const btn = document.createElement("button");
+                btn.className = "opt-btn";
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(i);
+                optBox.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(choiceIdx) {
+            const data = myQuestions[currentQIdx];
+            const status = document.getElementById("status-msg");
+            const optButtons = document.querySelectorAll(".opt-btn");
+
+            // تعطيل الأزرار بعد الاختيار
+            optButtons.forEach(b => b.disabled = true);
+
+            if (choiceIdx === data.correct) {
+                status.innerText = "إجابة صحيحة! 🎉 كفو..";
+                status.style.color = "#10b981";
+                
+                // تسجيل الفائز
+                db.ref('winners/' + currentQIdx).push({
+                    name: userName,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    correct: true
+                });
+
+                // إضافة نقطة
+                db.ref('totalPoints/' + userName).transaction(p => (p || 0) + 1);
+            } else {
+                status.innerText = "إجابة خاطئة.. حظ أوفر! ❌";
+                status.style.color = "#e94560";
+            }
+        }
+    </script>
 </body>
 </html>
