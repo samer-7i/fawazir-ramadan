@@ -28,11 +28,23 @@
         .admin-header {
             text-align: center;
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        h1 { color: var(--primary); margin: 10px 0; font-size: 1.8em; }
+        .admin-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+            object-fit: cover;
+            margin-bottom: 10px;
+        }
 
-        /* الصندوق العلوي للأسئلة */
+        h1 { color: var(--primary); margin: 0; font-size: 1.8em; }
+
         .question-box {
             background-color: var(--card-bg);
             width: 95%;
@@ -46,7 +58,7 @@
 
         #admin-buttons {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
             gap: 10px;
             margin: 15px 0;
         }
@@ -55,11 +67,10 @@
             background-color: #334155;
             color: white;
             border: none;
-            padding: 10px 5px;
+            padding: 10px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 12px;
             transition: 0.2s;
         }
 
@@ -72,13 +83,12 @@
             background-color: var(--accent);
             color: white;
             border: none;
-            padding: 10px 30px;
+            padding: 12px 30px;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
         }
 
-        /* حاوية النتائج جنب بعض */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -93,18 +103,6 @@
             border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.05);
             min-height: 400px;
-        }
-
-        .result-box h3 {
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 10px;
-            margin-top: 0;
-            font-size: 1.2em;
-        }
-
-        .list-container {
-            margin-top: 15px;
-            text-align: right;
         }
 
         .rank-row {
@@ -124,31 +122,29 @@
 <body>
 
     <div class="admin-header">
+        <img src="logo.png" class="admin-logo">
         <h1>لوحة تحكم Remy 🎮</h1>
     </div>
 
     <div class="question-box">
-        <h3 style="margin-top:0;">🎯 اختيار السؤال الحالي:</h3>
+        <h3>🎯 اختيار السؤال:</h3>
         <div id="admin-buttons"></div>
         <button class="stop-btn" onclick="stopQuiz()">🛑 إيقاف المسابقة</button>
     </div>
 
     <div class="dashboard-grid">
-        
         <div class="result-box">
-            <h3 style="color: #fbbf24;">⏱️ أسرع الإجابات (للسؤال)</h3>
-            <div id="fastest-list" class="list-container">اضغط سؤالاً للفرز...</div>
+            <h3 style="color: #fbbf24;">⏱️ أسرع الإجابات</h3>
+            <div id="fastest-list"></div>
         </div>
-
         <div class="result-box">
-            <h3 style="color: var(--primary);">🌟 الترتيب العام (النقاط)</h3>
-            <div id="leaderboard" class="list-container">جاري التحميل...</div>
+            <h3 style="color: var(--primary);">🌟 الترتيب العام</h3>
+            <div id="leaderboard"></div>
         </div>
-
     </div>
 
     <script>
-        // إعدادات Firebase
+        // ... (هنا تضع كود الـ Firebase الذي نستخدمه دائماً) ...
         const firebaseConfig = {
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -161,7 +157,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // توليد الأزرار
         const btnContainer = document.getElementById("admin-buttons");
         for (let i = 0; i < 50; i++) {
             let btn = document.createElement("button");
@@ -183,7 +178,6 @@
         function stopQuiz() {
             db.ref('currentQuestion').set(-1);
             document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
-            alert("تم إيقاف المسابقة");
         }
 
         function showFastest(snap) {
