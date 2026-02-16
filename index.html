@@ -3,152 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مسابقة Remy 🎮</title>
+    <title>فوازير رمضان - Remy</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <style>
-        :root {
-            --bg-color: #0a1120;
-            --card-bg: #162136;
-            --primary: #38bdf8;
-            --accent: #e94560;
-            --text-main: #f8fafc;
-        }
-
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Segoe UI', sans-serif;
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh;
-        }
-
-        .header-section {
-            display: flex; flex-direction: column; align-items: center;
-            padding: 40px 20px 10px; width: 100%;
-        }
-
-        .main-logo {
-            width: 110px; height: 110px; border-radius: 50%;
-            border: 3px solid var(--primary);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            object-fit: cover; margin-bottom: 15px;
-        }
-
-        #question-status { font-size: 1.8em; color: var(--primary); margin: 5px 0; }
-        .instruction { color: #fbbf24; font-size: 1.1em; margin-bottom: 20px; text-align: center; }
-
-        .container { width: 90%; max-width: 450px; }
-
-        .user-card {
-            background-color: var(--card-bg); padding: 15px;
-            border-radius: 15px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 20px;
-        }
-
-        .points-box {
-            background: var(--accent); padding: 8px 20px;
-            border-radius: 10px; display: inline-block; font-weight: bold;
-        }
-
-        /* شبكة الأزرار */
-        .answers-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
-        }
-
-        .answer-btn {
-            background-color: var(--card-bg); color: white;
-            border: 2px solid var(--primary); padding: 25px 10px;
-            border-radius: 12px; font-size: 1.5em; font-weight: bold;
-            cursor: pointer; transition: 0.2s;
-        }
-
-        .answer-btn:active { transform: scale(0.92); background-color: var(--primary); }
-
-        .hidden { display: none !important; }
-    </style>
 </head>
 <body>
 
-    <div class="header-section">
-        <img src="logo.png" class="main-logo">
-        <h1 id="question-status">بانتظار السؤال...</h1>
-        <p class="instruction" id="instruction-text"></p>
-    </div>
-
+<div class="user-header">
+    <img src="logo.png" class="user-logo" alt="Remy">
+    <h1 id="question-title">انتظر السؤال القادم...</h1>
+</div>
     <div class="container">
-        <div class="user-card">
-            <h3 id="display-name" style="margin:0; font-size: 1em;">المتسابق: جاري التحميل...</h3>
-            <div class="points-box">النقاط: <span id="points-count">0</span></div>
-        </div>
+        <div id="login-box">
+            <h1>🌙 فوازير رمضان</h1>
+@@ -35,14 +38,40 @@
+    <script src="script.js?v=1.2"></script>
 
-        <div id="quiz-area" class="hidden">
-            <div class="answers-grid">
-                <button class="answer-btn" onclick="submitAnswer('أ')">أ</button>
-                <button class="answer-btn" onclick="submitAnswer('ب')">ب</button>
-                <button class="answer-btn" onclick="submitAnswer('ج')">ج</button>
-                <button class="answer-btn" onclick="submitAnswer('د')">د</button>
-            </div>
-        </div>
-    </div>
+    <style>
+        /* تنسيق رأس الصفحة للمتابعين */
+.user-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
-            authDomain: "fawazir-jaco.firebaseapp.com",
-            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "fawazir-jaco",
-            storageBucket: "fawazir-jaco.firebasestorage.app",
-            messagingSenderId: "862747657100",
-            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+.user-logo {
+    width: 100px; /* حجم مناسب للموبايل والكمبيوتر */
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    object-fit: cover;
+    margin-bottom: 10px;
+}
 
-        let myName = localStorage.getItem("userName") || "متسابق جديد";
-        document.getElementById("display-name").innerText = "المتسابق: " + myName;
-
-        // --- التعديل الجوهري هنا ---
-        db.ref('currentQuestion').on('value', (snapshot) => {
-            const idx = snapshot.val();
-            const status = document.getElementById("question-status");
-            const instruction = document.getElementById("instruction-text");
-            const quizArea = document.getElementById("quiz-area");
-
-            // إذا كان الرقم -1 أو لا يوجد رقم، نخفي الأزرار
-            if (idx === -1 || idx === null || idx === undefined) {
-                status.innerText = "بانتظار السؤال القادم...";
-                instruction.innerText = "";
-                quizArea.classList.add("hidden");
-            } else {
-                // بمجرد وجود أي رقم (0, 1, 2...) تظهر الأزرار فوراً
-                status.innerText = "السؤال " + (parseInt(idx) + 1);
-                instruction.innerText = "اختر الإجابة الصحيحة الآن:";
-                quizArea.classList.remove("hidden"); 
-                console.log("تم سحب السؤال رقم: " + idx);
-            }
-        });
-
-        db.ref('totalPoints/' + myName.replace(/ /g, '_')).on('value', s => {
-            document.getElementById("points-count").innerText = s.val() || 0;
-        });
-
-        function submitAnswer(choice) {
-            db.ref('currentQuestion').once('value', (snap) => {
-                const qIdx = snap.val();
-                if (qIdx === -1) return;
-
-                db.ref('winners/' + qIdx + '/' + myName.replace(/ /g, '_')).set({
-                    name: myName,
-                    answer: choice,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-
-                document.getElementById("quiz-area").classList.add("hidden");
-                document.getElementById("instruction-text").innerText = "تم إرسال (" + choice + ") بنجاح! ✅";
-            });
-        }
-    </script>
+/* تعديل العنوان ليكون متناسقاً */
+#question-title {
+    font-size: 1.5em;
+    color: #38bdf8;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    margin: 0;
+}
+        .header-info { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.2); padding: 10px 15px; border-radius: 10px; margin-bottom: 20px; border-bottom: 2px solid #e94560; }
+        .user-tag { color: #ffd700; font-weight: bold; }
+        .score-tag { background: #e94560; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; }
+        .main-btn { margin-top: 15px; padding: 12px 30px; cursor: pointer; background: #e94560; color: white; border: none; border-radius: 8px; font-weight: bold; }
+        .q-card { background: #16213e; padding: 20px; border-radius: 15px; text-align: center; }
+        .opt-btn { width: 100%; padding: 15px; margin: 5px 0; cursor: pointer; border-radius: 10px; border: none; background: #0f3460; color: white; font-weight: bold; transition: 0.3s; }
+        .opt-btn:hover { background: #e94560; }
+    </style>
 </body>
 </html>
