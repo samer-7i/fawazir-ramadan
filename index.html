@@ -30,6 +30,24 @@
         .opt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         
         #status-msg { margin-top: 15px; font-weight: bold; font-size: 1.1em; }
+        /* تنسيق تذييل الصفحة (Footer) */
+.footer {
+    margin-top: 30px;
+    padding: 15px;
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+}
+.footer a {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+.footer a:hover {
+    text-shadow: 0 0 10px var(--blue);
+    color: #fff;
+}
     </style>
 </head>
 <body>
@@ -39,7 +57,13 @@
     <div id="setup-overlay" class="overlay">
         <div class="setup-card" id="rules-step">
             <h2 style="color: var(--blue);">📜 قوانين المسابقة</h2>
-            <p>1. النقطة للأسرع فقط.<br>2. محاولة واحدة لكل سؤال.</p>
+            <li>✅ الالتزام بالوقت المحدد للإجابة على كل فزورة.</li>
+                <li>✅ أسرع إجابة صحيحة تحصل على النقاط..</li>
+                <li>✅ يتم توزيع الهدايا بعد رمضان على أول 5 فائزين فقط.</li>
+                <li>✅ يمنع الغش بجميع أشكاله، وفي حال ثبوته يتم الاستبعاد.</li>
+               <li>✅ يمنع تغيير المتصفح أو الدخول من متصفح خفي؛ وفي هذه الحالة لن تُحتسب النقاط.</li>
+                <li>✅ بمجرد قراءة هذه الشروط، يعتبر المتسابق موافقًا عليها.</li> 
+                <li>✅ استمتع باللعب مع Remy!</li><br>
             <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
         <div class="setup-card" id="name-step" style="display: none;">
@@ -222,5 +246,9 @@
             if(msg) document.getElementById("status-msg").innerText = msg;
         }
     </script>
+    <footer class="footer">
+    تم التصميم بواسطة <a href="https://discord.com/sam_7i/USERID" target="_blank">سامر</a> 🛠️
+</footer>
 </body>
 </html>
+
