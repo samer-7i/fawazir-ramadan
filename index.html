@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -17,141 +18,89 @@
             --primary: #38bdf8;
             --accent: #e94560;
             --text-main: #f8fafc;
-            --gold: #fbbf24;
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
         }
 
-        /* قسم اللوجو العلوي المرفوع */
         .header-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px 10px;
-            width: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 40px 20px 10px; width: 100%;
         }
 
         .main-logo {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
+            width: 110px; height: 110px; border-radius: 50%;
             border: 3px solid var(--primary);
             box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            object-fit: cover;
-            margin-bottom: 15px;
+            object-fit: cover; margin-bottom: 15px;
         }
 
-        #question-status {
-            font-size: 1.8em;
-            color: var(--primary);
-            margin: 5px 0;
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
-        }
+        #question-status { font-size: 1.8em; color: var(--primary); margin: 5px 0; }
+        #question-text { font-size: 1.2em; color: #fbbf24; text-align: center; margin-bottom: 20px; min-height: 30px; }
 
-        #question-text {
-            font-size: 1.2em;
-            color: var(--gold);
-            text-align: center;
-            margin: 10px 20px 20px;
-            max-width: 90%;
-            min-height: 30px;
-            line-height: 1.4;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 450px;
-        }
+        .container { width: 90%; max-width: 450px; }
 
         .user-card {
-            background-color: var(--card-bg);
-            padding: 15px;
-            border-radius: 20px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            margin-bottom: 25px;
+            background-color: var(--card-bg); padding: 15px;
+            border-radius: 15px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom: 20px;
         }
 
         .points-box {
-            background: var(--accent);
-            padding: 8px 20px;
-            border-radius: 10px;
-            display: inline-block;
-            font-weight: bold;
-            margin-top: 10px;
+            background: var(--accent); padding: 8px 15px;
+            border-radius: 10px; display: inline-block; font-weight: bold;
         }
 
-        /* شبكة الأجوبة */
-        .answers-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
+        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
         .answer-btn {
-            background-color: var(--card-bg);
-            color: white;
-            border: 2px solid var(--primary);
-            padding: 22px 10px;
-            border-radius: 15px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s ease;
+            background-color: var(--card-bg); color: white;
+            border: 2px solid var(--primary); padding: 22px 10px;
+            border-radius: 15px; font-size: 1.1em; font-weight: bold;
+            cursor: pointer; transition: 0.2s;
         }
 
-        .answer-btn:active {
-            transform: scale(0.95);
-            background-color: var(--primary);
-        }
-
+        .answer-btn:active { transform: scale(0.95); background-color: var(--primary); }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="header-section">
-        <img src="logo.png" class="main-logo" alt="Remy">
+        <img src="logo.png" class="main-logo">
         <h1 id="question-status">بانتظار السؤال...</h1>
         <p id="question-text"></p>
     </div>
 
     <div class="container">
         <div class="user-card">
-            <h3 id="display-name" style="margin:0; font-size: 1.1em;">المتسابق: جاري التحميل...</h3>
+            <h3 id="display-name" style="margin:0; font-size: 1em;">المتسابق: جاري التحميل...</h3>
             <div class="points-box">النقاط: <span id="points-count">0</span></div>
         </div>
 
         <div id="quiz-area" class="hidden">
             <div class="answers-grid">
-                <button id="btn0" class="answer-btn" onclick="submitAnswer(0)">أ</button>
-                <button id="btn1" class="answer-btn" onclick="submitAnswer(1)">ب</button>
-                <button id="btn2" class="answer-btn" onclick="submitAnswer(2)">ج</button>
-                <button id="btn3" class="answer-btn" onclick="submitAnswer(3)">د</button>
+                <button id="btn0" class="answer-btn" onclick="submitAnswer(0)"></button>
+                <button id="btn1" class="answer-btn" onclick="submitAnswer(1)"></button>
+                <button id="btn2" class="answer-btn" onclick="submitAnswer(2)"></button>
+                <button id="btn3" class="answer-btn" onclick="submitAnswer(3)"></button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- إعدادات Firebase الخاصة بك ---
         const firebaseConfig = {
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
             databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "fawazir-jaco",
             storageBucket: "fawazir-jaco.firebasestorage.app",
-            messagingSenderId: "862747657100",
             appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
         };
         firebase.initializeApp(firebaseConfig);
@@ -160,63 +109,43 @@
         let myName = localStorage.getItem("userName") || "متسابق جديد";
         document.getElementById("display-name").innerText = "المتسابق: " + myName;
 
-        // دالة تحديث الواجهة عند تغيير السؤال
-        function refreshQuestion(idx) {
+        db.ref('currentQuestion').on('value', (snap) => {
+            const idx = snap.val();
             const status = document.getElementById("question-status");
             const qText = document.getElementById("question-text");
-            const quizArea = document.getElementById("quiz-area");
+            const area = document.getElementById("quiz-area");
 
-            if (idx === -1 || idx === null || idx === undefined) {
+            if (idx === -1 || idx === null) {
                 status.innerText = "بانتظار السؤال القادم...";
                 qText.innerText = "";
-                quizArea.classList.add("hidden");
+                area.classList.add("hidden");
             } else {
-                status.innerText = "السؤال " + (parseInt(idx) + 1);
-                quizArea.classList.remove("hidden");
-
-                // سحب البيانات من مصفوفة questions في ملف script.js
-                if (typeof questions !== 'undefined' && questions[idx]) {
-                    const currentData = questions[idx];
-                    qText.innerText = currentData.question;
-                    document.getElementById("btn0").innerText = currentData.options[0];
-                    document.getElementById("btn1").innerText = currentData.options[1];
-                    document.getElementById("btn2").innerText = currentData.options[2];
-                    document.getElementById("btn3").innerText = currentData.options[3];
-                } else {
-                    // إذا لم يجد السؤال في الملف، يعرض الأرقام كاحتياط
-                    qText.innerText = "اختر الإجابة الصحيحة:";
-                    document.getElementById("btn0").innerText = "أ";
-                    document.getElementById("btn1").innerText = "ب";
-                    document.getElementById("btn2").innerText = "ج";
-                    document.getElementById("btn3").innerText = "د";
+                status.innerText = "السؤال " + (idx + 1);
+                const qData = window.questions ? window.questions[idx] : null;
+                
+                if (qData) {
+                    qText.innerText = qData.question;
+                    document.getElementById("btn0").innerText = qData.options[0];
+                    document.getElementById("btn1").innerText = qData.options[1];
+                    document.getElementById("btn2").innerText = qData.options[2];
+                    document.getElementById("btn3").innerText = qData.options[3];
+                    area.classList.remove("hidden");
                 }
             }
-        }
-
-        // الاستماع المباشر من الأدمن
-        db.ref('currentQuestion').on('value', (snapshot) => {
-            refreshQuestion(snapshot.val());
         });
 
-        // تحديث النقاط
         db.ref('totalPoints/' + myName.replace(/ /g, '_')).on('value', s => {
             document.getElementById("points-count").innerText = s.val() || 0;
         });
 
-        // إرسال الإجابة
         function submitAnswer(choiceIdx) {
             db.ref('currentQuestion').once('value', (snap) => {
                 const qIdx = snap.val();
-                if (qIdx === -1) return;
-
                 db.ref('winners/' + qIdx + '/' + myName.replace(/ /g, '_')).set({
-                    name: myName,
-                    answer: choiceIdx,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                    name: myName, answer: choiceIdx, timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
-
                 document.getElementById("quiz-area").classList.add("hidden");
-                document.getElementById("question-text").innerText = "تم إرسال إجابتك بنجاح! ✅";
+                document.getElementById("question-text").innerText = "تم إرسال إجابتك! ✅";
             });
         }
     </script>
