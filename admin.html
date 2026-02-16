@@ -34,6 +34,24 @@
         .btn-danger:hover, .btn-warning:hover { opacity: 0.8; transform: scale(0.98); }
 
         @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+        /* تنسيق تذييل الصفحة (Footer) */
+.footer {
+    margin-top: 30px;
+    padding: 15px;
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+}
+.footer a {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+.footer a:hover {
+    text-shadow: 0 0 10px var(--blue);
+    color: #fff;
+}
     </style>
 </head>
 <body>
@@ -177,5 +195,8 @@
             });
         });
     </script>
+    <footer class="footer">
+    تم التصميم بواسطة <a href="https://discord.com/sam_7i/USERID" target="_blank">سامر</a> 🛠️
+</footer>
 </body>
 </html>
