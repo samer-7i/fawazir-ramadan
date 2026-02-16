@@ -3,75 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فوازير رمضان - Remy</title>
-    <link rel="stylesheet" href="style.css">
+    <title>مسابقة Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #38bdf8;
+            --accent: #e94560;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- قسم اللوجو العلوي --- */
+        .user-main-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 10px 10px 10px;
+            width: 100%;
+        }
+
+        .top-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+            object-fit: cover;
+            margin-bottom: 15px;
+            /* حركة نبض خفيفة للجمالية */
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+            50% { transform: scale(1.03); box-shadow: 0 0 25px rgba(56, 189, 248, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+        }
+
+        #question-title {
+            font-size: 1.4em;
+            color: var(--primary);
+            text-align: center;
+            margin: 0;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+        }
+
+        /* --- حاوية المحتوى --- */
+        .container {
+            width: 90%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+
+        .info-box {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 20px;
+        }
+
+        .points-badge {
+            background: var(--accent);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        /* --- أزرار الخيارات --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .opt-btn {
+            background-color: var(--card-bg);
+            color: white;
+            border: 2px solid var(--primary);
+            padding: 20px 10px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .opt-btn:active {
+            transform: scale(0.95);
+            background-color: var(--primary);
+        }
+
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
-<div class="user-header">
-    <img src="logo.png" class="user-logo" alt="Remy">
-    <h1 id="question-title">انتظر السؤال القادم...</h1>
-</div>
+
+    <div class="user-main-header">
+        <img src="logo.png" class="top-logo" alt="Remy Logo">
+        <h1 id="question-title">بانتظار السؤال القادم...</h1>
+    </div>
+
     <div class="container">
-        <div id="login-box">
-            <h1>🌙 فوازير رمضان</h1>
-            <p>سجل اسمك للمشاركة في المسابقة</p>
-            <input type="text" id="username" placeholder="اكتب اسمك هنا..." autocomplete="off">
-            <br>
-            <button onclick="enterQuiz()" class="main-btn">دخول المسابقة</button>
+        <div class="info-box">
+            <h3 id="user-display-name">المتسابق: جاري التحميل...</h3>
+            <div class="points-badge">النقاط: <span id="user-points">0</span></div>
         </div>
 
-        <div id="quiz-box" style="display: none;">
-            <div class="header-info">
-                <span id="user-display" class="user-tag"></span>
-                <span id="score-display" class="score-tag">النقاط: 0</span>
-            </div>
-
-            <div id="question-container" class="q-card">
-                <h2 id="q-text">⏳ بانتظار Remy يبدأ السؤال...</h2>
-                <div id="options"></div>
+        <div id="quiz-area" class="hidden">
+            <div class="options-grid">
+                <button class="opt-btn" onclick="checkAnswer(0)">أ</button>
+                <button class="opt-btn" onclick="checkAnswer(1)">ب</button>
+                <button class="opt-btn" onclick="checkAnswer(2)">ج</button>
+                <button class="opt-btn" onclick="checkAnswer(3)">د</button>
             </div>
         </div>
     </div>
 
-    <script src="script.js?v=1.2"></script>
+    <script>
+        // --- إعدادات Firebase الخاصة بك ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
+            authDomain: "fawazir-jaco.firebaseapp.com",
+            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fawazir-jaco",
+            storageBucket: "fawazir-jaco.firebasestorage.app",
+            messagingSenderId: "862747657100",
+            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    <style>
-        /* تنسيق رأس الصفحة للمتابعين */
-.user-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 20px;
-}
+        // تجربة الحصول على اسم المستخدم (مثال)
+        let userName = localStorage.getItem("quiz_user") || "متسابق جديد";
+        document.getElementById("user-display-name").innerText = "المتسابق: " + userName;
 
-.user-logo {
-    width: 100px; /* حجم مناسب للموبايل والكمبيوتر */
-    height: 100px;
-    border-radius: 50%;
-    border: 3px solid #38bdf8;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
-    object-fit: cover;
-    margin-bottom: 10px;
-}
+        // متابعة السؤال الحالي
+        db.ref('currentQuestion').on('value', (snapshot) => {
+            const qIndex = snapshot.val();
+            const title = document.getElementById("question-title");
+            const quizArea = document.getElementById("quiz-area");
 
-/* تعديل العنوان ليكون متناسقاً */
-#question-title {
-    font-size: 1.5em;
-    color: #38bdf8;
-    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
-    margin: 0;
-}
-        .header-info { display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.2); padding: 10px 15px; border-radius: 10px; margin-bottom: 20px; border-bottom: 2px solid #e94560; }
-        .user-tag { color: #ffd700; font-weight: bold; }
-        .score-tag { background: #e94560; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; }
-        .main-btn { margin-top: 15px; padding: 12px 30px; cursor: pointer; background: #e94560; color: white; border: none; border-radius: 8px; font-weight: bold; }
-        .q-card { background: #16213e; padding: 20px; border-radius: 15px; text-align: center; }
-        .opt-btn { width: 100%; padding: 15px; margin: 5px 0; cursor: pointer; border-radius: 10px; border: none; background: #0f3460; color: white; font-weight: bold; transition: 0.3s; }
-        .opt-btn:hover { background: #e94560; }
-    </style>
+            if (qIndex === -1 || qIndex === null) {
+                title.innerText = "بانتظار السؤال القادم...";
+                quizArea.classList.add("hidden");
+            } else {
+                title.innerText = "السؤال " + (qIndex + 1);
+                quizArea.classList.remove("hidden");
+            }
+        });
+
+        // متابعة النقاط
+        db.ref('totalPoints/' + userName.replace(/ /g, '_')).on('value', (snapshot) => {
+            document.getElementById("user-points").innerText = snapshot.val() || 0;
+        });
+
+        function checkAnswer(optionIndex) {
+            // هنا تضع منطق إرسال الإجابة لـ Firebase
+            console.log("تم اختيار الإجابة: " + optionIndex);
+            // إخفاء الأزرار بعد الإجابة لمنع التكرار
+            document.getElementById("quiz-area").classList.add("hidden");
+        }
+    </script>
 </body>
 </html>
-
-
