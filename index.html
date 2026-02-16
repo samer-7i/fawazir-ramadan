@@ -9,16 +9,19 @@
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .setup-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; }
+        
         input { width: 90%; padding: 15px; border-radius: 12px; border: 1px solid var(--blue); background: #0a1120; color: white; text-align: center; font-size: 1.1em; margin: 15px 0; outline: none; }
         .btn-action { background: var(--blue); color: var(--bg); border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+
         .main-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); max-width: 500px; width: 100%; display: none; text-align: center; }
-        .user-info { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; border: 1px solid rgba(56,189,248,0.2); }
+        .user-info { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(56,189,248,0.2); }
         .timer-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 3px; overflow: hidden; }
         #timer-progress { width: 100%; height: 100%; background: var(--blue); transition: width 0.1s linear; }
         .opt-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); color: white; border-radius: 12px; cursor: pointer; font-size: 1.1em; font-weight: bold; }
-        .opt-btn:disabled { opacity: 0.5; }
+        .opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -26,25 +29,25 @@
     <div id="setup-overlay" class="overlay">
         <div class="setup-card" id="rules-step">
             <h2 style="color: var(--blue);">📜 قوانين المسابقة</h2>
-            <p>النقطة تذهب فقط لـ <b>أول شخص</b> يجاوب صح!</p>
-            <button class="btn-action" onclick="checkUserStatus()">فهمت ✅</button>
+            <p>1. النقطة للأسرع فقط.<br>2. محاولة واحدة لكل سؤال (التحديث لن ينفعك).</p>
+            <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
         <div class="setup-card" id="name-step" style="display: none;">
             <h2>سجل اسمك 🎮</h2>
             <input type="text" id="username-input" placeholder="اسمك في جاكو...">
-            <button class="btn-action" onclick="saveNewUser()">دخول 🚀</button>
+            <button class="btn-action" onclick="saveAndStart()">دخول 🚀</button>
         </div>
     </div>
 
-    <div id="waiting-msg" style="display:none; text-align:center;"><h3>بانتظار السؤال القادم... ⌛</h3></div>
+    <div id="waiting-msg" style="display:none; text-align:center;"><h3>بانتظار السؤال القادم من Remy... ⌛</h3></div>
 
     <div id="quiz-container" class="main-card">
         <div class="timer-bar"><div id="timer-progress"></div></div>
         <div class="user-info">
-            <span id="display-name" style="color: var(--blue);">اللاعب: ---</span>
+            <span id="display-name" style="color: var(--blue);">---</span>
             <span>نقاطي: <span id="my-points" style="color: var(--blue);">0</span> ن</span>
         </div>
-        <div id="question-text" style="font-size: 1.4em; margin-bottom: 20px;"></div>
+        <div id="question-text" style="font-size: 1.4em; margin-bottom: 20px; font-weight: bold;"></div>
         <div id="options-container"></div>
         <div id="status-msg" style="margin-top: 15px; font-weight: bold;"></div>
     </div>
@@ -71,18 +74,17 @@
         let userName = localStorage.getItem("remy_user_v3");
         let timerInterval;
 
-        // فحص الحالة عند فتح الصفحة مباشرة
-        if (userName) {
-            document.getElementById("setup-overlay").style.display = "none";
-            startApp();
+        window.onload = function() {
+            if (userName) { startApp(); } 
+            else { document.getElementById("setup-overlay").style.display = "flex"; }
+        };
+
+        function showNameInput() {
+            document.getElementById("rules-step").style.display = "none";
+            document.getElementById("name-step").style.display = "block";
         }
 
-        function checkUserStatus() {
-            if (userName) { document.getElementById("setup-overlay").style.display = "none"; startApp(); }
-            else { document.getElementById("rules-step").style.display = "none"; document.getElementById("name-step").style.display = "block"; }
-        }
-
-        function saveNewUser() {
+        function saveAndStart() {
             const val = document.getElementById("username-input").value.trim();
             if (!val) return alert("اكتب اسمك!");
             userName = val; 
@@ -92,12 +94,9 @@
         }
 
         function startApp() {
-            document.getElementById("display-name").innerText = "اللاعب: " + userName;
-            
-            // --- هذا هو الجزء المهم لعرض النقاط ---
+            document.getElementById("display-name").innerText = userName;
             db.ref('totalPoints/' + userName).on('value', snap => {
-                const points = snap.val() || 0;
-                document.getElementById("my-points").innerText = points;
+                document.getElementById("my-points").innerText = snap.val() || 0;
             });
 
             db.ref('currentQuestion').on('value', snap => {
@@ -117,18 +116,29 @@
         function showQuestion(idx) {
             const data = myQuestions[idx];
             if (!data) return;
+
             document.getElementById("question-text").innerText = data.q;
             const container = document.getElementById("options-container");
             container.innerHTML = ""; 
             document.getElementById("status-msg").innerText = "";
             
+            // فحص هل جاوب سابقاً على هذا السؤال
+            const alreadyAnswered = localStorage.getItem("ans_" + idx);
+            
             data.options.forEach((opt, i) => {
                 const b = document.createElement("button");
-                b.className = "opt-btn"; b.innerText = opt;
+                b.className = "opt-btn"; 
+                b.innerText = opt;
+                if (alreadyAnswered) {
+                    b.disabled = true;
+                    document.getElementById("status-msg").innerText = "لقد أجبت سابقاً ✋";
+                }
                 b.onclick = () => submitAnswer(i, data.correct, idx);
                 container.appendChild(b);
             });
-            startTimer();
+
+            if (!alreadyAnswered) { startTimer(); } 
+            else { clearInterval(timerInterval); document.getElementById("timer-progress").style.width = "0%"; }
         }
 
         function startTimer() {
@@ -143,18 +153,25 @@
 
         function submitAnswer(choice, correct, qIdx) {
             clearInterval(timerInterval);
+            // منع الإجابة مرة أخرى حتى عند التحديث
+            localStorage.setItem("ans_" + qIdx, "true");
             disableAll("جاري التحقق...");
-            if (choice !== correct) { document.getElementById("status-msg").innerText = "خطأ ❌"; return; }
 
+            if (choice !== correct) {
+                document.getElementById("status-msg").innerText = "خطأ ❌";
+                return;
+            }
+
+            // نظام الأول فقط بالسيرفر
             db.ref('winners/' + qIdx).transaction(currentData => {
                 if (currentData === null) return { name: userName };
-                else return; 
+                return; 
             }, (error, committed) => {
                 if (committed) {
-                    document.getElementById("status-msg").innerText = "أنت الأول! 🎉 +1 ن";
+                    document.getElementById("status-msg").innerText = "كفو! أنت الأول 🎉";
                     db.ref('totalPoints/' + userName).transaction(p => (p || 0) + 1);
                 } else {
-                    document.getElementById("status-msg").innerText = "صح، لكن غيرك سبقك 💨";
+                    document.getElementById("status-msg").innerText = "صح، بس غيرك سبقك 💨";
                 }
             });
         }
