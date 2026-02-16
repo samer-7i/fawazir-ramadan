@@ -4,41 +4,116 @@
     <meta charset="UTF-8">
     <title>لوحة تحكم Remy 🚀</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
-        .admin-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 800px; margin: 20px auto; }
-        button { padding: 15px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; }
-        .q-btn { background: #38bdf8; color: white; }
-        .stop-btn { background: #e94560; color: white; width: 100%; max-width: 800px; font-size: 1.2em; }
-        
-        /* تنسيق معاينة السؤال المختار للادمن */
-        #current-view {
-            background: #fff; padding: 20px; border-radius: 15px;
-            max-width: 800px; margin: 20px auto; border: 2px solid #38bdf8;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        :root {
+            --primary: #38bdf8;
+            --danger: #e94560;
+            --bg: #f8fafc;
+            --white: #ffffff;
         }
-        .live-label { color: #e94560; font-weight: bold; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        
+        h1 { color: #1e293b; margin-bottom: 30px; }
+
+        /* شاشة المعاينة العلوية - مرتبة ومنفصلة */
+        .preview-card {
+            background: var(--white);
+            max-width: 800px;
+            margin: 0 auto 30px;
+            padding: 20px;
+            border-radius: 15px;
+            border-top: 5px solid var(--primary);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+        .live-tag {
+            display: inline-block;
+            background: var(--danger);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* شبكة الأزرار - منظمة جداً */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .q-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 0 #0ea5e9;
+        }
+        .q-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .q-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        .stop-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1em;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .stop-btn:hover { filter: brightness(1.1); }
+
+        .option-preview {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        .correct-opt { background: #d1fae5 !important; color: #065f46; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1>التحكم بمسابقة Remy 🎮</h1>
+    <div style="text-align: center;">
+        <h1>🎮 لوحة تحكم المسابقة</h1>
 
-    <div id="current-view">
-        <p class="live-label">🔴 يظهر الآن للمتابعين:</p>
-        <h2 id="view-text">لا يوجد سؤال نشط حالياً</h2>
-        <div id="view-options" style="display: flex; justify-content: center; gap: 10px;"></div>
+        <div id="preview-area" class="preview-card" style="display: none;">
+            <div class="live-tag">🔴 مباشر الآن للمتابعين</div>
+            <h2 id="view-text" style="margin: 10px 0;">السؤال...</h2>
+            <div id="view-options"></div>
+        </div>
+
+        <div class="admin-grid" id="btns-holder"></div>
+
+        <button class="stop-btn" onclick="sendQ(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
     </div>
-
-    <div class="admin-grid" id="btns-holder"></div>
-    <button class="stop-btn" onclick="sendQ(-1)">إخفاء السؤال من عند الجميع 🛑</button>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="script.js"></script> <script>
+    <script src="script.js"></script>
+
+    <script>
         const holder = document.getElementById("btns-holder");
         
-        // 1. توليد أزرار التحكم
+        // توليد الأزرار من مصفوفة الأسئلة الموجودة في script.js
         window.allQuestions.forEach((q, i) => {
             const btn = document.createElement("button");
             btn.className = "q-btn";
@@ -51,24 +126,25 @@
             db.ref('currentQuestion').set(idx);
         }
 
-        // 2. الميزة الجديدة: إظهار السؤال المختار للأدمن فوراً
+        // المراقبة الحية لما يظهر للمتابعين
         db.ref('currentQuestion').on('value', (snap) => {
             const idx = snap.val();
+            const previewArea = document.getElementById("preview-area");
             const viewText = document.getElementById("view-text");
             const viewOpts = document.getElementById("view-options");
 
             if (idx === -1 || idx === null) {
-                viewText.innerText = "لا يوجد سؤال نشط حالياً";
-                viewOpts.innerHTML = "";
+                previewArea.style.display = "none";
             } else {
+                previewArea.style.display = "block";
                 const qData = window.allQuestions[idx];
-                viewText.innerText = "س " + (idx + 1) + ": " + qData.q;
+                viewText.innerText = "س" + (idx + 1) + ": " + qData.q;
                 viewOpts.innerHTML = "";
+                
                 qData.options.forEach((opt, i) => {
                     const span = document.createElement("span");
-                    span.style.cssText = "padding: 5px 15px; background: #eee; border-radius: 5px;";
-                    // تمييز الإجابة الصحيحة باللون الأخضر للأدمن فقط
-                    if(i === qData.correct) span.style.background = "#d1fae5"; 
+                    span.className = "option-preview";
+                    if(i === qData.correct) span.className += " correct-opt";
                     span.innerText = opt;
                     viewOpts.appendChild(span);
                 });
