@@ -9,8 +9,8 @@
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-      
-</script>
+        
+        /* شاشات الإعداد - مخفية افتراضياً */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .setup-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; }
         
@@ -30,14 +30,7 @@
     <div id="setup-overlay" class="overlay">
         <div class="setup-card" id="rules-step">
             <h2 style="color: var(--blue);">📜 قوانين المسابقة</h2>
-             <li>✅ الالتزام بالوقت المحدد للإجابة على كل فزورة.</li>
-                <li>✅ أسرع إجابة صحيحة تحصل على النقاط..</li>
-                <li>✅ يتم توزيع الهدايا بعد رمضان على أول 5 فائزين فقط.</li>
-                <li>✅ يمنع الغش بجميع أشكاله، وفي حال ثبوته يتم الاستبعاد.</li>
-               <li>✅ يمنع تغيير المتصفح أو الدخول من متصفح خفي؛ وفي هذه الحالة لن تُحتسب النقاط.</li>
-                <li>✅ بمجرد قراءة هذه الشروط، يعتبر المتسابق موافقًا عليها.</li> 
-                 <li>يتم حفظ اسمك تلقائياً بعد التسجيل أول مرة.</li>
-               <li>✅ استمتع باللعب مع Remy!</li>
+            <p>1. النقطة للأسرع فقط.<br>2. محاولة واحدة لكل سؤال.</p>
             <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
         <div class="setup-card" id="name-step" style="display: none;">
@@ -79,13 +72,15 @@
             { q: "أكمل المثل: القرد في عين أمه", options: ["حصان", "فيل", "غزال"], correct: 2 }
         ];
 
-        let userName = localStorage.getItem("remy_user_v3");
+        let userName = localStorage.getItem("remy_player_name"); // مفتاح تخزين ثابت
         let timerInterval;
 
-        window.onload = function() {
-            if (userName) { startApp(); } 
-            else { document.getElementById("setup-overlay").style.display = "flex"; }
-        };
+        // فحص فوري عند تشغيل السكريبت
+        if (userName) {
+            startApp();
+        } else {
+            document.getElementById("setup-overlay").style.display = "flex";
+        }
 
         function showNameInput() {
             document.getElementById("rules-step").style.display = "none";
@@ -95,14 +90,18 @@
         function saveAndStart() {
             const val = document.getElementById("username-input").value.trim();
             if (!val) return alert("اكتب اسمك!");
-            userName = val; 
-            localStorage.setItem("remy_user_v3", userName);
+            
+            localStorage.setItem("remy_player_name", val); // حفظ الاسم
+            userName = val;
             document.getElementById("setup-overlay").style.display = "none";
             startApp();
         }
 
         function startApp() {
+            // إخفاء أي شاشات إعداد في حال كانت ظاهرة
+            document.getElementById("setup-overlay").style.display = "none";
             document.getElementById("display-name").innerText = userName;
+
             db.ref('totalPoints/' + userName).on('value', snap => {
                 document.getElementById("my-points").innerText = snap.val() || 0;
             });
@@ -124,29 +123,27 @@
         function showQuestion(idx) {
             const data = myQuestions[idx];
             if (!data) return;
-
             document.getElementById("question-text").innerText = data.q;
             const container = document.getElementById("options-container");
             container.innerHTML = ""; 
             document.getElementById("status-msg").innerText = "";
             
-            // فحص هل جاوب سابقاً على هذا السؤال
             const alreadyAnswered = localStorage.getItem("ans_" + idx);
             
             data.options.forEach((opt, i) => {
                 const b = document.createElement("button");
-                b.className = "opt-btn"; 
-                b.innerText = opt;
-                if (alreadyAnswered) {
-                    b.disabled = true;
-                    document.getElementById("status-msg").innerText = "لقد أجبت سابقاً ✋";
-                }
+                b.className = "opt-btn"; b.innerText = opt;
+                if (alreadyAnswered) b.disabled = true;
                 b.onclick = () => submitAnswer(i, data.correct, idx);
                 container.appendChild(b);
             });
 
-            if (!alreadyAnswered) { startTimer(); } 
-            else { clearInterval(timerInterval); document.getElementById("timer-progress").style.width = "0%"; }
+            if (alreadyAnswered) {
+                document.getElementById("status-msg").innerText = "لقد أجبت سابقاً ✋";
+                document.getElementById("timer-progress").style.width = "0%";
+            } else {
+                startTimer();
+            }
         }
 
         function startTimer() {
@@ -161,7 +158,6 @@
 
         function submitAnswer(choice, correct, qIdx) {
             clearInterval(timerInterval);
-            // منع الإجابة مرة أخرى حتى عند التحديث
             localStorage.setItem("ans_" + qIdx, "true");
             disableAll("جاري التحقق...");
 
@@ -170,7 +166,6 @@
                 return;
             }
 
-            // نظام الأول فقط بالسيرفر
             db.ref('winners/' + qIdx).transaction(currentData => {
                 if (currentData === null) return { name: userName };
                 return; 
@@ -191,6 +186,5 @@
     </script>
 </body>
 </html>
-
 
 
