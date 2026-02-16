@@ -9,32 +9,7 @@
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-        <div id="developerFooter" style="
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #f9f9f9;
-  border-top: 1px solid #ccc;
-  padding: 10px;
-  text-align: center;
-  font-family: Arial, sans-serif;
-  z-index: 9999;
-">
-  <span>تم تصميم الموقع بواسطة: <strong id="devName">...</strong></span> |
-  <span>رابط المطور: <a id="devLink" href="#" target="_blank">...</a></span>
-</div>
-
-<script>
-  // بيانات المهندس / المطور
-  const devName = "مهندس"; // ضع اسم المهندس
-  const devLink = "https://example.com/profile/rioveti"; // ضع رابط المطور
-
-  // تعيين البيانات في الصفحة
-  document.getElementById("devName").textContent = devName;
-  const linkElement = document.getElementById("devLink");
-  linkElement.textContent = devLink;
-  linkElement.href = devLink;
+      
 </script>
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .setup-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; }
@@ -209,4 +184,5 @@
     </script>
 </body>
 </html>
+
 
