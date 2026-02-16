@@ -10,79 +10,99 @@
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         
-        /* شاشات الدخول (القوانين والاسم) */
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .setup-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; }
+        /* شاشة الدخول (الاسم + القوانين) */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .login-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; box-shadow: 0 0 20px rgba(56, 189, 248, 0.2); }
         
         .logo { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 15px; }
-        input { width: 90%; padding: 15px; border-radius: 12px; border: 1px solid var(--blue); background: #0a1120; color: white; text-align: center; font-size: 1.1em; margin-bottom: 20px; }
-        
+        input { width: 90%; padding: 15px; border-radius: 12px; border: 1px solid var(--blue); background: #0a1120; color: white; text-align: center; font-size: 1.1em; margin: 15px 0; outline: none; }
+        input:focus { box-shadow: 0 0 10px var(--blue); }
+
+        .rules-mini { text-align: right; font-size: 0.85em; color: #cbd5e1; margin-bottom: 20px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; }
+
         /* الكرت الرئيسي */
         .main-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); max-width: 500px; width: 100%; display: none; text-align: center; }
         .user-info { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; border: 1px solid rgba(56, 189, 248, 0.1); }
         
-        .opt-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); color: white; border-radius: 12px; cursor: pointer; font-size: 1.1em; font-weight: bold; }
-        .btn-action { background: var(--blue); color: var(--bg); border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        .q-text { font-size: 1.4em; font-weight: bold; margin-bottom: 20px; color: var(--blue); }
+        .opt-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); color: white; border-radius: 12px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.2s; }
+        .opt-btn:hover { background: var(--blue); color: var(--bg); }
+        
+        .btn-start { background: var(--blue); color: var(--bg); border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1.1em; }
+        #waiting-msg { text-align: center; display: none; }
     </style>
 </head>
 <body>
 
-    <div id="setup-overlay" class="overlay">
-        <div class="setup-card" id="rules-step">
+    <div id="login-overlay">
+        <div class="login-card">
             <img src="logo.png" class="logo" onerror="this.src='https://i.ibb.co/ZzYy6y6/remy-logo.png'">
-            <h2 style="color: var(--blue);">📜 القوانين</h2>
-            <p>1. السرعة هي المفتاح ⚡<br>2. الإجابة الصحيحة = 1 نقطة 🏆</p>
-            <button class="btn-action" onclick="showNameStep()">موافق، التالي ✅</button>
-        </div>
+            <h2 style="color: var(--blue); margin-top: 0;">مرحباً بك في Remy 🎮</h2>
+            
+            <input type="text" id="username-input" placeholder="اكتب اسمك في جاكو هنا...">
+            
+            <div class="rules-mini">
+                <p style="margin: 0 0 5px 0; font-weight: bold; color: var(--blue);">📜 قوانين سريعة:</p>
+                • أسرع واحد يجاوب يظهر اسمه للأدمن ⚡<br>
+                • كل إجابة صحيحة تزيد نقاطك (1 ن) 🏆
+            </div>
 
-        <div class="setup-card" id="name-step" style="display:none;">
-            <h2 style="color: var(--blue);">بطل جديد؟ 🎮</h2>
-            <p>اكتب اسمك للمشاركة في التحدي:</p>
-            <input type="text" id="username-input" placeholder="ادخل اسمك هنا...">
-            <button class="btn-action" onclick="startApp()">دخول المسابقة 🚀</button>
+            <button class="btn-start" onclick="joinQuiz()">دخول المسابقة ✅</button>
         </div>
     </div>
 
-    <div id="waiting-msg" style="display:none; text-align:center;">
+    <div id="waiting-msg">
         <img src="logo.png" class="logo" onerror="this.src='https://i.ibb.co/ZzYy6y6/remy-logo.png'">
-        <h3>بانتظار السؤال... ⌛</h3>
+        <h3>بانتظار السؤال القادم من Remy... ⌛</h3>
+        <p style="color: #64748b;">جهز نفسك يا بطل!</p>
     </div>
 
     <div id="quiz-container" class="main-card">
         <div class="user-info">
             <span id="display-name"></span>
-            <span style="color:var(--blue)">نقاطي: <span id="my-points">0</span></span>
+            <span style="color:var(--blue)">نقاطي: <span id="my-points">0</span> ن</span>
         </div>
-        <div id="question-text" style="font-size:1.4em; margin-bottom:20px; color:var(--blue)"></div>
+        <div id="question-text" class="q-text"></div>
         <div id="options-container"></div>
+        <div id="status-msg" style="margin-top: 15px; font-weight: bold;"></div>
     </div>
 
     <script>
-        const config = { /* إعدادات Firebase الخاصة بك */ };
+        // إعدادات Firebase
+        const config = {
+            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
+            authDomain: "fawazir-jaco.firebaseapp.com",
+            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fawazir-jaco",
+            storageBucket: "fawazir-jaco.firebasestorage.app",
+            messagingSenderId: "862747657100",
+            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
+        };
         firebase.initializeApp(config);
         const db = firebase.database();
 
+        const myQuestions = [
+            { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 },
+            { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["البقرة", "النساء", "آل عمران"], correct: 0 },
+            { q: "أكمل المثل: القرد في عين أمه", options: ["حصان", "فيل", "غزال"], correct: 2 }
+        ];
+
         let userName = "";
+        let currentQIdx = -1;
 
-        function showNameStep() {
-            document.getElementById('rules-step').style.display = 'none';
-            document.getElementById('name-step').style.display = 'block';
-        }
-
-        function startApp() {
-            const input = document.getElementById('username-input').value.trim();
-            if (input === "") return alert("الرجاء كتابة اسمك!");
+        function joinQuiz() {
+            const input = document.getElementById("username-input").value.trim();
+            if (input === "") return alert("يا بطل، اكتب اسمك أولاً!");
             
             userName = input;
-            document.getElementById("setup-overlay").style.display = "none";
+            document.getElementById("login-overlay").style.display = "none";
             document.getElementById("display-name").innerText = userName;
             
-            // بدء مراقبة البيانات
-            initFirebaseListeners();
+            startListening();
         }
 
-        function initFirebaseListeners() {
-            // مراقبة النقاط
+        function startListening() {
+            // مراقبة النقاط الشخصية
             db.ref('totalPoints/' + userName).on('value', s => {
                 document.getElementById("my-points").innerText = s.val() || 0;
             });
@@ -90,15 +110,51 @@
             // مراقبة السؤال الحالي
             db.ref('currentQuestion').on('value', snap => {
                 const idx = snap.val();
+                currentQIdx = idx;
                 const quizBox = document.getElementById("quiz-container");
                 const waitBox = document.getElementById("waiting-msg");
+
                 if (idx === -1 || idx === null) {
-                    quizBox.style.display = "none"; waitBox.style.display = "block";
+                    quizBox.style.display = "none";
+                    waitBox.style.display = "block";
                 } else {
-                    waitBox.style.display = "none"; quizBox.style.display = "block";
-                    // دالة عرض السؤال (showQ) كما في الكود السابق
+                    waitBox.style.display = "none";
+                    quizBox.style.display = "block";
+                    showQ(idx);
                 }
             });
+        }
+
+        function showQ(idx) {
+            const data = myQuestions[idx];
+            if(!data) return;
+            document.getElementById("question-text").innerText = data.q;
+            const btnBox = document.getElementById("options-container");
+            btnBox.innerHTML = "";
+            document.getElementById("status-msg").innerText = "";
+            
+            data.options.forEach((opt, i) => {
+                const b = document.createElement("button");
+                b.className = "opt-btn";
+                b.innerText = opt;
+                b.onclick = () => checkAns(i);
+                btnBox.appendChild(b);
+            });
+        }
+
+        function checkAns(choice) {
+            const btns = document.querySelectorAll(".opt-btn");
+            btns.forEach(b => b.disabled = true); // منع تغيير الإجابة
+            const status = document.getElementById("status-msg");
+
+            if(choice === myQuestions[currentQIdx].correct) {
+                status.innerText = "إجابة صحيحة! 🎉"; status.style.color = "#10b981";
+                // تسجيل الفائز لمرة واحدة فقط
+                db.ref('winners/' + currentQIdx).push({ name: userName, timestamp: firebase.database.ServerValue.TIMESTAMP });
+                db.ref('totalPoints/' + userName).transaction(p => (p || 0) + 1);
+            } else {
+                status.innerText = "خطأ ❌ حظاً أوفر"; status.style.color = "#e94560";
+            }
         }
     </script>
 </body>
