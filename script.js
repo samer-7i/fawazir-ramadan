@@ -1,30 +1,34 @@
+// إعدادات Firebase الكاملة
 const firebaseConfig = {
-  apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
-  authDomain: "fawazir-jaco.firebaseapp.com",
-  databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "fawazir-jaco",
-  storageBucket: "fawazir-jaco.firebasestorage.app",
-  messagingSenderId: "862747657100",
-  appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
+    apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
+    authDomain: "fawazir-jaco.firebaseapp.com",
+    databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "fawazir-jaco",
+    storageBucket: "fawazir-jaco.firebasestorage.app",
+    messagingSenderId: "862747657100",
+    appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
 };
 
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+// تشغيل Firebase لمرة واحدة فقط
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.database();
 
-const allQuestions = [
-    { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["إبراهيم", "موسى", "عيسى"], correct: 1 },
-    { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["آل عمران", "النساء", "البقرة"], correct: 2 },
-    { q: "أكمل المثل: القرد في عين أمه...", options: ["غزال", "فيل", "حصان"], correct: 0 },
-    { q: "ما هو الشيء الذي يقرصك ولا تراه؟", options: ["البرد", "الجوع", "النملة"], correct: 1 },
-    { q: "سورة تُسمى قلب القرآن؟", options: ["يس", "الملك", "الرحمن"], correct: 0 },
-    { q: "ما هو الشيء الذي له أسنان ولا يعض؟", options: ["المنشار", "المشط", "المفتاح"], correct: 1 },
+// مصفوفة الأسئلة الكاملة (allQuestions) مع مفتاح (q) كما في صورتك
+window.allQuestions = [
+    { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 },
+    { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["البقرة", "النساء", "آل عمران"], correct: 0 },
+    { q: "...أكمل المثل: القرد في عين أمه", options: ["حصان", "فيل", "غزال"], correct: 2 },
+    { q: "ما هو الشيء الذي يقرصك ولا تراه؟", options: ["النملة", "الجوع", "البرد"], correct: 1 },
+    { q: "سورة تُسمى قلب القرآن؟", options: ["الرحمن", "الملك", "يس"], correct: 2 },
+    { q: "ما هو الشيء الذي له أسنان ولا يعض؟", options: ["المفتاح", "المشط", "المنشار"], correct: 1 },
     { q: "كم عدد سجدات التلاوة في القرآن؟", options: ["12", "15", "10"], correct: 1 },
-    { q: "من هو أول من صام؟", options: ["آدم عليه السلام", "نوح عليه السلام", "محمد ﷺ"], correct: 0 },
-    { q: "ما هو العضو الذي يغلق تلقائياً عند العطس؟", options: ["الأذن", "العين", "الفم"], correct: 1 },
-    { q: "أين تقع الكعبة المشرفة؟", options: ["المدينة", "القدس", "مكة"], correct: 2 }
+    { q: "من هو أول من صام؟", options: ["محمد ﷺ", "نوح عليه السلام", "آدم عليه السلام"], correct: 2 },
+    { q: "ما هو العضو الذي يغلق تلقائياً عند العطس؟", options: ["الفم", "العين", "الأذن"], correct: 1 },
+    { q: "أين تقع الكعبة المشرفة؟", options: ["مكة", "القدس", "المدينة"], correct: 0 }
+    // أضف هنا جميع الأسئلة الباقية (حتى سؤال 50) بنفس التنسيق تماماً
 ];
-
-let userName = "";
 
 window.onload = function() {
     let savedName = localStorage.getItem("remy_user_name");
@@ -143,3 +147,4 @@ function checkAnswer(selected, qIndex) {
         container.innerHTML = "<h2>❌ إجابة خاطئة!</h2><p>تعوضها في السؤال الجاي</p>";
     }
 }
+
