@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم Remy 🚀</title>
+    <title>لوحة تحكم Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --text: #ffffff; }
-        body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; }
+        body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
         .header { text-align: center; margin-bottom: 20px; }
         .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 10px; }
-        .preview-card { background: var(--card); width: 95%; max-width: 750px; padding: 20px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 25px; display: none; text-align: center; }
-        .stats-row { display: flex; gap: 15px; width: 95%; max-width: 800px; margin-bottom: 20px; }
-        .stat-box { flex: 1; background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: right; min-height: 100px; }
-        .stat-box h4 { margin: 0 0 10px 0; color: #64748b; font-size: 0.85em; }
-        .leader-entry { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .points-tag { color: var(--blue); font-weight: bold; }
-        .grid-holder { background: var(--card); padding: 20px; border-radius: 20px; width: 95%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; }
-        .q-btn { background: rgba(56, 189, 248, 0.1); color: var(--blue); border: 1px solid var(--blue); padding: 10px 5px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .stop-btn { background: var(--red); color: white; border: none; padding: 18px; border-radius: 15px; width: 95%; max-width: 800px; font-size: 1.1em; font-weight: bold; margin-top: 25px; cursor: pointer; }
+        
+        /* كرت مباشر */
+        .preview-card { background: var(--card); width: 95%; max-width: 800px; padding: 20px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 20px; text-align: center; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 95%; max-width: 800px; margin-bottom: 20px; }
+        .stat-box { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
+        .stat-box h4 { margin: 0 0 10px 0; color: var(--blue); font-size: 0.9em; }
+
+        /* الأزرار */
+        .grid-holder { background: var(--card); padding: 20px; border-radius: 20px; width: 95%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+        .q-btn { background: rgba(56, 189, 248, 0.1); color: var(--blue); border: 1px solid var(--blue); padding: 12px 5px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .q-btn.active { background: var(--blue); color: var(--bg); }
+        .stop-btn { background: var(--red); color: white; border: none; padding: 15px; border-radius: 15px; width: 95%; max-width: 800px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+        
+        .winner-name { font-size: 1.4em; color: #10b981; font-weight: bold; display: block; margin-top: 10px; }
+        .leader-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -29,27 +36,27 @@
         <h2 style="margin:0">لوحة تحكم Remy 🎮</h2>
     </div>
 
-    <div id="live-preview" class="preview-card">
-        <div style="color:var(--red); font-weight:bold; font-size:0.8em; margin-bottom:5px;">🔴 مباشر الآن:</div>
-        <h3 id="preview-text" style="color: var(--blue); margin: 5px 0;"></h3>
+    <div class="preview-card" id="live-box" style="display:none;">
+        <span style="color:var(--red)">● مباشر الآن:</span>
+        <h3 id="current-q-text" style="margin:10px 0"></h3>
     </div>
 
-    <div class="stats-row">
+    <div class="stats-grid">
         <div class="stat-box">
-            <h4>⚡ أسرع إجابة صحيحة</h4>
-            <div id="fastest-name" style="color:var(--blue); font-size: 1.2em; font-weight: bold; margin-top: 10px;">بانتظار الإجابات...</div>
+            <h4>🥇 أسرع إجابة صحيحة (الفائز)</h4>
+            <div id="fastest-winner" class="winner-name">بانتظار بطل...</div>
         </div>
         <div class="stat-box">
-            <h4>🏆 المتصدرين</h4>
-            <div id="top-list"></div>
+            <h4>🏆 قائمة المتصدرين</h4>
+            <div id="leaderboard"></div>
         </div>
     </div>
 
-    <div class="grid-holder" id="btn-container"></div>
-    <button class="stop-btn" onclick="sendQ(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
+    <div class="grid-holder" id="buttons"></div>
+    <button class="stop-btn" onclick="sendQ(-1)">إخفاء السؤال / إيقاف المؤقت 🛑</button>
 
     <script>
-        const config = {
+        const config = { 
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
             databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
@@ -62,101 +69,67 @@
         const db = firebase.database();
 
         const myQuestions = [
-            { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 },
-            { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["البقرة", "النساء", "آل عمران"], correct: 0 },
-            { q: "أكمل المثل: القرد في عين أمه", options: ["حصان", "فيل", "غزال"], correct: 2 },
-            { q: "ما هو الشيء الذي يقرصك ولا تراه؟", options: ["النملة", "الجوع", "البرد"], correct: 1 }
-            // أضف البقية هنا بنفس التنسيق
+            { q: "من هو النبي الذي لُقب بكليم الله؟" },
+            { q: "ما هي أطول سورة في القرآن الكريم؟" },
+            { q: "أكمل المثل: القرد في عين أمه" }
         ];
 
-        const container = document.getElementById("btn-container");
-        for (let i = 0; i < 50; i++) {
+        // إنشاء الأزرار
+        const btnContainer = document.getElementById("buttons");
+        for(let i=0; i<30; i++) {
             let b = document.createElement("button");
             b.className = "q-btn";
-            b.innerText = "سؤال " + (i + 1);
+            b.innerText = "س" + (i+1);
             b.onclick = () => sendQ(i);
-            container.appendChild(b);
+            b.id = "btn-" + i;
+            btnContainer.appendChild(b);
         }
 
-        function sendQ(idx) { 
-            db.ref('currentQuestion').set(idx); 
-            document.getElementById("fastest-name").innerText = "بانتظار الإجابات...";
+        function sendQ(idx) {
+            db.ref('currentQuestion').set(idx);
+            // تصفير اسم الفائز عند طرح سؤال جديد
+            document.getElementById("fastest-winner").innerText = "بانتظار بطل...";
         }
 
-        db.ref('currentQuestion').on('value', (snap) => {
+        // مراقبة السؤال الحالي والفائز
+        db.ref('currentQuestion').on('value', snap => {
             const idx = snap.val();
-            const preview = document.getElementById("live-preview");
-            if (idx === -1 || idx === null) {
-                preview.style.display = "none";
+            const liveBox = document.getElementById("live-box");
+            
+            // تحديث شكل الأزرار
+            document.querySelectorAll(".q-btn").forEach(btn => btn.classList.remove("active"));
+            
+            if(idx === -1 || idx === null) {
+                liveBox.style.display = "none";
             } else {
-                preview.style.display = "block";
-                const data = myQuestions[idx];
-                document.getElementById("preview-text").innerText = data ? data.q : "سؤال " + (idx + 1);
-                
-                db.ref('winners/' + idx).limitToFirst(1).on('value', (wSnap) => {
-                    if (wSnap.exists()) {
-                        wSnap.forEach(child => { document.getElementById("fastest-name").innerText = "🥇 " + child.val().name; });
+                liveBox.style.display = "block";
+                document.getElementById("current-q-text").innerText = myQuestions[idx] ? myQuestions[idx].q : "سؤال " + (idx+1);
+                if(document.getElementById("btn-"+idx)) document.getElementById("btn-"+idx).classList.add("active");
+
+                // مراقبة الفائز بهذا السؤال (أول واحد فقط)
+                db.ref('winners/' + idx).on('value', wSnap => {
+                    if(wSnap.exists()) {
+                        const winnerData = wSnap.val();
+                        // لأننا استخدمنا transaction، البيانات مخزنة مباشرة ككائن واحد
+                        document.getElementById("fastest-winner").innerText = "🏆 " + winnerData.name;
                     }
                 });
             }
         });
 
-        db.ref('totalPoints').on('value', (snap) => {
-            const list = document.getElementById("top-list");
+        // تحديث قائمة المتصدرين
+        db.ref('totalPoints').on('value', snap => {
             const data = snap.val() || {};
-            const sorted = Object.entries(data).map(([n, p]) => ({ name: n.replace(/_/g, ' '), p })).sort((a, b) => b.p - a.p).slice(0, 5);
+            const sorted = Object.entries(data)
+                .map(([name, pts]) => ({name, pts}))
+                .sort((a,b) => b.pts - a.pts)
+                .slice(0, 5);
+            
+            const list = document.getElementById("leaderboard");
             list.innerHTML = "";
-            sorted.forEach((u, i) => { list.innerHTML += `<div class="leader-entry"><span>${i+1}. ${u.name}</span><span class="points-tag">${u.p} ن</span></div>`; });
-        });
-    </script>
-</body>
-</html>
-        }
-
-        function sendQ(idx) { 
-            db.ref('currentQuestion').set(idx); 
-            document.getElementById("fastest-name").innerText = "بانتظار الإجابات...";
-        }
-
-        db.ref('currentQuestion').on('value', (snap) => {
-            const idx = snap.val();
-            const preview = document.getElementById("live-preview");
-            const hint = document.getElementById("essay-answer");
-            const label = document.getElementById("q-type-label");
-
-            if (idx === -1 || idx === null) {
-                preview.style.display = "none";
-            } else {
-                preview.style.display = "block";
-                const data = myQuestions[idx];
-                document.getElementById("preview-text").innerText = data ? data.q : "سؤال رقم " + (idx + 1);
-                
-                // إذا كان السؤال مقالياً، أظهر الجواب للأدمن فقط
-                if (data && data.type === "essay") {
-                    label.innerText = "🔴 مباشر (سؤال مقالي 📝):";
-                    hint.style.display = "block";
-                    hint.innerText = "الإجابة الصحيحة: " + data.ans;
-                } else {
-                    label.innerText = "🔴 مباشر (سؤال خيارات 🔘):";
-                    hint.style.display = "none";
-                }
-
-                db.ref('winners/' + idx).limitToFirst(1).on('value', (wSnap) => {
-                    if (wSnap.exists()) {
-                        wSnap.forEach(child => { document.getElementById("fastest-name").innerText = "🥇 " + child.val().name; });
-                    } else {
-                        document.getElementById("fastest-name").innerText = "بانتظار الإجابة...";
-                    }
-                });
-            }
-        });
-
-        db.ref('totalPoints').on('value', (snap) => {
-            const list = document.getElementById("top-list");
-            const data = snap.val() || {};
-            const sorted = Object.entries(data).map(([n, p]) => ({ name: n.replace(/_/g, ' '), p })).sort((a, b) => b.p - a.p).slice(0, 5);
-            list.innerHTML = "";
-            sorted.forEach((u, i) => { list.innerHTML += `<div class="leader-entry"><span>${i+1}. ${u.name}</span><span class="points-tag">${u.p} ن</span></div>`; });
+            sorted.forEach((p, i) => {
+                list.innerHTML += `<div class="leader-item"><span>${i+1}. ${p.name}</span><span style="color:var(--blue)">${p.pts} ن</span></div>`;
+            });
         });
     </script>
 </body>
