@@ -3,57 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم Remy 🎮</title>
+    <title>تحكم Remy 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --text: #ffffff; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 10px; }
-        
-        /* كرت مباشر */
-        .preview-card { background: var(--card); width: 95%; max-width: 800px; padding: 20px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 20px; text-align: center; }
-        
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 95%; max-width: 800px; margin-bottom: 20px; }
-        .stat-box { background: var(--card); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .stat-box h4 { margin: 0 0 10px 0; color: var(--blue); font-size: 0.9em; }
-
-        /* الأزرار */
-        .grid-holder { background: var(--card); padding: 20px; border-radius: 20px; width: 95%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
-        .q-btn { background: rgba(56, 189, 248, 0.1); color: var(--blue); border: 1px solid var(--blue); padding: 12px 5px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .q-btn.active { background: var(--blue); color: var(--bg); }
-        .stop-btn { background: var(--red); color: white; border: none; padding: 15px; border-radius: 15px; width: 95%; max-width: 800px; font-weight: bold; margin-top: 20px; cursor: pointer; }
-        
-        .winner-name { font-size: 1.4em; color: #10b981; font-weight: bold; display: block; margin-top: 10px; }
-        .leader-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .panel { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); width: 100%; max-width: 600px; margin-bottom: 20px; text-align: center; }
+        .q-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 15px 0; }
+        .q-btn { background: rgba(56, 189, 248, 0.1); color: var(--blue); border: 1px solid var(--blue); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .q-btn.active { background: var(--blue); color: #000; }
+        .btn-round { background: #f59e0b; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .leader-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <img src="logo.png" class="logo">
-        <h2 style="margin:0">لوحة تحكم Remy 🎮</h2>
+    <div class="panel">
+        <h2 style="color: var(--blue);">لوحة تحكم Remy 👑</h2>
+        <div id="active-q" style="font-weight: bold; margin-bottom: 10px;">لا يوجد سؤال مباشر</div>
+        <div style="color: #10b981; font-size: 1.2em;">الفائز: <span id="winner-name">---</span></div>
     </div>
 
-    <div class="preview-card" id="live-box" style="display:none;">
-        <span style="color:var(--red)">● مباشر الآن:</span>
-        <h3 id="current-q-text" style="margin:10px 0"></h3>
+    <div class="panel">
+        <h3>التحكم بالأسئلة</h3>
+        <div class="q-grid" id="btn-container"></div>
+        <button onclick="sendQ(-1)" style="background: var(--red); color:white; border:none; padding:10px; width:100%; border-radius:8px; cursor:pointer;">إخفاء السؤال 🛑</button>
+        <button class="btn-round" onclick="resetRound()">🔄 جولة جديدة (فتح قفل الأجهزة)</button>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-box">
-            <h4>🥇 أسرع إجابة صحيحة (الفائز)</h4>
-            <div id="fastest-winner" class="winner-name">بانتظار بطل...</div>
-        </div>
-        <div class="stat-box">
-            <h4>🏆 قائمة المتصدرين</h4>
-            <div id="leaderboard"></div>
-        </div>
+    <div class="panel">
+        <h3>🏆 المتصدرون</h3>
+        <div id="leaderboard"></div>
     </div>
-
-    <div class="grid-holder" id="buttons"></div>
-    <button class="stop-btn" onclick="sendQ(-1)">إخفاء السؤال / إيقاف المؤقت 🛑</button>
 
     <script>
         const config = { 
@@ -68,67 +50,47 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        const myQuestions = [
-            { q: "من هو النبي الذي لُقب بكليم الله؟" },
-            { q: "ما هي أطول سورة في القرآن الكريم؟" },
-            { q: "أكمل المثل: القرد في عين أمه" }
-        ];
-
-        // إنشاء الأزرار
-        const btnContainer = document.getElementById("buttons");
-        for(let i=0; i<30; i++) {
+        // توليد الأزرار
+        const container = document.getElementById("btn-container");
+        for(let i=0; i<15; i++) {
             let b = document.createElement("button");
-            b.className = "q-btn";
-            b.innerText = "س" + (i+1);
+            b.className = "q-btn"; b.innerText = "س" + (i+1);
             b.onclick = () => sendQ(i);
-            b.id = "btn-" + i;
-            btnContainer.appendChild(b);
+            b.id = "q"+i;
+            container.appendChild(b);
         }
 
         function sendQ(idx) {
             db.ref('currentQuestion').set(idx);
-            // تصفير اسم الفائز عند طرح سؤال جديد
-            document.getElementById("fastest-winner").innerText = "بانتظار بطل...";
+            document.getElementById("winner-name").innerText = "---";
         }
 
-        // مراقبة السؤال الحالي والفائز
+        function resetRound() {
+            if(confirm("سيتمكن الجميع من الإجابة مرة أخرى، موافق؟")) {
+                db.ref('roundVersion').transaction(v => (v || 0) + 1);
+                db.ref('winners').remove();
+            }
+        }
+
         db.ref('currentQuestion').on('value', snap => {
             const idx = snap.val();
-            const liveBox = document.getElementById("live-box");
-            
-            // تحديث شكل الأزرار
-            document.querySelectorAll(".q-btn").forEach(btn => btn.classList.remove("active"));
-            
-            if(idx === -1 || idx === null) {
-                liveBox.style.display = "none";
-            } else {
-                liveBox.style.display = "block";
-                document.getElementById("current-q-text").innerText = myQuestions[idx] ? myQuestions[idx].q : "سؤال " + (idx+1);
-                if(document.getElementById("btn-"+idx)) document.getElementById("btn-"+idx).classList.add("active");
-
-                // مراقبة الفائز بهذا السؤال (أول واحد فقط)
-                db.ref('winners/' + idx).on('value', wSnap => {
-                    if(wSnap.exists()) {
-                        const winnerData = wSnap.val();
-                        // لأننا استخدمنا transaction، البيانات مخزنة مباشرة ككائن واحد
-                        document.getElementById("fastest-winner").innerText = "🏆 " + winnerData.name;
-                    }
+            document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
+            if(idx !== -1 && idx !== null) {
+                document.getElementById("q"+idx).classList.add("active");
+                document.getElementById("active-q").innerText = "السؤال الحالي: " + (idx+1);
+                db.ref('winners/'+idx).on('value', s => {
+                    if(s.exists()) document.getElementById("winner-name").innerText = s.val().name;
                 });
             }
         });
 
-        // تحديث قائمة المتصدرين
-        db.ref('totalPoints').on('value', snap => {
+        db.ref('users').on('value', snap => {
             const data = snap.val() || {};
-            const sorted = Object.entries(data)
-                .map(([name, pts]) => ({name, pts}))
-                .sort((a,b) => b.pts - a.pts)
-                .slice(0, 5);
-            
+            const sorted = Object.values(data).sort((a,b) => (b.points||0) - (a.points||0)).slice(0, 10);
             const list = document.getElementById("leaderboard");
             list.innerHTML = "";
             sorted.forEach((p, i) => {
-                list.innerHTML += `<div class="leader-item"><span>${i+1}. ${p.name}</span><span style="color:var(--blue)">${p.pts} ن</span></div>`;
+                list.innerHTML += `<div class="leader-item"><span>${i+1}. ${p.name}</span><b>${p.points||0} ن</b></div>`;
             });
         });
     </script>
