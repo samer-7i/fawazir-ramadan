@@ -3,172 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم Remy | النسخة المستقرة</title>
+    <title>لوحة تحكم Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="script.js"></script>
     <style>
-        :root {
-            --main-blue: #38bdf8;
-            --main-red: #e94560;
-            --dark-slate: #1e293b;
-            --light-bg: #f1f5f9;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .admin-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        /* حاوية المعاينة - تمنع تداخل العناصر */
-        .status-card {
-            background: white;
-            width: 100%;
-            max-width: 700px;
-            padding: 25px;
-            border-radius: 20px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            border-top: 6px solid var(--main-blue);
+        :root { --blue: #38bdf8; --red: #e94560; --bg: #f8fafc; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; }
+        
+        /* شاشة المعاينة (نفس تصميمك) */
+        .preview-card {
+            background: white; max-width: 600px; margin: 0 auto 20px;
+            padding: 20px; border-radius: 15px; border: 1px solid #ddd;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             display: none; /* تظهر فقط عند اختيار سؤال */
         }
 
-        .live-indicator {
-            color: var(--main-red);
-            font-weight: bold;
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 15px;
+        /* شبكة الأزرار (أزرار كبيرة ومنظمة) */
+        .grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+            max-width: 650px; margin: 20px auto; background: white;
+            padding: 20px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .q-btn {
+            background: var(--blue); color: white; border: none; padding: 15px 5px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .q-btn:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        .stop-btn {
+            background: var(--red); color: white; border: none; padding: 18px;
+            border-radius: 12px; width: 100%; max-width: 650px;
+            font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 10px;
         }
 
-        .dot {
-            height: 10px; width: 10px;
-            background-color: var(--main-red);
-            border-radius: 50%;
-            display: inline-block;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* شبكة الأزرار المنظمة */
-        .buttons-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 15px;
-            width: 100%;
-            max-width: 700px;
-            background: white;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .q-button {
-            background-color: var(--main-blue);
-            color: white;
-            border: none;
-            padding: 15px 10px;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9em;
-        }
-
-        .q-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
-        }
-
-        .stop-button {
-            background-color: var(--main-red);
-            color: white;
-            border: none;
-            padding: 20px;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 700px;
-            margin-top: 25px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(233, 69, 96, 0.3);
-        }
-
-        .option-tag {
-            display: inline-block;
-            padding: 8px 15px;
-            margin: 5px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 0.85em;
-        }
-
-        .correct {
-            background-color: #dcfce7;
-            border-color: #22c55e;
-            color: #166534;
-            font-weight: bold;
-        }
+        .correct { background: #dcfce7 !important; color: #166534; font-weight: bold; padding: 5px 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="admin-header">
-        <h1>🎮 لوحة تحكم Remy</h1>
-        <p>اختر السؤال لتفعيله للمتابعين</p>
+    <h2>🎮 لوحة تحكم Remy</h2>
+    <p>اختر السؤال لتفعيله للمتابعين</p>
+
+    <div id="preview-area" class="preview-card">
+        <p style="color:var(--red); font-weight:bold;">🔴 يظهر الآن للمتابعين:</p>
+        <h3 id="live-q-text"></h3>
+        <div id="live-options" style="display:flex; justify-content:center; gap:10px;"></div>
     </div>
 
-    <div id="status-card" class="status-card">
-        <div class="live-indicator">
-            <span class="dot"></span> يظهر الآن للمتابعين
-        </div>
-        <h2 id="current-q-text" style="margin: 10px 0; color: var(--dark-slate);"></h2>
-        <div id="current-options"></div>
+    <div class="grid">
+        <button class="q-btn" onclick="activateQ(0)">سؤال 1</button>
+        <button class="q-btn" onclick="activateQ(1)">سؤال 2</button>
+        <button class="q-btn" onclick="activateQ(2)">سؤال 3</button>
+        <button class="q-btn" onclick="activateQ(3)">سؤال 4</button>
+        <button class="q-btn" onclick="activateQ(4)">سؤال 5</button>
+        <button class="q-btn" onclick="activateQ(5)">سؤال 6</button>
+        <button class="q-btn" onclick="activateQ(6)">سؤال 7</button>
+        <button class="q-btn" onclick="activateQ(7)">سؤال 8</button>
+        <button class="q-btn" onclick="activateQ(8)">سؤال 9</button>
+        <button class="q-btn" onclick="activateQ(9)">سؤال 10</button>
     </div>
 
-    <div class="buttons-grid" id="grid"></div>
-
-    <button class="stop-button" onclick="activateQuestion(-1)">
-        إخفاء السؤال من عند الجميع 🛑
-    </button>
+    <button class="stop-btn" onclick="activateQ(-1)">إخفاء السؤال من عند الجميع 🛑</button>
 
     <script>
-        const grid = document.getElementById("grid");
-
-        // إنشاء الأزرار بناءً على الأسئلة الموجودة في script.js
-        window.allQuestions.forEach((item, index) => {
-            const btn = document.createElement("button");
-            btn.className = "q-button";
-            btn.innerText = "سؤال " + (index + 1);
-            btn.onclick = () => activateQuestion(index);
-            grid.appendChild(btn);
-        });
-
-        function activateQuestion(idx) {
+        function activateQ(idx) {
             db.ref('currentQuestion').set(idx);
         }
 
-        // مراقبة التغييرات لتحديث المعاينة
-        db.ref('currentQuestion').on('value', (snapshot) => {
-            const idx = snapshot.val();
-            const card = document.getElementById("status-card");
-            const qText = document.getElementById("current-q-text");
-            const qOpts = document.getElementById("current-options");
-
-            if (idx ===
+        // تحديث المعاينة فورياً
+        db.ref('currentQuestion').on('value', (snap) => {
+            const idx = snap.val();
+            const preview = document.getElementById("preview-area");
+            if (idx === -1 || idx === null) {
+                preview.style.display = "none";
+            } else {
+                preview.style.display = "block";
+                const data = window.allQuestions[idx];
+                document.getElementById("live-q-text").innerText = "س" + (idx + 1) + ": " + data.q;
+                
+                const optDiv = document.getElementById("live-options");
+                optDiv.innerHTML = "";
+                data.options.forEach((opt, i) => {
+                    const s = document.createElement("span");
+                    s.innerText = opt;
+                    if(i === data.correct) s.className = "correct";
+                    else s.style.background = "#eee; padding:5px 10px; border-radius:5px;";
+                    optDiv.appendChild(s);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
