@@ -6,7 +6,6 @@
     <title>مسابقة Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
     <style>
         :root {
             --bg-color: #0a1120;
@@ -20,27 +19,27 @@
             margin: 0; padding: 0;
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
         }
 
         .header-section {
             display: flex; flex-direction: column; align-items: center;
-            padding: 30px 20px 10px; width: 100%;
+            padding: 40px 20px 10px; width: 100%;
         }
 
         .main-logo {
             width: 110px; height: 110px; border-radius: 50%;
             border: 3px solid var(--primary);
             box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            object-fit: cover; margin-bottom: 10px;
+            object-fit: cover; margin-bottom: 15px;
         }
 
-        #question-status { font-size: 1.6em; color: var(--primary); margin: 5px 0; }
-        #question-text { font-size: 1.1em; color: #fbbf24; text-align: center; margin-bottom: 15px; min-height: 25px; }
+        #question-status { font-size: 1.8em; color: var(--primary); margin: 5px 0; }
+        .instruction { color: #fbbf24; font-size: 1.1em; margin-bottom: 20px; text-align: center; }
 
-        .content-container { width: 90%; max-width: 450px; }
+        .container { width: 90%; max-width: 450px; }
 
         .user-card {
             background-color: var(--card-bg); padding: 15px;
@@ -49,23 +48,23 @@
         }
 
         .points-box {
-            background: var(--accent); padding: 5px 15px;
-            border-radius: 8px; display: inline-block; font-weight: bold; margin-top: 8px;
+            background: var(--accent); padding: 8px 20px;
+            border-radius: 10px; display: inline-block; font-weight: bold;
         }
 
-        /* تنسيق شبكة الأجوبة - تأكد أنها مرئية دائماً عند وجود سؤال */
+        /* شبكة الأزرار */
         .answers-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
         }
 
         .answer-btn {
             background-color: var(--card-bg); color: white;
-            border: 2px solid var(--primary); padding: 18px 10px;
-            border-radius: 12px; font-size: 1.2em; font-weight: bold;
+            border: 2px solid var(--primary); padding: 25px 10px;
+            border-radius: 12px; font-size: 1.5em; font-weight: bold;
             cursor: pointer; transition: 0.2s;
         }
 
-        .answer-btn:active { transform: scale(0.95); background-color: var(--primary); }
+        .answer-btn:active { transform: scale(0.92); background-color: var(--primary); }
 
         .hidden { display: none !important; }
     </style>
@@ -75,21 +74,21 @@
     <div class="header-section">
         <img src="logo.png" class="main-logo">
         <h1 id="question-status">بانتظار السؤال...</h1>
-        <p id="question-text"></p>
+        <p class="instruction" id="instruction-text"></p>
     </div>
 
-    <div class="content-container">
+    <div class="container">
         <div class="user-card">
-            <h3 id="display-name" style="margin:0; font-size: 1.1em;">المتسابق: جاري التحميل...</h3>
+            <h3 id="display-name" style="margin:0; font-size: 1em;">المتسابق: جاري التحميل...</h3>
             <div class="points-box">النقاط: <span id="points-count">0</span></div>
         </div>
 
         <div id="quiz-area" class="hidden">
             <div class="answers-grid">
-                <button id="btn0" class="answer-btn" onclick="submitAnswer(0)">أ</button>
-                <button id="btn1" class="answer-btn" onclick="submitAnswer(1)">ب</button>
-                <button id="btn2" class="answer-btn" onclick="submitAnswer(2)">ج</button>
-                <button id="btn3" class="answer-btn" onclick="submitAnswer(3)">د</button>
+                <button class="answer-btn" onclick="submitAnswer('أ')">أ</button>
+                <button class="answer-btn" onclick="submitAnswer('ب')">ب</button>
+                <button class="answer-btn" onclick="submitAnswer('ج')">ج</button>
+                <button class="answer-btn" onclick="submitAnswer('د')">د</button>
             </div>
         </div>
     </div>
@@ -110,37 +109,24 @@
         let myName = localStorage.getItem("userName") || "متسابق جديد";
         document.getElementById("display-name").innerText = "المتسابق: " + myName;
 
-        let questionsData = null;
-        db.ref('questions').on('value', s => { questionsData = s.val(); });
-
+        // --- التعديل الجوهري هنا ---
         db.ref('currentQuestion').on('value', (snapshot) => {
             const idx = snapshot.val();
             const status = document.getElementById("question-status");
-            const qText = document.getElementById("question-text");
+            const instruction = document.getElementById("instruction-text");
             const quizArea = document.getElementById("quiz-area");
 
-            if (idx === -1 || idx === null) {
+            // إذا كان الرقم -1 أو لا يوجد رقم، نخفي الأزرار
+            if (idx === -1 || idx === null || idx === undefined) {
                 status.innerText = "بانتظار السؤال القادم...";
-                qText.innerText = "";
+                instruction.innerText = "";
                 quizArea.classList.add("hidden");
             } else {
-                status.innerText = "السؤال " + (idx + 1);
-                quizArea.classList.remove("hidden"); // إظهار منطقة الأجوبة فوراً
-                
-                // محاولة جلب النص، إذا لم يوجد نترك "أ ب ج د" الافتراضية
-                if(questionsData && questionsData[idx]) {
-                    qText.innerText = questionsData[idx].text || "اختر الإجابة الصحيحة:";
-                    document.getElementById("btn0").innerText = questionsData[idx].options[0] || "أ";
-                    document.getElementById("btn1").innerText = questionsData[idx].options[1] || "ب";
-                    document.getElementById("btn2").innerText = questionsData[idx].options[2] || "ج";
-                    document.getElementById("btn3").innerText = questionsData[idx].options[3] || "د";
-                } else {
-                    qText.innerText = "اختر الإجابة الصحيحة:";
-                    document.getElementById("btn0").innerText = "أ";
-                    document.getElementById("btn1").innerText = "ب";
-                    document.getElementById("btn2").innerText = "ج";
-                    document.getElementById("btn3").innerText = "د";
-                }
+                // بمجرد وجود أي رقم (0, 1, 2...) تظهر الأزرار فوراً
+                status.innerText = "السؤال " + (parseInt(idx) + 1);
+                instruction.innerText = "اختر الإجابة الصحيحة الآن:";
+                quizArea.classList.remove("hidden"); 
+                console.log("تم سحب السؤال رقم: " + idx);
             }
         });
 
@@ -149,18 +135,19 @@
         });
 
         function submitAnswer(choice) {
-            const currentQ = parseInt(document.getElementById("question-status").innerText.replace("السؤال ", "")) - 1;
-            if(isNaN(currentQ)) return;
+            db.ref('currentQuestion').once('value', (snap) => {
+                const qIdx = snap.val();
+                if (qIdx === -1) return;
 
-            // إرسال الإجابة للـ Firebase
-            db.ref('winners/' + currentQ + '/' + myName.replace(/ /g, '_')).set({
-                name: myName,
-                answer: choice,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                db.ref('winners/' + qIdx + '/' + myName.replace(/ /g, '_')).set({
+                    name: myName,
+                    answer: choice,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                document.getElementById("quiz-area").classList.add("hidden");
+                document.getElementById("instruction-text").innerText = "تم إرسال (" + choice + ") بنجاح! ✅";
             });
-
-            document.getElementById("quiz-area").classList.add("hidden");
-            alert("تم إرسال إجابتك بنجاح! ✅");
         }
     </script>
 </body>
