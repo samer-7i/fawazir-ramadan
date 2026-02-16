@@ -3,243 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مسابقة Remy | المتابعين 🎮</title>
+    <title>مسابقة Remy 🎮</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="script.js"></script>
 
     <style>
-        :root {
-            --bg: #0a1120;
-            --card: #162136;
-            --blue: #38bdf8;
-            --red: #e94560;
-            --gold: #fbbf24;
-            --white: #f8fafc;
-        }
+        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --gold: #fbbf24; }
+        body { margin: 0; padding: 0; background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .header { padding: 40px 20px 10px; text-align: center; width: 100%; }
+        .logo { width: 115px; height: 115px; border-radius: 50%; border: 3px solid var(--blue); box-shadow: 0 0 20px rgba(56,189,248,0.4); margin-bottom: 20px; }
+        
+        #q-status { font-size: 2em; color: var(--blue); margin: 0; }
+        #q-text { font-size: 1.2em; color: var(--gold); margin: 15px 20px; font-weight: bold; min-height: 30px; }
 
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg);
-            color: var(--white);
-            font-family: 'Segoe UI', sans-serif;
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh;
-        }
+        .user-card { background: var(--card); padding: 20px; border-radius: 20px; text-align: center; width: 85%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        .pts-box { background: var(--red); color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: inline-block; margin-top: 10px; }
 
-        /* تنسيق الهيدر واللوجو */
-        .header-section {
-            display: flex; flex-direction: column; align-items: center;
-            padding: 40px 20px 10px; width: 100%;
-            background: linear-gradient(180deg, rgba(56, 189, 248, 0.05) 0%, rgba(10, 17, 32, 0) 100%);
-        }
-
-        .logo-img {
-            width: 115px; height: 115px; border-radius: 50%;
-            border: 3px solid var(--blue);
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
-            object-fit: cover; margin-bottom: 20px;
-        }
-
-        #q-status {
-            font-size: 2em; color: var(--blue); margin: 0;
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
-        }
-
-        #q-text {
-            font-size: 1.3em; color: var(--gold); text-align: center;
-            margin: 15px 25px; min-height: 40px; font-weight: bold;
-        }
-
-        /* كرت المتسابق */
-        .user-card {
-            background-color: var(--card); padding: 20px;
-            border-radius: 20px; text-align: center;
-            width: 85%; max-width: 400px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .points-box {
-            background: var(--red); color: white;
-            padding: 10px 25px; border-radius: 12px;
-            font-weight: bold; font-size: 1.2em;
-            display: inline-block; margin-top: 15px;
-        }
-
-        /* شبكة الأزرار */
-        .grid-container {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 15px; width: 90%; max-width: 450px; margin-bottom: 50px;
-        }
-
-        .btn-option {
-            background-color: var(--card); color: white;
-            border: 2px solid var(--blue); padding: 25px 10px;
-            border-radius: 15px; font-size: 1.2em; font-weight: bold;
-            cursor: pointer; transition: 0.2s;
-        }
-
-        .btn-option:active { transform: scale(0.95); background-color: var(--blue); }
-
+        .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 400px; }
+        .btn-opt { background: var(--card); color: #fff; border: 2px solid var(--blue); padding: 20px 10px; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-opt:active { transform: scale(0.95); background: var(--blue); }
+        
         .hidden { display: none !important; }
-
-        /* حركات الظهور */
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="header-section">
-        <img src="logo.png" class="logo-img">
+    <div class="header">
+        <img src="logo.png" class="logo">
         <h1 id="q-status">بانتظار السؤال...</h1>
         <p id="q-text"></p>
     </div>
 
-    <div class="user-card fade-in">
-        <h3 id="display-name" style="margin:0; font-size: 1.1em;">المتسابق: جاري التحميل...</h3>
-        <div class="points-box">النقاط: <span id="points-count">0</span></div>
+    <div class="user-card">
+        <h3 id="display-name" style="margin:0">المتسابق: جاري التحميل...</h3>
+        <div class="pts-box">النقاط: <span id="points-count">0</span></div>
     </div>
 
     <div id="quiz-area" class="hidden">
-        <div class="grid-container" id="btns-grid">
-            </div>
+        <div class="answers-grid" id="grid-btns"></div>
     </div>
 
     <script>
-        function updateQuestion(idx) {
-            const statusLabel = document.getElementById("q-status");
-            const textLabel = document.getElementById("q-text");
-            const quizDiv = document.getElementById("quiz-area");
-            const grid = document.getElementById("btns-grid");
+        // دالة عرض السؤال (تمنع التكرار لأنها تمسح المحتوى القديم قبل الإضافة)
+        function showQuestion(idx) {
+            const status = document.getElementById("q-status");
+            const text = document.getElementById("q-text");
+            const area = document.getElementById("quiz-area");
+            const grid = document.getElementById("grid-btns");
 
-            if (idx === -1 || idx === null || idx === undefined) {
-                statusLabel.innerText = "بانتظار السؤال القادم...";
-                textLabel.innerText = "استعد يا بطل! 🔥";
-                quizDiv.classList.add("hidden");
+            if (idx === -1 || idx === null) {
+                status.innerText = "بانتظار السؤال...";
+                text.innerText = "استعد للجولة القادمة 🔥";
+                area.classList.add("hidden");
             } else {
-                statusLabel.innerText = "السؤال " + (parseInt(idx) + 1);
-                
-                const currentQuestionData = window.allQuestions ? window.allQuestions[idx] : null;
+                const data = window.allQuestions ? window.allQuestions[idx] : null;
+                if (data) {
+                    status.innerText = "السؤال " + (parseInt(idx) + 1);
+                    text.innerText = data.q;
+                    grid.innerHTML = ""; // مسح الأزرار القديمة تماماً لعدم التكرار
 
-                if (currentQuestionData) {
-                    textLabel.innerText = currentQuestionData.q;
-                    grid.innerHTML = ""; // تنظيف الأزرار السابقة
-
-                    currentQuestionData.options.forEach((opt, i) => {
-                        const btn = document.createElement("button");
-                        btn.className = "btn-option fade-in";
-                        btn.innerText = opt;
-                        btn.onclick = () => handleSubmission(idx, i);
-                        grid.appendChild(btn);
+                    data.options.forEach((opt, i) => {
+                        const b = document.createElement("button");
+                        b.className = "btn-opt";
+                        b.innerText = opt;
+                        b.onclick = () => submitAns(idx, i);
+                        grid.appendChild(b);
                     });
-
-                    quizDiv.classList.remove("hidden");
+                    area.classList.remove("hidden");
                 }
             }
         }
 
-        // الاستماع لـ Firebase
-        db.ref('currentQuestion').on('value', (snap) => {
-            updateQuestion(snap.val());
-        });
+        // الاستماع لـ Firebase للسؤال الحالي
+        db.ref('currentQuestion').on('value', snap => showQuestion(snap.val()));
 
-        // متابعة النقاط
-        let userStoredName = localStorage.getItem("userName") || "متسابق جديد";
-        db.ref('totalPoints/' + userStoredName.replace(/ /g, '_')).on('value', s => {
+        // اسم المتسابق والنقاط (إصلاح مشكلة عدم ظهور النقاط)
+        let myName = localStorage.getItem("userName") || "متسابق جديد";
+        document.getElementById("display-name").innerText = "المتسابق: " + myName;
+
+        // دالة جلب النقاط الصحيحة
+        db.ref('totalPoints/' + myName.replace(/ /g, '_')).on('value', s => {
             document.getElementById("points-count").innerText = s.val() || 0;
-            document.getElementById("display-name").innerText = "المتسابق: " + userStoredName;
         });
 
-        function handleSubmission(qIndex, choiceIndex) {
-            db.ref('winners/' + qIndex + '/' + userStoredName.replace(/ /g, '_')).set({
-                name: userStoredName,
-                answer: choiceIndex,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+        function submitAns(qIdx, cIdx) {
+            db.ref('winners/' + qIdx + '/' + myName.replace(/ /g, '_')).set({
+                name: myName, answer: cIdx, timestamp: firebase.database.ServerValue.TIMESTAMP
             });
             document.getElementById("quiz-area").classList.add("hidden");
             document.getElementById("q-text").innerText = "تم إرسال إجابتك بنجاح! ✅";
         }
     </script>
 </body>
-</html>>
-        <h1 id="question-status">بانتظار السؤال...</h1>
-        <p id="question-text"></p>
-    </div>
-
-    <div class="container">
-        <div class="user-card">
-            <h3 id="display-name" style="margin:0; font-size: 1em;">المتسابق: جاري التحميل...</h3>
-            <div class="points-box">النقاط: <span id="points-count">0</span></div>
-        </div>
-
-        <div id="quiz-area" class="hidden">
-            <div class="answers-grid">
-                <button id="btn0" class="answer-btn" onclick="submitAnswer(0)"></button>
-                <button id="btn1" class="answer-btn" onclick="submitAnswer(1)"></button>
-                <button id="btn2" class="answer-btn" onclick="submitAnswer(2)"></button>
-                <button id="btn3" class="answer-btn" onclick="submitAnswer(3)"></button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
-            authDomain: "fawazir-jaco.firebaseapp.com",
-            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "fawazir-jaco",
-            storageBucket: "fawazir-jaco.firebasestorage.app",
-            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let myName = localStorage.getItem("userName") || "متسابق جديد";
-        document.getElementById("display-name").innerText = "المتسابق: " + myName;
-
-        db.ref('currentQuestion').on('value', (snap) => {
-            const idx = snap.val();
-            const status = document.getElementById("question-status");
-            const qText = document.getElementById("question-text");
-            const area = document.getElementById("quiz-area");
-
-            if (idx === -1 || idx === null) {
-                status.innerText = "بانتظار السؤال القادم...";
-                qText.innerText = "";
-                area.classList.add("hidden");
-            } else {
-                status.innerText = "السؤال " + (idx + 1);
-                const qData = window.questions ? window.questions[idx] : null;
-                
-                if (qData) {
-                    qText.innerText = qData.question;
-                    document.getElementById("btn0").innerText = qData.options[0];
-                    document.getElementById("btn1").innerText = qData.options[1];
-                    document.getElementById("btn2").innerText = qData.options[2];
-                    document.getElementById("btn3").innerText = qData.options[3];
-                    area.classList.remove("hidden");
-                }
-            }
-        });
-
-        db.ref('totalPoints/' + myName.replace(/ /g, '_')).on('value', s => {
-            document.getElementById("points-count").innerText = s.val() || 0;
-        });
-
-        function submitAnswer(choiceIdx) {
-            db.ref('currentQuestion').once('value', (snap) => {
-                const qIdx = snap.val();
-                db.ref('winners/' + qIdx + '/' + myName.replace(/ /g, '_')).set({
-                    name: myName, answer: choiceIdx, timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-                document.getElementById("quiz-area").classList.add("hidden");
-                document.getElementById("question-text").innerText = "تم إرسال إجابتك! ✅";
-            });
-        }
-    </script>
-</body>
 </html>
-
