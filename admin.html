@@ -2,95 +2,103 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم Remy 🎮</title>
+    <title>لوحة التحكم - Remy</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js"></script> 
     <style>
-        :root { --blue: #38bdf8; --red: #e94560; --bg: #f8fafc; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; }
+        body { font-family: sans-serif; text-align: center; background: #f0f2f5; margin: 0; padding: 20px; }
         
-        /* شاشة المعاينة (نفس تصميمك) */
-        .preview-card {
-            background: white; max-width: 600px; margin: 0 auto 20px;
-            padding: 20px; border-radius: 15px; border: 1px solid #ddd;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            display: none; /* تظهر فقط عند اختيار سؤال */
+        /* شاشة معاينة السؤال المختار (بدون الجواب الصحيح) */
+        .preview-box {
+            background: white;
+            max-width: 600px;
+            margin: 0 auto 20px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-right: 5px solid #007bff;
+            display: none; /* تختفي إذا لم يتم اختيار سؤال */
         }
 
-        /* شبكة الأزرار (أزرار كبيرة ومنظمة) */
-        .grid {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
-            max-width: 650px; margin: 20px auto; background: white;
-            padding: 20px; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .q-btn {
-            background: var(--blue); color: white; border: none; padding: 15px 5px;
-            border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        .q-btn:hover { opacity: 0.8; transform: translateY(-2px); }
-
-        .stop-btn {
-            background: var(--red); color: white; border: none; padding: 18px;
-            border-radius: 12px; width: 100%; max-width: 650px;
-            font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 10px;
+        .btn-grid { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 10px; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
         }
 
-        .correct { background: #dcfce7 !important; color: #166534; font-weight: bold; padding: 5px 10px; border-radius: 5px; }
+        button { padding: 15px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; font-weight: bold; }
+        button:hover { background: #0056b3; }
+
+        .stop-btn { background: #dc3545; margin-top: 20px; padding: 20px; width: 80%; max-width: 800px; font-size: 1.1em; }
+        .stop-btn:hover { background: #a71d2a; }
+
+        .opt-view {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 12px;
+            background: #e9ecef;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
 
-    <h2>🎮 لوحة تحكم Remy</h2>
-    <p>اختر السؤال لتفعيله للمتابعين</p>
+    <h2>اختيار السؤال للمتابعين 🚀</h2>
 
-    <div id="preview-area" class="preview-card">
-        <p style="color:var(--red); font-weight:bold;">🔴 يظهر الآن للمتابعين:</p>
-        <h3 id="live-q-text"></h3>
-        <div id="live-options" style="display:flex; justify-content:center; gap:10px;"></div>
+    <div id="preview" class="preview-box">
+        <p style="color: #666; font-size: 0.9em; margin: 0;">يظهر الآن للمتابعين:</p>
+        <h3 id="current-q-title" style="margin: 10px 0;"></h3>
+        <div id="current-q-opts"></div>
     </div>
 
-    <div class="grid">
-        <button class="q-btn" onclick="activateQ(0)">سؤال 1</button>
-        <button class="q-btn" onclick="activateQ(1)">سؤال 2</button>
-        <button class="q-btn" onclick="activateQ(2)">سؤال 3</button>
-        <button class="q-btn" onclick="activateQ(3)">سؤال 4</button>
-        <button class="q-btn" onclick="activateQ(4)">سؤال 5</button>
-        <button class="q-btn" onclick="activateQ(5)">سؤال 6</button>
-        <button class="q-btn" onclick="activateQ(6)">سؤال 7</button>
-        <button class="q-btn" onclick="activateQ(7)">سؤال 8</button>
-        <button class="q-btn" onclick="activateQ(8)">سؤال 9</button>
-        <button class="q-btn" onclick="activateQ(9)">سؤال 10</button>
-    </div>
-
-    <button class="stop-btn" onclick="activateQ(-1)">إخفاء السؤال من عند الجميع 🛑</button>
+    <div class="btn-grid" id="buttons"></div>
+    
+    <button class="stop-btn" onclick="setQuestion(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
 
     <script>
-        function activateQ(idx) {
-            db.ref('currentQuestion').set(idx);
+        // استخدام الإعدادات الموجودة في ملف script.js تلقائياً
+        const btnContainer = document.getElementById("buttons");
+        const previewBox = document.getElementById("preview");
+        const qTitle = document.getElementById("current-q-title");
+        const qOpts = document.getElementById("current-q-opts");
+
+        // توليد أزرار الأسئلة (سيأخذ العدد من مصفوفة allQuestions في script.js)
+        const totalQs = window.allQuestions ? window.allQuestions.length : 50;
+        
+        for (let i = 0; i < totalQs; i++) {
+            let btn = document.createElement("button");
+            btn.innerText = "سؤال " + (i + 1);
+            btn.onclick = () => setQuestion(i);
+            btnContainer.appendChild(btn);
         }
 
-        // تحديث المعاينة فورياً
-        db.ref('currentQuestion').on('value', (snap) => {
-            const idx = snap.val();
-            const preview = document.getElementById("preview-area");
+        function setQuestion(idx) {
+            db.ref('currentQuestion').set(idx);
+            // لا حاجة لـ alert هنا لأن المعاينة ستظهر أمامك
+        }
+
+        // الاستماع للتغييرات لتحديث المعاينة عندك كأدمن
+        db.ref('currentQuestion').on('value', (snapshot) => {
+            const idx = snapshot.val();
             if (idx === -1 || idx === null) {
-                preview.style.display = "none";
+                previewBox.style.display = "none";
             } else {
-                preview.style.display = "block";
+                previewBox.style.display = "block";
                 const data = window.allQuestions[idx];
-                document.getElementById("live-q-text").innerText = "س" + (idx + 1) + ": " + data.q;
+                qTitle.innerText = "س" + (idx + 1) + ": " + data.q;
                 
-                const optDiv = document.getElementById("live-options");
-                optDiv.innerHTML = "";
-                data.options.forEach((opt, i) => {
-                    const s = document.createElement("span");
-                    s.innerText = opt;
-                    if(i === data.correct) s.className = "correct";
-                    else s.style.background = "#eee; padding:5px 10px; border-radius:5px;";
-                    optDiv.appendChild(s);
+                // عرض الخيارات بدون تمييز الصحيح
+                qOpts.innerHTML = "";
+                data.options.forEach(opt => {
+                    const span = document.createElement("span");
+                    span.className = "opt-view";
+                    span.innerText = opt;
+                    qOpts.appendChild(span);
                 });
             }
         });
