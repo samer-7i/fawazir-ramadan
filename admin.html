@@ -29,7 +29,6 @@
 
         .header { text-align: center; margin-bottom: 20px; }
         
-        /* اللوجو الخاص بك */
         .logo {
             width: 80px;
             height: 80px;
@@ -39,7 +38,7 @@
             margin-bottom: 10px;
         }
 
-        /* شاشة المعاينة الفخمة */
+        /* شاشة المعاينة */
         .preview-card {
             background: var(--card);
             width: 90%;
@@ -48,7 +47,7 @@
             border-radius: 20px;
             border: 1px solid rgba(56, 189, 248, 0.2);
             margin-bottom: 25px;
-            display: none; /* تظهر عند الاختيار */
+            display: none; 
             text-align: center;
         }
 
@@ -66,7 +65,32 @@
         .dot { height: 8px; width: 8px; background: var(--red); border-radius: 50%; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* شبكة الـ 50 زر المنظمة */
+        /* الإحصائيات (أسرع إجابة والمتصدرين) */
+        .stats-container {
+            display: flex;
+            gap: 15px;
+            width: 95%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            flex: 1;
+            background: var(--card);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            text-align: right;
+        }
+        .stat-card h4 { margin: 0 0 10px 0; color: #64748b; font-size: 0.8em; text-transform: uppercase; }
+        .leader-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9em;
+        }
+
+        /* شبكة الأزرار */
         .grid-container {
             background: var(--card);
             padding: 20px;
@@ -80,108 +104,3 @@
         }
 
         .q-btn {
-            background: rgba(56, 189, 248, 0.1);
-            color: var(--blue);
-            border: 1px solid var(--blue);
-            padding: 12px 5px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .q-btn:hover {
-            background: var(--blue);
-            color: var(--bg);
-            transform: translateY(-3px);
-        }
-
-        .stop-btn {
-            background: var(--red);
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 15px;
-            width: 95%;
-            max-width: 800px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.3);
-        }
-
-        .opt-preview {
-            display: inline-block;
-            margin: 5px;
-            padding: 6px 12px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-            font-size: 0.9em;
-            color: #ccc;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <img src="logo.png" class="logo">
-        <h2 style="margin:0">لوحة تحكم Remy 🎮</h2>
-        <p style="color: #64748b; font-size: 0.9em;">إدارة المسابقة والبث المباشر</p>
-    </div>
-
-    <div id="preview-box" class="preview-card">
-        <div class="live-tag"><span class="dot"></span> يظهر الآن للمتابعين</div>
-        <h3 id="current-q-text" style="color: var(--blue); margin: 10px 0;"></h3>
-        <div id="current-opts"></div>
-    </div>
-
-    <div class="grid-container" id="grid"></div>
-
-    <button class="stop-btn" onclick="sendQ(-1)">إيقاف المسابقة / إخفاء السؤال 🛑</button>
-
-    <script>
-        const grid = document.getElementById("grid");
-        const preview = document.getElementById("preview-box");
-        const qText = document.getElementById("current-q-text");
-        const qOpts = document.getElementById("current-opts");
-
-        // توليد الـ 50 زر مع الحفاظ على التنسيق
-        for (let i = 0; i < 50; i++) {
-            const btn = document.createElement("button");
-            btn.className = "q-btn";
-            btn.innerText = "سؤال " + (i + 1);
-            btn.onclick = () => sendQ(i);
-            grid.appendChild(btn);
-        }
-
-        function sendQ(idx) {
-            db.ref('currentQuestion').set(idx);
-        }
-
-        // تحديث شاشة الأدمن (بدون إظهار الإجابة الصحيحة)
-        db.ref('currentQuestion').on('value', (snap) => {
-            const idx = snap.val();
-            if (idx === -1 || idx === null) {
-                preview.style.display = "none";
-            } else {
-                preview.style.display = "block";
-                const data = window.allQuestions[idx];
-                if (data) {
-                    qText.innerText = "س" + (idx + 1) + ": " + data.q;
-                    qOpts.innerHTML = "";
-                    data.options.forEach(opt => {
-                        const s = document.createElement("span");
-                        s.className = "opt-preview";
-                        s.innerText = opt;
-                        qOpts.appendChild(s);
-                    });
-                } else {
-                    qText.innerText = "السؤال " + (idx + 1) + " (انتظر تحديث البيانات)";
-                    qOpts.innerHTML = "";
-                }
-            }
-        });
-    </script>
-</body>
-</html>
