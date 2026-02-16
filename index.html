@@ -7,32 +7,31 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; }
+        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         
-        /* شاشة الدخول (طبقات مستقلة) */
+        /* شاشات الإعداد */
         #setup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .setup-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; box-shadow: 0 0 25px rgba(56, 189, 248, 0.2); }
-        
+        .setup-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; }
         .logo { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 15px; }
+        .rules-list { text-align: right; list-style: none; padding: 0; margin: 20px 0; color: #cbd5e1; }
+        .rules-list li { margin-bottom: 10px; position: relative; padding-right: 30px; }
+        .rules-list li::before { content: "⏱️"; position: absolute; right: 0; }
         
-        /* تصميم القائمة */
-        .rules-list { text-align: right; list-style: none; padding: 0; margin: 20px 0; }
-        .rules-list li { margin-bottom: 15px; padding-right: 35px; position: relative; line-height: 1.6; color: #cbd5e1; }
-        .rules-list li::before { content: "✅"; position: absolute; right: 0; top: 0; }
-
         input { width: 90%; padding: 15px; border-radius: 12px; border: 1px solid var(--blue); background: #0a1120; color: white; text-align: center; font-size: 1.1em; margin: 15px 0; outline: none; }
-        
-        .btn-next { background: var(--blue); color: var(--bg); border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1.1em; transition: 0.3s; }
-        .btn-next:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-next { background: var(--blue); color: var(--bg); border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
 
-        /* الكرت الرئيسي للمسابقة */
-        .main-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); max-width: 500px; width: 100%; display: none; text-align: center; }
-        .user-info { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; border: 1px solid rgba(56, 189, 248, 0.1); }
+        /* الكرت الرئيسي والتايمر */
+        .main-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); max-width: 500px; width: 100%; display: none; text-align: center; position: relative; overflow: hidden; }
         
+        /* تصميم شريط الوقت */
+        .timer-bar-container { width: 100%; height: 6px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 3px; }
+        #timer-progress { width: 100%; height: 100%; background: var(--blue); border-radius: 3px; transition: width 0.1s linear; }
+
+        .user-info { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; }
         .q-text { font-size: 1.4em; font-weight: bold; margin-bottom: 20px; color: var(--blue); }
         .opt-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); color: white; border-radius: 12px; cursor: pointer; font-size: 1.1em; font-weight: bold; }
-        .opt-btn:hover { background: var(--blue); color: var(--bg); }
+        .opt-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
         #waiting-msg { text-align: center; display: none; }
     </style>
@@ -42,30 +41,30 @@
     <div id="setup-overlay">
         <div class="setup-card" id="rules-step">
             <img src="logo.png" class="logo" onerror="this.src='https://i.ibb.co/ZzYy6y6/remy-logo.png'">
-            <h2 style="color: var(--blue); margin-top: 0;">📜 قوانين المسابقة</h2>
+            <h2 style="color: var(--blue);">📜 قوانين التحدي</h2>
             <ul class="rules-list">
-                <li>السرعة في الإجابة تمنحك الأولوية في الظهور كفائز.</li>
-                <li>كل إجابة صحيحة تمنحك (1 ن) تضاف لرصيدك.</li>
-                <li>يمنع تكرار الإجابة أو محاولة التلاعب بالنقاط.</li>
-                <li>يجب كتابة اسمك الحقيقي في جاكو لضمان استلام الجائزة.</li>
+                <li>لديك 15 ثانية فقط للإجابة على كل سؤال.</li>
+                <li>بمجرد انتهاء الوقت، لن تستطيع اختيار أي إجابة.</li>
+                <li>كلما كنت أسرع، زادت فرصتك في الصدارة!</li>
             </ul>
-            <button class="btn-next" onclick="goToNameStep()">موافق، التالي ✅</button>
+            <button class="btn-next" onclick="document.getElementById('rules-step').style.display='none'; document.getElementById('name-step').style.display='block';">موافق، التالي ✅</button>
         </div>
 
         <div class="setup-card" id="name-step" style="display: none;">
-            <h2 style="color: var(--blue); margin-top: 0;">من البطل القادم؟ 🎮</h2>
-            <p style="color: #cbd5e1;">ادخل اسمك المستخدم في جاكو للمشاركة:</p>
-            <input type="text" id="username-input" placeholder="اكتب اسمك هنا...">
-            <button class="btn-next" onclick="finishSetup()">دخول المسابقة 🚀</button>
+            <h2 style="color: var(--blue);">سجل اسمك 🎮</h2>
+            <input type="text" id="username-input" placeholder="اكتب اسمك في جاكو...">
+            <button class="btn-next" onclick="finishSetup()">ابدأ اللعب الآن 🚀</button>
         </div>
     </div>
 
     <div id="waiting-msg">
         <img src="logo.png" class="logo" onerror="this.src='https://i.ibb.co/ZzYy6y6/remy-logo.png'">
-        <h3>بانتظار السؤال القادم... ⌛</h3>
+        <h3>بانتظار السؤال... ⌛</h3>
     </div>
 
     <div id="quiz-container" class="main-card">
+        <div class="timer-bar-container"><div id="timer-progress"></div></div>
+        
         <div class="user-info">
             <span id="display-name"></span>
             <span style="color:var(--blue)">نقاطي: <span id="my-points">0</span> ن</span>
@@ -76,8 +75,7 @@
     </div>
 
     <script>
-        // إعدادات Firebase
-        const config = {
+        const config = { 
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
             databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
@@ -90,17 +88,12 @@
         const db = firebase.database();
 
         let userName = "";
+        let timerInterval;
+        const TIME_LIMIT = 15; // عدد الثواني للسؤال
 
-        // الانتقال من القوانين إلى الاسم
-        function goToNameStep() {
-            document.getElementById('rules-step').style.display = 'none';
-            document.getElementById('name-step').style.display = 'block';
-        }
-
-        // إنهاء الإعداد وبدء المسابقة
         function finishSetup() {
             const val = document.getElementById("username-input").value.trim();
-            if(val === "") return alert("الرجاء كتابة اسمك أولاً!");
+            if(val === "") return alert("اكتب اسمك!");
             userName = val;
             document.getElementById("setup-overlay").style.display = "none";
             document.getElementById("display-name").innerText = userName;
@@ -108,51 +101,81 @@
         }
 
         function startApp() {
-            db.ref('totalPoints/' + userName).on('value', s => {
-                document.getElementById("my-points").innerText = s.val() || 0;
-            });
+            db.ref('totalPoints/' + userName).on('value', s => { document.getElementById("my-points").innerText = s.val() || 0; });
 
             db.ref('currentQuestion').on('value', snap => {
                 const idx = snap.val();
-                const quizBox = document.getElementById("quiz-container");
-                const waitBox = document.getElementById("waiting-msg");
                 if (idx === -1 || idx === null) {
-                    quizBox.style.display = "none"; waitBox.style.display = "block";
+                    document.getElementById("quiz-container").style.display = "none";
+                    document.getElementById("waiting-msg").style.display = "block";
+                    clearInterval(timerInterval); // إيقاف التايمر عند إخفاء السؤال
                 } else {
-                    waitBox.style.display = "none"; quizBox.style.display = "block";
+                    document.getElementById("waiting-msg").style.display = "none";
+                    document.getElementById("quiz-container").style.display = "block";
                     showQuestion(idx);
                 }
             });
         }
 
         function showQuestion(idx) {
-            // (نفس دالة عرض السؤال السابقة لضمان عمل الكود بالكامل)
             const myQuestions = [
                 { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 },
                 { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["البقرة", "النساء", "آل عمران"], correct: 0 },
                 { q: "أكمل المثل: القرد في عين أمه", options: ["حصان", "فيل", "غزال"], correct: 2 }
             ];
             const data = myQuestions[idx];
-            if(!data) return;
             document.getElementById("question-text").innerText = data.q;
             const container = document.getElementById("options-container");
             container.innerHTML = "";
+            document.getElementById("status-msg").innerText = "";
+            
             data.options.forEach((opt, i) => {
                 const b = document.createElement("button");
                 b.className = "opt-btn";
                 b.innerText = opt;
-                b.onclick = () => {
-                    document.querySelectorAll(".opt-btn").forEach(btn => btn.disabled = true);
-                    if(i === data.correct) {
-                        document.getElementById("status-msg").innerText = "صح! 🎉";
-                        db.ref('winners/' + idx).push({ name: userName, timestamp: firebase.database.ServerValue.TIMESTAMP });
-                        db.ref('totalPoints/' + userName).transaction(p => (p || 0) + 1);
-                    } else {
-                        document.getElementById("status-msg").innerText = "خطأ ❌";
-                    }
-                };
+                b.onclick = () => submitAnswer(i, data.correct, idx);
                 container.appendChild(b);
             });
+
+            startTimer(); // تشغيل العداد فور ظهور السؤال
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            let timeLeft = TIME_LIMIT;
+            const bar = document.getElementById("timer-progress");
+            bar.style.width = "100%";
+            bar.style.background = "#38bdf8";
+
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                const percentage = (timeLeft / TIME_LIMIT) * 100;
+                bar.style.width = percentage + "%";
+
+                if (timeLeft <= 5) bar.style.background = "#e94560"; // تغيير اللون للأحمر عند قرب انتهاء الوقت
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    disableOptions("انتهى الوقت! ⏱️");
+                }
+            }, 100);
+        }
+
+        function submitAnswer(choice, correct, idx) {
+            clearInterval(timerInterval); // إيقاف التايمر عند الإجابة
+            disableOptions("");
+            if(choice === correct) {
+                document.getElementById("status-msg").innerText = "صح! 🎉";
+                db.ref('winners/' + idx).push({ name: userName, timestamp: firebase.database.ServerValue.TIMESTAMP });
+                db.ref('totalPoints/' + userName).transaction(p => (p || 0) + 1);
+            } else {
+                document.getElementById("status-msg").innerText = "خطأ ❌";
+            }
+        }
+
+        function disableOptions(msg) {
+            document.querySelectorAll(".opt-btn").forEach(btn => btn.disabled = true);
+            if(msg) document.getElementById("status-msg").innerText = msg;
         }
     </script>
 </body>
