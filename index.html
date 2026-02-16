@@ -18,7 +18,7 @@
         .timer-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 3px; overflow: hidden; }
         #timer-progress { width: 100%; height: 100%; background: var(--blue); transition: width 0.1s linear; }
         .opt-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); color: white; border-radius: 12px; cursor: pointer; font-size: 1.1em; font-weight: bold; }
-        .opt-btn:disabled { opacity: 0.5; }
+        .opt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -26,17 +26,17 @@
     <div id="setup-overlay" class="overlay">
         <div class="setup-card" id="rules-step">
             <h2 style="color: var(--blue);">📜 قوانين المسابقة</h2>
-            <p>1. النقطة للأسرع فقط.<br>2. لكل متسابق حساب خاص بجهازه.</p>
+            <p>1. النقطة للأسرع فقط.<br>2. محاولة واحدة لكل سؤال.</p>
             <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
         <div class="setup-card" id="name-step" style="display: none;">
             <h2>سجل اسمك 🎮</h2>
             <input type="text" id="username-input" placeholder="اسمك في جاكو...">
-            <button class="btn-action" onclick="saveAndStart()">دخول المسابقة 🚀</button>
+            <button class="btn-action" onclick="saveAndStart()">دخول 🚀</button>
         </div>
     </div>
 
-    <div id="waiting-msg" style="display:none; text-align:center;"><h3>بانتظار السؤال القادم... ⌛</h3></div>
+    <div id="waiting-msg" style="display:none; text-align:center;"><h3>بانتظار السؤال... ⌛</h3></div>
 
     <div id="quiz-container" class="main-card">
         <div class="timer-bar"><div id="timer-progress"></div></div>
@@ -44,7 +44,7 @@
             <span id="display-name" style="color: var(--blue);">---</span>
             <span>نقاطي: <span id="my-points" style="color: var(--blue);">0</span> ن</span>
         </div>
-        <div id="question-text" style="font-size: 1.4em; margin-bottom: 20px; font-weight: bold;"></div>
+        <div id="question-text" style="font-size: 1.3em; margin-bottom: 20px; font-weight: bold;"></div>
         <div id="options-container"></div>
         <div id="status-msg" style="margin-top: 15px; font-weight: bold;"></div>
     </div>
@@ -62,9 +62,9 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        // جلب البيانات من ذاكرة الجهاز
         let userName = localStorage.getItem("remy_name_v4");
         let userID = localStorage.getItem("remy_id_v4");
+        let timerInterval;
 
         const myQuestions = [
             { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 },
@@ -72,11 +72,9 @@
             { q: "أكمل المثل: القرد في عين أمه", options: ["حصان", "فيل", "غزال"], correct: 2 }
         ];
 
-        let timerInterval;
-
         window.onload = function() {
-            if (userName && userID) { startApp(); } 
-            else { document.getElementById("setup-overlay").style.display = "flex"; }
+            if (userName && userID) startApp();
+            else document.getElementById("setup-overlay").style.display = "flex";
         };
 
         function showNameInput() {
@@ -87,28 +85,29 @@
         function saveAndStart() {
             const val = document.getElementById("username-input").value.trim();
             if (!val) return alert("اكتب اسمك!");
-            
-            // إنشاء معرف فريد (ID) لا يتكرر
-            const newID = "user_" + Math.random().toString(36).substr(2, 9);
-            
+            const newID = "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5);
             localStorage.setItem("remy_name_v4", val);
             localStorage.setItem("remy_id_v4", newID);
-            
-            userName = val;
-            userID = newID;
-            
-            document.getElementById("setup-overlay").style.display = "none";
+            userName = val; userID = newID;
             startApp();
         }
 
         function startApp() {
-            document.getElementById("display-name").innerText = "اللاعب: " + userName;
-            
-            // الربط بالنقاط عن طريق الـ ID الفريد وليس الاسم
+            document.getElementById("setup-overlay").style.display = "none";
+            document.getElementById("display-name").innerText = userName;
+
+            // مراقبة تصفير الجولة من الأدمن
+            db.ref('roundVersion').on('value', snap => {
+                const sVer = snap.val() || 0;
+                if (localStorage.getItem("remy_v") != sVer) {
+                    for(let key in localStorage) { if(key.startsWith("ans_")) localStorage.removeItem(key); }
+                    localStorage.setItem("remy_v", sVer);
+                }
+            });
+
             db.ref('users/' + userID + '/points').on('value', snap => {
                 document.getElementById("my-points").innerText = snap.val() || 0;
             });
-            // حفظ الاسم في قاعدة البيانات للرجوع له في لوحة الأدمن
             db.ref('users/' + userID + '/name').set(userName);
 
             db.ref('currentQuestion').on('value', snap => {
@@ -116,7 +115,6 @@
                 if (idx === -1 || idx === null) {
                     document.getElementById("quiz-container").style.display = "none";
                     document.getElementById("waiting-msg").style.display = "block";
-                    clearInterval(timerInterval);
                 } else {
                     document.getElementById("waiting-msg").style.display = "none";
                     document.getElementById("quiz-container").style.display = "block";
@@ -130,31 +128,30 @@
             if (!data) return;
             document.getElementById("question-text").innerText = data.q;
             const container = document.getElementById("options-container");
-            container.innerHTML = ""; 
-            document.getElementById("status-msg").innerText = "";
-            const alreadyAnswered = localStorage.getItem("ans_" + idx);
-            
+            container.innerHTML = ""; document.getElementById("status-msg").innerText = "";
+            const answered = localStorage.getItem("ans_" + idx);
+
             data.options.forEach((opt, i) => {
                 const b = document.createElement("button");
                 b.className = "opt-btn"; b.innerText = opt;
-                if (alreadyAnswered) b.disabled = true;
+                if (answered) b.disabled = true;
                 b.onclick = () => submitAnswer(i, data.correct, idx);
                 container.appendChild(b);
             });
 
-            if (alreadyAnswered) {
-                document.getElementById("status-msg").innerText = "لقد أجبت سابقاً ✋";
+            if (answered) {
+                document.getElementById("status-msg").innerText = "تمت الإجابة مسبقاً ✋";
                 document.getElementById("timer-progress").style.width = "0%";
-            } else { startTimer(); }
+            } else startTimer();
         }
 
         function startTimer() {
             clearInterval(timerInterval);
-            let timeLeft = 15;
+            let time = 15;
             timerInterval = setInterval(() => {
-                timeLeft -= 0.1;
-                document.getElementById("timer-progress").style.width = (timeLeft / 15) * 100 + "%";
-                if (timeLeft <= 0) { clearInterval(timerInterval); disableAll("انتهى الوقت! ⏱️"); }
+                time -= 0.1;
+                document.getElementById("timer-progress").style.width = (time/15)*100 + "%";
+                if(time <= 0) { clearInterval(timerInterval); disableAll("انتهى الوقت! ⏱️"); }
             }, 100);
         }
 
@@ -162,28 +159,22 @@
             clearInterval(timerInterval);
             localStorage.setItem("ans_" + qIdx, "true");
             disableAll("جاري التحقق...");
+            if (choice !== correct) { document.getElementById("status-msg").innerText = "خطأ ❌"; return; }
 
-            if (choice !== correct) {
-                document.getElementById("status-msg").innerText = "خطأ ❌";
+            db.ref('winners/' + qIdx).transaction(curr => {
+                if (curr === null) return { name: userName, id: userID };
                 return;
-            }
-
-            db.ref('winners/' + qIdx).transaction(currentData => {
-                if (currentData === null) return { name: userName, id: userID };
-                return; 
-            }, (error, committed) => {
-                if (committed) {
-                    document.getElementById("status-msg").innerText = "كفو! أنت الأول 🎉";
+            }, (err, comm) => {
+                if (comm) {
+                    document.getElementById("status-msg").innerText = "أنت الأول! 🎉";
                     db.ref('users/' + userID + '/points').transaction(p => (p || 0) + 1);
-                } else {
-                    document.getElementById("status-msg").innerText = "صح، بس غيرك سبقك 💨";
-                }
+                } else document.getElementById("status-msg").innerText = "صح، لكن غيرك أسرع 💨";
             });
         }
 
-        function disableAll(msg) {
+        function disableAll(m) {
             document.querySelectorAll(".opt-btn").forEach(b => b.disabled = true);
-            if(msg) document.getElementById("status-msg").innerText = msg;
+            if(m) document.getElementById("status-msg").innerText = m;
         }
     </script>
 </body>
