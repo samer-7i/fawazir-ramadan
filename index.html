@@ -9,7 +9,7 @@
     
     <style>
         :root {
-            --bg-color: #0a1120; /* لون خلفية داكن فخم */
+            --bg-color: #0a1120;
             --card-bg: #162136;
             --primary: #38bdf8;
             --accent: #e94560;
@@ -17,131 +17,84 @@
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
         }
 
-        /* --- اللوجو فوق في النص --- */
         .header-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px 20px;
-            width: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 30px 20px 10px; width: 100%;
         }
 
         .main-logo {
-            width: 115px;
-            height: 115px;
-            border-radius: 50%;
+            width: 110px; height: 110px; border-radius: 50%;
             border: 3px solid var(--primary);
             box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            object-fit: cover;
-            margin-bottom: 15px;
+            object-fit: cover; margin-bottom: 10px;
         }
 
-        #question-status {
-            font-size: 1.5em;
-            color: var(--primary);
-            margin: 0;
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
-        }
+        #question-status { font-size: 1.6em; color: var(--primary); margin: 5px 0; }
+        #question-text { font-size: 1.1em; color: #fbbf24; text-align: center; margin-bottom: 15px; min-height: 25px; }
 
-        #question-text {
-            font-size: 1.1em;
-            color: #fbbf24;
-            margin-top: 10px;
-            max-width: 85%;
-            text-align: center;
-        }
-
-        /* --- صناديق المعلومات --- */
-        .content-container {
-            width: 90%;
-            max-width: 450px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        .content-container { width: 90%; max-width: 450px; }
 
         .user-card {
-            background-color: var(--card-bg);
-            padding: 20px;
-            border-radius: 20px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            background-color: var(--card-bg); padding: 15px;
+            border-radius: 15px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); margin-bottom: 20px;
         }
 
         .points-box {
-            background: var(--accent);
-            padding: 8px 20px;
-            border-radius: 10px;
-            display: inline-block;
-            font-weight: bold;
-            margin-top: 10px;
+            background: var(--accent); padding: 5px 15px;
+            border-radius: 8px; display: inline-block; font-weight: bold; margin-top: 8px;
         }
 
-        /* --- شبكة الأجوبة --- */
+        /* تنسيق شبكة الأجوبة - تأكد أنها مرئية دائماً عند وجود سؤال */
         .answers-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
         }
 
         .answer-btn {
-            background-color: var(--card-bg);
-            color: white;
-            border: 2px solid var(--primary);
-            padding: 20px 10px;
-            border-radius: 15px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s ease;
+            background-color: var(--card-bg); color: white;
+            border: 2px solid var(--primary); padding: 18px 10px;
+            border-radius: 12px; font-size: 1.2em; font-weight: bold;
+            cursor: pointer; transition: 0.2s;
         }
 
-        .answer-btn:active {
-            transform: scale(0.92);
-            background-color: var(--primary);
-        }
+        .answer-btn:active { transform: scale(0.95); background-color: var(--primary); }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div class="header-section">
-        <img src="logo.png" class="main-logo" alt="Remy">
+        <img src="logo.png" class="main-logo">
         <h1 id="question-status">بانتظار السؤال...</h1>
         <p id="question-text"></p>
     </div>
 
     <div class="content-container">
         <div class="user-card">
-            <h3 id="display-name" style="margin:0;">المتسابق: جاري التحميل...</h3>
+            <h3 id="display-name" style="margin:0; font-size: 1.1em;">المتسابق: جاري التحميل...</h3>
             <div class="points-box">النقاط: <span id="points-count">0</span></div>
         </div>
 
-        <div id="quiz-options" class="hidden">
+        <div id="quiz-area" class="hidden">
             <div class="answers-grid">
-                <button id="btn0" class="answer-btn" onclick="submitAnswer(0)"></button>
-                <button id="btn1" class="answer-btn" onclick="submitAnswer(1)"></button>
-                <button id="btn2" class="answer-btn" onclick="submitAnswer(2)"></button>
-                <button id="btn3" class="answer-btn" onclick="submitAnswer(3)"></button>
+                <button id="btn0" class="answer-btn" onclick="submitAnswer(0)">أ</button>
+                <button id="btn1" class="answer-btn" onclick="submitAnswer(1)">ب</button>
+                <button id="btn2" class="answer-btn" onclick="submitAnswer(2)">ج</button>
+                <button id="btn3" class="answer-btn" onclick="submitAnswer(3)">د</button>
             </div>
         </div>
     </div>
 
     <script>
-        // إعدادات Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -157,33 +110,31 @@
         let myName = localStorage.getItem("userName") || "متسابق جديد";
         document.getElementById("display-name").innerText = "المتسابق: " + myName;
 
-        // استلام نص السؤال والخيارات (تأكد من وجود 'questions' في داتابيز)
-        let questionsData = [];
-        db.ref('questions').once('value', s => questionsData = s.val());
+        let questionsData = null;
+        db.ref('questions').on('value', s => { questionsData = s.val(); });
 
-        // متابعة السؤال الحالي
         db.ref('currentQuestion').on('value', (snapshot) => {
             const idx = snapshot.val();
             const status = document.getElementById("question-status");
             const qText = document.getElementById("question-text");
-            const options = document.getElementById("quiz-options");
+            const quizArea = document.getElementById("quiz-area");
 
             if (idx === -1 || idx === null) {
                 status.innerText = "بانتظار السؤال القادم...";
                 qText.innerText = "";
-                options.classList.add("hidden");
+                quizArea.classList.add("hidden");
             } else {
                 status.innerText = "السؤال " + (idx + 1);
-                options.classList.remove("hidden");
+                quizArea.classList.remove("hidden"); // إظهار منطقة الأجوبة فوراً
                 
+                // محاولة جلب النص، إذا لم يوجد نترك "أ ب ج د" الافتراضية
                 if(questionsData && questionsData[idx]) {
-                    qText.innerText = questionsData[idx].text;
-                    document.getElementById("btn0").innerText = questionsData[idx].options[0];
-                    document.getElementById("btn1").innerText = questionsData[idx].options[1];
-                    document.getElementById("btn2").innerText = questionsData[idx].options[2];
-                    document.getElementById("btn3").innerText = questionsData[idx].options[3];
+                    qText.innerText = questionsData[idx].text || "اختر الإجابة الصحيحة:";
+                    document.getElementById("btn0").innerText = questionsData[idx].options[0] || "أ";
+                    document.getElementById("btn1").innerText = questionsData[idx].options[1] || "ب";
+                    document.getElementById("btn2").innerText = questionsData[idx].options[2] || "ج";
+                    document.getElementById("btn3").innerText = questionsData[idx].options[3] || "د";
                 } else {
-                    // في حال عدم وجود نصوص، تظهر الأحرف كاحتياط
                     qText.innerText = "اختر الإجابة الصحيحة:";
                     document.getElementById("btn0").innerText = "أ";
                     document.getElementById("btn1").innerText = "ب";
@@ -193,17 +144,24 @@
             }
         });
 
-        // تحديث النقاط
         db.ref('totalPoints/' + myName.replace(/ /g, '_')).on('value', s => {
             document.getElementById("points-count").innerText = s.val() || 0;
         });
 
         function submitAnswer(choice) {
-            console.log("تم اختيار الخيار رقم: " + choice);
-            document.getElementById("quiz-options").classList.add("hidden");
-            // هنا تضع منطق إرسال الإجابة لـ Firebase
+            const currentQ = parseInt(document.getElementById("question-status").innerText.replace("السؤال ", "")) - 1;
+            if(isNaN(currentQ)) return;
+
+            // إرسال الإجابة للـ Firebase
+            db.ref('winners/' + currentQ + '/' + myName.replace(/ /g, '_')).set({
+                name: myName,
+                answer: choice,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            document.getElementById("quiz-area").classList.add("hidden");
+            alert("تم إرسال إجابتك بنجاح! ✅");
         }
     </script>
 </body>
 </html>
-
