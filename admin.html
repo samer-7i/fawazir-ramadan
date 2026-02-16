@@ -2,39 +2,78 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة التحكم - Remy</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <title>لوحة تحكم Remy 🚀</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f2f5; }
-        .btn-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
-        button { padding: 15px; cursor: pointer; border: none; border-radius: 5px; background: #007bff; color: white; }
-        .stop-btn { background: #dc3545; margin-top: 20px; padding: 20px; width: 80%; }
+        body { font-family: sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+        .admin-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 800px; margin: 20px auto; }
+        button { padding: 15px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; }
+        .q-btn { background: #38bdf8; color: white; }
+        .stop-btn { background: #e94560; color: white; width: 100%; max-width: 800px; font-size: 1.2em; }
+        
+        /* تنسيق معاينة السؤال المختار للادمن */
+        #current-view {
+            background: #fff; padding: 20px; border-radius: 15px;
+            max-width: 800px; margin: 20px auto; border: 2px solid #38bdf8;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .live-label { color: #e94560; font-weight: bold; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
-    <h2>اختيار السؤال للمتابعين 🚀</h2>
-    <div class="btn-grid" id="buttons"></div>
-    <button class="stop-btn" onclick="setQuestion(-1)">إيقاف المسابقة / إخفاء السؤال</button>
 
-    <script>
-        const firebaseConfig = { /* نفس إعداداتك بالأعلى */ };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    <h1>التحكم بمسابقة Remy 🎮</h1>
 
-        // توليد 50 زر للأسئلة
-        const btnContainer = document.getElementById("buttons");
-        for (let i = 0; i < 50; i++) {
-            let btn = document.createElement("button");
+    <div id="current-view">
+        <p class="live-label">🔴 يظهر الآن للمتابعين:</p>
+        <h2 id="view-text">لا يوجد سؤال نشط حالياً</h2>
+        <div id="view-options" style="display: flex; justify-content: center; gap: 10px;"></div>
+    </div>
+
+    <div class="admin-grid" id="btns-holder"></div>
+    <button class="stop-btn" onclick="sendQ(-1)">إخفاء السؤال من عند الجميع 🛑</button>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="script.js"></script> <script>
+        const holder = document.getElementById("btns-holder");
+        
+        // 1. توليد أزرار التحكم
+        window.allQuestions.forEach((q, i) => {
+            const btn = document.createElement("button");
+            btn.className = "q-btn";
             btn.innerText = "سؤال " + (i + 1);
-            btn.onclick = () => setQuestion(i);
-            btnContainer.appendChild(btn);
+            btn.onclick = () => sendQ(i);
+            holder.appendChild(btn);
+        });
+
+        function sendQ(idx) {
+            db.ref('currentQuestion').set(idx);
         }
 
-        function setQuestion(idx) {
-            db.ref('currentQuestion').set(idx);
-            alert(idx === -1 ? "تم إخفاء الأسئلة" : "تم تفعيل السؤال رقم " + (idx + 1));
-        }
+        // 2. الميزة الجديدة: إظهار السؤال المختار للأدمن فوراً
+        db.ref('currentQuestion').on('value', (snap) => {
+            const idx = snap.val();
+            const viewText = document.getElementById("view-text");
+            const viewOpts = document.getElementById("view-options");
+
+            if (idx === -1 || idx === null) {
+                viewText.innerText = "لا يوجد سؤال نشط حالياً";
+                viewOpts.innerHTML = "";
+            } else {
+                const qData = window.allQuestions[idx];
+                viewText.innerText = "س " + (idx + 1) + ": " + qData.q;
+                viewOpts.innerHTML = "";
+                qData.options.forEach((opt, i) => {
+                    const span = document.createElement("span");
+                    span.style.cssText = "padding: 5px 15px; background: #eee; border-radius: 5px;";
+                    // تمييز الإجابة الصحيحة باللون الأخضر للأدمن فقط
+                    if(i === qData.correct) span.style.background = "#d1fae5"; 
+                    span.innerText = opt;
+                    viewOpts.appendChild(span);
+                });
+            }
+        });
     </script>
 </body>
 </html>
