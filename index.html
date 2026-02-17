@@ -9,40 +9,82 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; --gold: #f59e0b; }
-        body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         
-        .user-logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 20px; object-fit: cover; }
+        /* لوحة الجوائز العائمة في اليمين */
+        .fixed-prizes {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
 
+        .prize-badge {
+            background: rgba(22, 33, 54, 0.9);
+            border-right: 4px solid var(--blue);
+            padding: 8px 12px;
+            border-radius: 8px 0 0 8px;
+            box-shadow: -5px 5px 15px rgba(0,0,0,0.3);
+            min-width: 140px;
+            backdrop-filter: blur(5px);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .prize-badge.gold { border-right-color: var(--gold); }
+        .prize-badge.silver { border-right-color: #c0c0c0; }
+        .prize-badge.bronze { border-right-color: #cd7f32; }
+
+        .prize-label { display: block; font-size: 0.7em; color: rgba(255,255,255,0.6); margin-bottom: 2px; }
+        .prize-val { display: block; font-size: 0.85em; font-weight: bold; color: #fff; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        .user-logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 20px; object-fit: cover; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .setup-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; }
-        
         input { width: 90%; padding: 15px; border-radius: 12px; border: 1px solid var(--blue); background: #0a1120; color: white; text-align: center; font-size: 1.1em; margin: 15px 0; outline: none; }
         .btn-action { background: var(--blue); color: var(--bg); border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
-
         .main-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); max-width: 500px; width: 100%; display: none; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
         .user-info { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(56,189,248,0.2); font-size: 0.9em; }
-        
         .timer-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 3px; overflow: hidden; }
         #timer-progress { width: 100%; height: 100%; background: var(--blue); transition: width 0.1s linear; }
-        
         .opt-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); color: white; border-radius: 12px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.2s; }
         .opt-btn:active { transform: scale(0.98); background: var(--blue); color: #000; }
         .opt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        
         #status-msg { margin-top: 15px; font-weight: bold; font-size: 1.1em; }
-
-        /* تنسيق منصة الجوائز */
         .podium { display: flex; justify-content: space-around; align-items: flex-end; margin-top: 20px; gap: 10px; }
         .rank-card { background: rgba(255,255,255,0.03); border-radius: 15px; padding: 10px; width: 32%; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
         .rank-1 { border-color: var(--gold); background: rgba(245, 158, 11, 0.05); }
         .prize-text { font-size: 0.75em; color: var(--blue); display: block; margin-top: 5px; font-weight: bold; }
-
         .footer { margin-top: 30px; padding: 15px; font-size: 0.85em; color: rgba(255, 255, 255, 0.5); text-align: center; }
-        .footer a { color: var(--blue); text-decoration: none; font-weight: bold; transition: 0.3s; }
-        .footer a:hover { text-shadow: 0 0 10px var(--blue); color: #fff; }
+        .footer a { color: var(--blue); text-decoration: none; font-weight: bold; }
+
+        @media (max-width: 400px) { .fixed-prizes { top: 10px; right: 10px; scale: 0.85; } }
     </style>
 </head>
 <body>
+
+    <div class="fixed-prizes">
+        <div class="prize-badge gold">
+            <span class="prize-label">🥇 المركز الأول</span>
+            <span id="side-p1" class="prize-val">قيد التحديد</span>
+        </div>
+        <div class="prize-badge silver">
+            <span class="prize-label">🥈 المركز الثاني</span>
+            <span id="side-p2" class="prize-val">قيد التحديد</span>
+        </div>
+        <div class="prize-badge bronze">
+            <span class="prize-label">🥉 المركز الثالث</span>
+            <span id="side-p3" class="prize-val">قيد التحديد</span>
+        </div>
+    </div>
 
     <img src="logo.png" class="user-logo" onerror="this.style.display='none'">
 
@@ -55,7 +97,6 @@
                 <li>✅ يتم توزيع الهدايا بعد رمضان على أول 3 فائزين.</li>
                 <li>✅ يمنع الغش بجميع أشكاله.</li>
                 <li>✅ يمنع تغيير المتصفح لضمان حفظ النقاط.</li>
-                <li>✅ استمتع باللعب مع Remy!</li>
             </div><br>
             <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
@@ -71,9 +112,9 @@
         <p>نقاطك الحالية: <span id="wait-points" style="font-weight: bold; color: var(--gold);">0</span></p>
         
         <div class="podium">
-            <div class="rank-card">🥈 المركز 2 <span id="view-prize2" class="prize-text">قيد التحديد</span></div>
-            <div class="rank-card rank-1">🥇 المركز 1 <span id="view-prize1" class="prize-text">قيد التحديد</span></div>
-            <div class="rank-card">🥉 المركز 3 <span id="view-prize3" class="prize-text">قيد التحديد</span></div>
+            <div class="rank-card">🥈 المركز 2 <span id="view-prize2" class="prize-text">---</span></div>
+            <div class="rank-card rank-1">🥇 المركز 1 <span id="view-prize1" class="prize-text">---</span></div>
+            <div class="rank-card">🥉 المركز 3 <span id="view-prize3" class="prize-text">---</span></div>
         </div>
     </div>
 
@@ -162,6 +203,20 @@
             document.getElementById("setup-overlay").style.display = "none";
             document.getElementById("display-name").innerText = userName;
 
+            // تحديث الجوائز في القائمة الجانبية والمنصة
+            db.ref('prizes').on('value', snap => {
+                const p = snap.val() || { p1: "---", p2: "---", p3: "---" };
+                const prizes = [p.p1, p.p2, p.p3];
+                // الجانبية
+                document.getElementById("side-p1").innerText = p.p1 || "---";
+                document.getElementById("side-p2").innerText = p.p2 || "---";
+                document.getElementById("side-p3").innerText = p.p3 || "---";
+                // المنصة
+                document.getElementById("view-prize1").innerText = p.p1 || "---";
+                document.getElementById("view-prize2").innerText = p.p2 || "---";
+                document.getElementById("view-prize3").innerText = p.p3 || "---";
+            });
+
             db.ref('roundVersion').on('value', snap => {
                 const sVer = snap.val() || 0;
                 if (localStorage.getItem("remy_v") != sVer) {
@@ -176,13 +231,6 @@
                 document.getElementById("wait-points").innerText = p;
             });
             db.ref('users/' + userID + '/name').set(userName);
-
-            db.ref('prizes').on('value', snap => {
-                const p = snap.val() || { p1: "---", p2: "---", p3: "---" };
-                document.getElementById("view-prize1").innerText = p.p1 || "---";
-                document.getElementById("view-prize2").innerText = p.p2 || "---";
-                document.getElementById("view-prize3").innerText = p.p3 || "---";
-            });
 
             db.ref('celebration').on('value', snap => {
                 if (snap.exists()) launchConfetti();
