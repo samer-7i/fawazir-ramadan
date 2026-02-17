@@ -56,10 +56,6 @@
                 <div class="q-grid" id="btn-container"></div>
                 <button class="btn-danger" onclick="sendQ(-1)">🛑 إيقاف وإخفاء السؤال</button>
                 <button class="btn-warning" onclick="resetRound()">🔄 تصفير إجابات الأجهزة (جولة جديدة)</button>
-                
-                <button onclick="forceLogoutAll()" style="background: #e94560; color: white; border: 2px solid white; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);">
-                    🚪 طرد وتسجيل خروج جميع المتسابقين
-                </button>
             </div>
 
             <div class="panel">
@@ -95,7 +91,7 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        // مصفوفة الأسئلة (إعادة المخ المفقود)
+        // مصفوفة الأسئلة
         const myQuestions = [
             { q: "من الصحابي الذي جمع القرآن في مصحف واحد أول مرة؟" },
             { q: "كم عدد السور المكية في القرآن؟" },
@@ -129,7 +125,6 @@
             { q: "من هو النبي الذي لُقب بكليم الله؟" }
         ];
 
-        // توليد أزرار الأسئلة
         const container = document.getElementById("btn-container");
         for(let i=0; i<30; i++) {
             let b = document.createElement("button");
@@ -149,20 +144,10 @@
         }
 
         function resetRound() {
-            if(confirm("سيتم تصفير إجابات هذا السؤال فقط. هل أنت متأكد؟")) {
+            if(confirm("سيتم تصفير إجابات الأجهزة للسماح بالمشاركة في السؤال الحالي مرة أخرى. هل أنت متأكد؟")) {
                 db.ref('roundVersion').transaction(v => (v || 0) + 1);
                 db.ref('winners').remove();
                 db.ref('answers_logs').remove();
-            }
-        }
-
-        function forceLogoutAll() {
-            if (confirm("⚠️ تحذير: سيتم حذف جميع المتسابقين ونقاطهم وإجبارهم على تسجيل الدخول مرة أخرى. هل أنت متأكد؟")) {
-                db.ref('roundVersion').transaction((v) => (v || 0) + 1);
-                db.ref('users').remove();
-                db.ref('winners').remove();
-                db.ref('answers_logs').remove();
-                alert("تم طرد الجميع وتصفير القائمة بنجاح ✅");
             }
         }
 
@@ -171,8 +156,6 @@
             document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
             if(idx !== -1 && idx !== null) {
                 if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
-                
-                // تحديث نص السؤال من المصفوفة
                 const qData = myQuestions[idx];
                 document.getElementById("question-text-area").innerText = qData ? qData.q : "سؤال رقم " + (idx+1);
 
