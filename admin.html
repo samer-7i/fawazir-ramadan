@@ -95,6 +95,40 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
+        // مصفوفة الأسئلة (إعادة المخ المفقود)
+        const myQuestions = [
+            { q: "من الصحابي الذي جمع القرآن في مصحف واحد أول مرة؟" },
+            { q: "كم عدد السور المكية في القرآن؟" },
+            { q: "ما آخر سورة نزلت كاملة؟" },
+            { q: "من هو الصحابي الملقب بترجمان القرآن؟" },
+            { q: "ما الصلاة التي فُرضت في السماء؟" },
+            { q: "كم سنة استمرت الدعوة السرية؟" },
+            { q: "من هو أول مؤذن في الإسلام؟" },
+            { q: "ما السورة التي نزلت جملة واحدة؟" },
+            { q: "من هو قائد المسلمين في معركة اليرموك؟" },
+            { q: "في أي سنة فُرض صيام رمضان؟" },
+            { q: "من هو آخر من توفي من العشرة المبشرين بالجنة؟" },
+            { q: "ما اسم العام الذي توفي فيه النبي ﷺ؟" },
+            { q: "في أي عام تأسست الدولة السعودية الأولى؟" },
+            { q: "من هو الإمام الذي أسس الدولة السعودية الأولى؟" },
+            { q: "ما اسم المعاهدة التي أنهت الدولة السعودية الأولى؟" },
+            { q: "ما أقدم عاصمة للدولة السعودية؟" },
+            { q: "ما المنطقة التي تُعد مهد الدولة السعودية؟" },
+            { q: "كم عدد أبواب المسجد الحرام حاليًا تقريبًا؟" },
+            { q: "ما اسم الحجر الذي وُضع عليه قدم النبي إبراهيم؟" },
+            { q: "ما الجدار نصف الدائري بجوار الكعبة يسمى؟" },
+            { q: "أين يقع الميزاب في الكعبة؟" },
+            { q: "ما الشيء الذي كلما زاد نقص؟" },
+            { q: "ما الشيء الذي يولد كبيرًا ويموت صغيرًا؟" },
+            { q: "ما الذي لا يُبتل حتى لو دخل الماء؟" },
+            { q: "ما الشيء الذي يقرصك بلا يدين؟" },
+            { q: "ما هو الشيء الذي له أسنان ولا يعض؟" },
+            { q: "ما هو الشيء الذي تذبحه وتبكي عليه؟" },
+            { q: "ما هو الشيء الذي يتكلم كل لغات العالم؟" },
+            { q: "شيء تراه في الليل 3 مرات وفي النهار مرة واحدة؟" },
+            { q: "من هو النبي الذي لُقب بكليم الله؟" }
+        ];
+
         // توليد أزرار الأسئلة
         const container = document.getElementById("btn-container");
         for(let i=0; i<30; i++) {
@@ -105,18 +139,15 @@
             container.appendChild(b);
         }
 
-        // إرسال السؤال
         function sendQ(idx) {
             db.ref('currentQuestion').set(idx);
             db.ref('celebration').remove();
         }
 
-        // إطلاق الاحتفال
         function startCelebration() {
             db.ref('celebration').set({ timestamp: Date.now() });
         }
 
-        // تصفير الجولة (بدون طرد)
         function resetRound() {
             if(confirm("سيتم تصفير إجابات هذا السؤال فقط. هل أنت متأكد؟")) {
                 db.ref('roundVersion').transaction(v => (v || 0) + 1);
@@ -125,30 +156,25 @@
             }
         }
 
-        // الدالة الجديدة: طرد الكل وتصفير الأسماء
         function forceLogoutAll() {
             if (confirm("⚠️ تحذير: سيتم حذف جميع المتسابقين ونقاطهم وإجبارهم على تسجيل الدخول مرة أخرى. هل أنت متأكد؟")) {
-                // 1. تغيير الإصدار لإجبار أجهزتهم على مسح الـ LocalStorage
                 db.ref('roundVersion').transaction((v) => (v || 0) + 1);
-                
-                // 2. حذف قائمة اليوزرات من قاعدة البيانات
                 db.ref('users').remove();
-                
-                // 3. تصفير الإجابات السابقة
                 db.ref('winners').remove();
                 db.ref('answers_logs').remove();
-
                 alert("تم طرد الجميع وتصفير القائمة بنجاح ✅");
             }
         }
 
-        // تحديث واجهة الأدمن تلقائياً
         db.ref('currentQuestion').on('value', snap => {
             const idx = snap.val();
             document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
             if(idx !== -1 && idx !== null) {
                 if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
-                document.getElementById("question-text-area").innerText = "السؤال رقم " + (idx+1) + " مفعل الآن";
+                
+                // تحديث نص السؤال من المصفوفة
+                const qData = myQuestions[idx];
+                document.getElementById("question-text-area").innerText = qData ? qData.q : "سؤال رقم " + (idx+1);
 
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
                     const list = document.getElementById("fastest-list");
