@@ -1,5 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+    <div class="panel">
+    <div class="section-title">🎁 إعداد الجوائز وإعلان الفوز</div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+        <input type="text" id="prize1" placeholder="جائزة المركز 1" style="margin:0; padding:10px; font-size:0.8em;">
+        <input type="text" id="prize2" placeholder="جائزة المركز 2" style="margin:0; padding:10px; font-size:0.8em;">
+        <input type="text" id="prize3" placeholder="جائزة المركز 3" style="margin:0; padding:10px; font-size:0.8em;">
+        <button onclick="savePrizes()" class="q-btn" style="background:var(--accent); color:white;">حفظ الجوائز ✅</button>
+    </div>
+    <button onclick="startCelebration()" class="btn-round" style="background: linear-gradient(45deg, #f59e0b, #ef4444);">🎊 إطلاق احتفالية الفوز (عند الجميع)</button>
+</div>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -91,6 +101,22 @@
     </div>
 
     <script>
+        function savePrizes() {
+    const p1 = document.getElementById("prize1").value;
+    const p2 = document.getElementById("prize2").value;
+    const p3 = document.getElementById("prize3").value;
+    db.ref('prizes').set({ p1, p2, p3 });
+    alert("تم تحديث قائمة الجوائز!");
+}
+
+function startCelebration() {
+    // إرسال إشارة للاحتفال وتغيير الوقت لضمان التحديث
+    db.ref('celebration').set({
+        timestamp: Date.now(),
+        active: true
+    });
+}
+        
         // --- ضع هنا بيانات الـ Firebase الخاصة بك ---
         const config = { 
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
@@ -191,6 +217,7 @@
                 list.innerHTML += `<div class="name-item leader-track">
                     <span>${i+1}. <b>${p.name}</b></span>
                     <span style="color:var(--gold)">${p.points || 0} نقطة</span>
+                    
                 </div>`;
             });
         });
