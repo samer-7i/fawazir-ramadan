@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مسابقة Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; }
+        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; --gold: #f59e0b; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         
-        /* تصميم اللوجو */
         .user-logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 20px; object-fit: cover; }
 
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: none; justify-content: center; align-items: center; z-index: 2000; }
@@ -30,24 +30,16 @@
         .opt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         
         #status-msg { margin-top: 15px; font-weight: bold; font-size: 1.1em; }
-        /* تنسيق تذييل الصفحة (Footer) */
-.footer {
-    margin-top: 30px;
-    padding: 15px;
-    font-size: 0.85em;
-    color: rgba(255, 255, 255, 0.5);
-    text-align: center;
-}
-.footer a {
-    color: var(--blue);
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s;
-}
-.footer a:hover {
-    text-shadow: 0 0 10px var(--blue);
-    color: #fff;
-}
+
+        /* تنسيق منصة الجوائز */
+        .podium { display: flex; justify-content: space-around; align-items: flex-end; margin-top: 20px; gap: 10px; }
+        .rank-card { background: rgba(255,255,255,0.03); border-radius: 15px; padding: 10px; width: 32%; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .rank-1 { border-color: var(--gold); background: rgba(245, 158, 11, 0.05); }
+        .prize-text { font-size: 0.75em; color: var(--blue); display: block; margin-top: 5px; font-weight: bold; }
+
+        .footer { margin-top: 30px; padding: 15px; font-size: 0.85em; color: rgba(255, 255, 255, 0.5); text-align: center; }
+        .footer a { color: var(--blue); text-decoration: none; font-weight: bold; transition: 0.3s; }
+        .footer a:hover { text-shadow: 0 0 10px var(--blue); color: #fff; }
     </style>
 </head>
 <body>
@@ -57,13 +49,14 @@
     <div id="setup-overlay" class="overlay">
         <div class="setup-card" id="rules-step">
             <h2 style="color: var(--blue);">📜 قوانين المسابقة</h2>
-            <li>✅ الالتزام بالوقت المحدد للإجابة على كل فزورة.</li>
-                <li>✅ أسرع إجابة صحيحة تحصل على النقاط..</li>
-                <li>✅ يتم توزيع الهدايا بعد رمضان على أول 3 فائزين فقط.</li>
-                <li>✅ يمنع الغش بجميع أشكاله، وفي حال ثبوته يتم الاستبعاد.</li>
-               <li>✅ يمنع تغيير المتصفح أو الدخول من متصفح خفي؛ وفي هذه الحالة لن تُحتسب النقاط.</li>
-                <li>✅ بمجرد قراءة هذه الشروط، يعتبر المتسابق موافقًا عليها.</li> 
-                <li>✅ استمتع باللعب مع Remy!</li><br>
+            <div style="text-align: right; font-size: 0.9em; line-height: 1.6;">
+                <li>✅ الالتزام بالوقت المحدد للإجابة على كل فزورة.</li>
+                <li>✅ أسرع إجابة صحيحة تحصل على النقاط.</li>
+                <li>✅ يتم توزيع الهدايا بعد رمضان على أول 3 فائزين.</li>
+                <li>✅ يمنع الغش بجميع أشكاله.</li>
+                <li>✅ يمنع تغيير المتصفح لضمان حفظ النقاط.</li>
+                <li>✅ استمتع باللعب مع Remy!</li>
+            </div><br>
             <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
         <div class="setup-card" id="name-step" style="display: none;">
@@ -73,9 +66,15 @@
         </div>
     </div>
 
-    <div id="waiting-msg" style="display:none; text-align:center;">
+    <div id="waiting-msg" style="display:none; text-align:center; width: 100%; max-width: 500px;">
         <h3 style="color: var(--blue);">بانتظار أن يبدأ Remy السؤال... ⌛</h3>
-        <p>نقاطك الحالية: <span id="wait-points">0</span></p>
+        <p>نقاطك الحالية: <span id="wait-points" style="font-weight: bold; color: var(--gold);">0</span></p>
+        
+        <div class="podium">
+            <div class="rank-card">🥈 المركز 2 <span id="view-prize2" class="prize-text">قيد التحديد</span></div>
+            <div class="rank-card rank-1">🥇 المركز 1 <span id="view-prize1" class="prize-text">قيد التحديد</span></div>
+            <div class="rank-card">🥉 المركز 3 <span id="view-prize3" class="prize-text">قيد التحديد</span></div>
+        </div>
     </div>
 
     <div id="quiz-container" class="main-card">
@@ -90,7 +89,6 @@
     </div>
 
     <script>
-        // تكوين Firebase الخاص بك
         const config = { 
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -103,19 +101,41 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        // بيانات اللاعب والأسئلة
         let userName = localStorage.getItem("remy_name_v4");
         let userID = localStorage.getItem("remy_id_v4");
         let timerInterval;
 
-        // مصفوفة الـ 30 سؤال (يجب أن تطابق الموجودة في الأدمن)
         const myQuestions = [
-            { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 },
-            { q: "ما هي أطول سورة في القرآن الكريم؟", options: ["البقرة", "النساء", "آل عمران"], correct: 0 },
-            { q: "أكمل المثل: القرد في عين أمه...", options: ["حصان", "فيل", "غزال"], correct: 2 },
-            { q:"حامل ومحمول نصه ناشف ونصفه مبلول ؟", options:["سفينه" ,"سياره ", "دباب"], correct: 0 },
-            
-            // ... أكمل حتى 30 سؤال بنفس التنسيق
+            { q: "من الصحابي الذي جمع القرآن في مصحف واحد أول مرة؟", options: ["عمر بن الخطاب", "أبو بكر الصديق", "عثمان بن عفان"], correct: 1 },
+            { q: "كم عدد السور المكية في القرآن؟", options: ["82", "86", "90"], correct: 1 },
+            { q: "ما آخر سورة نزلت كاملة؟", options: ["النصر", "التوبة", "المائدة"], correct: 0 },
+            { q: "من هو الصحابي الملقب بترجمان القرآن؟", options: ["عبد الله بن عمر", "عبد الله بن عباس", "زيد بن ثابت"], correct: 1 },
+            { q: "ما الصلاة التي فُرضت في السماء؟", options: ["الزكاة", "الصلاة", "الصيام"], correct: 1 },
+            { q: "كم سنة استمرت الدعوة السرية؟", options: ["5 سنوات", "3 سنوات", "7 سنوات"], correct: 1 },
+            { q: "من هو أول مؤذن في الإسلام؟", options: ["عبد الله بن مسعود", "بلال بن رباح", "أبو هريرة"], correct: 1 },
+            { q: "ما السورة التي نزلت جملة واحدة؟", options: ["الأنعام", "البقرة", "النساء"], correct: 0 },
+            { q: "من هو قائد المسلمين في معركة اليرموك؟", options: ["خالد بن الوليد", "سعد بن أبي وقاص", "عمرو بن العاص"], correct: 0 },
+            { q: "في أي سنة فُرض صيام رمضان؟", options: ["السنة الأولى للهجرة", "السنة الثانية للهجرة", "السنة الثالثة للهجرة"], correct: 1 },
+            { q: "من هو آخر من توفي من العشرة المبشرين بالجنة؟", options: ["سعد بن أبي وقاص", "عبد الرحمن بن عوف", "أبو عبيدة"], correct: 0 },
+            { q: "ما اسم العام الذي توفي فيه النبي ﷺ؟", options: ["عام الوفود", "عام الحزن", "عام الفتح"], correct: 0 },
+            { q: "في أي عام تأسست الدولة السعودية الأولى؟", options: ["1727م", "1744م", "1765م"], correct: 0 },
+            { q: "من هو الإمام الذي أسس الدولة السعودية الأولى؟", options: ["الإمام عبد العزيز بن محمد", "الإمام محمد بن سعود", "الإمام سعود الكبير"], correct: 1 },
+            { q: "ما اسم المعاهدة التي أنهت الدولة السعودية الأولى؟", options: ["معاهدة الطائف", "اتفاقية الدرعية", "حملة إبراهيم باشا"], correct: 2 },
+            { q: "ما أقدم عاصمة للدولة السعودية؟", options: ["الرياض", "الدرعية", "العيينة"], correct: 1 },
+            { q: "ما المنطقة التي تُعد مهد الدولة السعودية؟", options: ["القصيم", "نجد", "الحجاز"], correct: 1 },
+            { q: "كم عدد أبواب المسجد الحرام حاليًا تقريبًا؟", options: ["60", "179", "250"], correct: 1 },
+            { q: "ما اسم الحجر الذي وُضع عليه قدم النبي إبراهيم؟", options: ["الحجر الأسود", "مقام إبراهيم", "حجر إسماعيل"], correct: 1 },
+            { q: "ما الجدار نصف الدائري بجوار الكعبة يسمى؟", options: ["الملتزم", "حجر إسماعيل", "الشاذروان"], correct: 1 },
+            { q: "أين يقع الميزاب في الكعبة؟", options: ["في الجدار الشرقي", "في الجدار الشمالي", "في الجدار الجنوبي"], correct: 1 },
+            { q: "ما الشيء الذي كلما زاد نقص؟", options: ["العمر", "المال", "العلم"], correct: 0 },
+            { q: "ما الشيء الذي يولد كبيرًا ويموت صغيرًا؟", options: ["الشمعة", "الإنسان", "الشجرة"], correct: 0 },
+            { q: "ما الذي لا يُبتل حتى لو دخل الماء؟", options: ["الظل", "الورق", "القماش"], correct: 0 },
+            { q: "ما الشيء الذي يقرصك بلا يدين؟", options: ["البرد", "الحشرة", "النار"], correct: 0 },
+            { q: "ما هو الشيء الذي له أسنان ولا يعض؟", options: ["المشط", "المفتاح", "الجرس"], correct: 0 },
+            { q: "ما هو الشيء الذي تذبحه وتبكي عليه؟", options: ["البصل", "الليمون", "البطيخ"], correct: 0 },
+            { q: "ما هو الشيء الذي يتكلم كل لغات العالم؟", options: ["الصدى", "المذياع", "الببغاء"], correct: 0 },
+            { q: "شيء تراه في الليل 3 مرات وفي النهار مرة واحدة؟", options: ["حرف اللام", "القمر", "النجوم"], correct: 0 },
+            { q: "من هو النبي الذي لُقب بكليم الله؟", options: ["عيسى", "موسى", "إبراهيم"], correct: 1 }
         ];
 
         window.onload = function() {
@@ -142,7 +162,6 @@
             document.getElementById("setup-overlay").style.display = "none";
             document.getElementById("display-name").innerText = userName;
 
-            // 1. مراقبة تصفير الجولة (الجولة الجديدة)
             db.ref('roundVersion').on('value', snap => {
                 const sVer = snap.val() || 0;
                 if (localStorage.getItem("remy_v") != sVer) {
@@ -151,7 +170,6 @@
                 }
             });
 
-            // 2. مراقبة النقاط
             db.ref('users/' + userID + '/points').on('value', snap => {
                 const p = snap.val() || 0;
                 document.getElementById("my-points").innerText = p;
@@ -159,7 +177,17 @@
             });
             db.ref('users/' + userID + '/name').set(userName);
 
-            // 3. مراقبة السؤال الحالي
+            db.ref('prizes').on('value', snap => {
+                const p = snap.val() || { p1: "---", p2: "---", p3: "---" };
+                document.getElementById("view-prize1").innerText = p.p1 || "---";
+                document.getElementById("view-prize2").innerText = p.p2 || "---";
+                document.getElementById("view-prize3").innerText = p.p3 || "---";
+            });
+
+            db.ref('celebration').on('value', snap => {
+                if (snap.exists()) launchConfetti();
+            });
+
             db.ref('currentQuestion').on('value', snap => {
                 const idx = snap.val();
                 if (idx === -1 || idx === null) {
@@ -181,9 +209,7 @@
             const container = document.getElementById("options-container");
             container.innerHTML = ""; 
             document.getElementById("status-msg").innerText = "";
-            
             const answered = localStorage.getItem("ans_" + idx);
-            
             data.options.forEach((opt, i) => {
                 const b = document.createElement("button");
                 b.className = "opt-btn"; b.innerText = opt;
@@ -191,7 +217,6 @@
                 b.onclick = () => submitAnswer(i, data.correct, idx);
                 container.appendChild(b);
             });
-
             if (answered) {
                 document.getElementById("status-msg").innerText = "تمت الإجابة مسبقاً ✋";
                 document.getElementById("timer-progress").style.width = "0%";
@@ -214,20 +239,12 @@
             clearInterval(timerInterval);
             localStorage.setItem("ans_" + qIdx, "true");
             disableAll("جاري التحقق...");
-
             if (choice !== correct) {
                 document.getElementById("status-msg").innerText = "خطأ ❌";
                 document.getElementById("status-msg").style.color = "#e94560";
                 return;
             }
-
-            // --- تسجيل السرعة للأدمن ---
-            db.ref('answers_logs/' + qIdx).push({
-                name: userName,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            // --- محاولة الفوز بالنقطة ---
+            db.ref('answers_logs/' + qIdx).push({ name: userName, timestamp: firebase.database.ServerValue.TIMESTAMP });
             db.ref('winners/' + qIdx).transaction(curr => {
                 if (curr === null) return { name: userName, id: userID };
                 return;
@@ -247,14 +264,23 @@
             document.querySelectorAll(".opt-btn").forEach(b => b.disabled = true);
             if(msg) document.getElementById("status-msg").innerText = msg;
         }
+
+        function launchConfetti() {
+            var duration = 5 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 3000 };
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random() * (0.3 - 0.1) + 0.1, y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random() * (0.9 - 0.7) + 0.7, y: Math.random() - 0.2 } }));
+            }, 250);
+        }
     </script>
+
     <footer class="footer">
-    تم التصميم بواسطة <a href="https://www.instagram.com/taz7i_/" target="_blank">سامر</a> 🛠️
-</footer>
+        تم التصميم بواسطة <a href="https://www.instagram.com/taz7i_/" target="_blank">سامر</a> 🛠️
+    </footer>
 </body>
 </html>
-
-
-
-
-
