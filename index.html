@@ -10,40 +10,8 @@
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; --gold: #f59e0b; }
         
-        /* لوحة الجوائز العائمة في اليمين */
-        .fixed-prizes {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            pointer-events: none;
-        }
-
-        .prize-badge {
-            background: rgba(22, 33, 54, 0.9);
-            border-right: 4px solid var(--blue);
-            padding: 8px 12px;
-            border-radius: 8px 0 0 8px;
-            box-shadow: -5px 5px 15px rgba(0,0,0,0.3);
-            min-width: 140px;
-            backdrop-filter: blur(5px);
-            animation: slideIn 0.5s ease-out;
-        }
-
-        .prize-badge.gold { border-right-color: var(--gold); }
-        .prize-badge.silver { border-right-color: #c0c0c0; }
-        .prize-badge.bronze { border-right-color: #cd7f32; }
-
-        .prize-label { display: block; font-size: 0.7em; color: rgba(255,255,255,0.6); margin-bottom: 2px; }
-        .prize-val { display: block; font-size: 0.85em; font-weight: bold; color: #fff; }
-
-        @keyframes slideIn {
-            from { transform: translateX(100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+     
+      
 
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         .user-logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 20px; object-fit: cover; }
@@ -71,20 +39,8 @@
 </head>
 <body>
 
-    <div class="fixed-prizes">
-        <div class="prize-badge gold">
-            <span class="prize-label">🥇 المركز الأول</span>
-            <span id="side-p1" class="prize-val">قيد التحديد</span>
-        </div>
-        <div class="prize-badge silver">
-            <span class="prize-label">🥈 المركز الثاني</span>
-            <span id="side-p2" class="prize-val">قيد التحديد</span>
-        </div>
-        <div class="prize-badge bronze">
-            <span class="prize-label">🥉 المركز الثالث</span>
-            <span id="side-p3" class="prize-val">قيد التحديد</span>
-        </div>
-    </div>
+  
+
 
     <img src="logo.png" class="user-logo" onerror="this.style.display='none'">
 
@@ -111,11 +67,7 @@
         <h3 style="color: var(--blue);">بانتظار أن يبدأ Remy السؤال... ⌛</h3>
         <p>نقاطك الحالية: <span id="wait-points" style="font-weight: bold; color: var(--gold);">0</span></p>
         
-        <div class="podium">
-            <div class="rank-card">🥈 المركز 2 <span id="view-prize2" class="prize-text">---</span></div>
-            <div class="rank-card rank-1">🥇 المركز 1 <span id="view-prize1" class="prize-text">---</span></div>
-            <div class="rank-card">🥉 المركز 3 <span id="view-prize3" class="prize-text">---</span></div>
-        </div>
+  
     </div>
 
     <div id="quiz-container" class="main-card">
@@ -203,19 +155,7 @@
             document.getElementById("setup-overlay").style.display = "none";
             document.getElementById("display-name").innerText = userName;
 
-            // تحديث الجوائز في القائمة الجانبية والمنصة
-            db.ref('prizes').on('value', snap => {
-                const p = snap.val() || { p1: "---", p2: "---", p3: "---" };
-                const prizes = [p.p1, p.p2, p.p3];
-                // الجانبية
-                document.getElementById("side-p1").innerText = p.p1 || "---";
-                document.getElementById("side-p2").innerText = p.p2 || "---";
-                document.getElementById("side-p3").innerText = p.p3 || "---";
-                // المنصة
-                document.getElementById("view-prize1").innerText = p.p1 || "---";
-                document.getElementById("view-prize2").innerText = p.p2 || "---";
-                document.getElementById("view-prize3").innerText = p.p3 || "---";
-            });
+     
 
             db.ref('roundVersion').on('value', snap => {
                 const sVer = snap.val() || 0;
@@ -332,3 +272,4 @@
     </footer>
 </body>
 </html>
+
