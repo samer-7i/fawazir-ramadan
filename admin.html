@@ -149,13 +149,7 @@
             db.ref('celebration').remove(); // إيقاف الاحتفال عند بدء سؤال جديد
         }
 
-        function savePrizes() {
-            const p1 = document.getElementById("prize1").value;
-            const p2 = document.getElementById("prize2").value;
-            const p3 = document.getElementById("prize3").value;
-            db.ref('prizes').set({ p1, p2, p3 });
-            alert("تم حفظ الجوائز بنجاح!");
-        }
+
 
         function startCelebration() {
             db.ref('celebration').set({ timestamp: Date.now() });
