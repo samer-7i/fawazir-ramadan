@@ -1,15 +1,5 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-    <div class="panel">
-    <div class="section-title">🎁 إعداد الجوائز وإعلان الفوز</div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-        <input type="text" id="prize1" placeholder="جائزة المركز 1" style="margin:0; padding:10px; font-size:0.8em;">
-        <input type="text" id="prize2" placeholder="جائزة المركز 2" style="margin:0; padding:10px; font-size:0.8em;">
-        <input type="text" id="prize3" placeholder="جائزة المركز 3" style="margin:0; padding:10px; font-size:0.8em;">
-        <button onclick="savePrizes()" class="q-btn" style="background:var(--accent); color:white;">حفظ الجوائز ✅</button>
-    </div>
-    <button onclick="startCelebration()" class="btn-round" style="background: linear-gradient(45deg, #f59e0b, #ef4444);">🎊 إطلاق احتفالية الفوز (عند الجميع)</button>
-</div>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,43 +15,29 @@
         
         .admin-logo { width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 10px; }
         
-        /* شبكة الـ 30 سؤال */
         .q-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 15px 0; }
         .q-btn { background: rgba(255, 255, 255, 0.05); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.3); padding: 12px 5px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85em; transition: 0.3s; }
         .q-btn.active { background: var(--blue); color: #000; box-shadow: 0 0 15px var(--blue); }
         
         .section-title { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 15px; color: var(--blue); font-size: 1.1em; font-weight: bold; }
         
-        #question-text-area { margin: 15px 0; font-size: 1.3em; color: #fff; font-weight: bold; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-right: 4px solid var(--blue); min-height: 50px; display: flex; align-items: center; justify-content: center; }
+        #question-text-area { margin: 15px 0; font-size: 1.3em; color: #fff; font-weight: bold; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-right: 4px solid var(--blue); min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; }
 
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
         .name-item { display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
         .fast-track { border-right-color: var(--accent); }
         .leader-track { border-right-color: var(--gold); }
 
+        .prize-input { background: #0a1120; border: 1px solid var(--blue); color: white; padding: 8px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 5px; }
+
         .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-danger:hover, .btn-warning:hover { opacity: 0.8; transform: scale(0.98); }
+        .btn-celeb { background: linear-gradient(45deg, #f59e0b, #ef4444); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
+        
+        .footer { margin-top: 30px; padding: 15px; font-size: 0.85em; color: rgba(255, 255, 255, 0.5); text-align: center; }
+        .footer a { color: var(--blue); text-decoration: none; font-weight: bold; }
 
         @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
-        /* تنسيق تذييل الصفحة (Footer) */
-.footer {
-    margin-top: 30px;
-    padding: 15px;
-    font-size: 0.85em;
-    color: rgba(255, 255, 255, 0.5);
-    text-align: center;
-}
-.footer a {
-    color: var(--blue);
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s;
-}
-.footer a:hover {
-    text-shadow: 0 0 10px var(--blue);
-    color: #fff;
-}
     </style>
 </head>
 <body>
@@ -74,14 +50,25 @@
                 
                 <div style="margin-top: 15px; font-size: 0.9em; color: var(--blue);">السؤال المباشر الآن:</div>
                 <div id="question-text-area">اختر سؤالاً من الشبكة بالأسفل...</div>
-                <div style="color: var(--accent); font-weight: bold;">الفائز: <span id="winner-name">---</span></div>
+                <div style="color: var(--accent); font-weight: bold;">الفائز بالنقطة: <span id="winner-name">---</span></div>
             </div>
 
             <div class="panel">
                 <div class="section-title">🎮 التحكم بالأسئلة (30 سؤال)</div>
                 <div class="q-grid" id="btn-container"></div>
-                <button class="btn-danger" onclick="sendQ(-1)">🛑 إيقاف وإخفاء السؤال من عند الجميع</button>
+                <button class="btn-danger" onclick="sendQ(-1)">🛑 إيقاف وإخفاء السؤال</button>
                 <button class="btn-warning" onclick="resetRound()">🔄 جولة جديدة (تصفير إجابات الأجهزة)</button>
+            </div>
+
+            <div class="panel">
+                <div class="section-title">🎁 إعداد الجوائز وإعلان الفوز</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="prize1" class="prize-input" placeholder="جائزة المركز 1">
+                    <input type="text" id="prize2" class="prize-input" placeholder="جائزة المركز 2">
+                    <input type="text" id="prize3" class="prize-input" placeholder="جائزة المركز 3">
+                    <button onclick="savePrizes()" style="background:var(--accent); color:white; border:none; border-radius:8px; cursor:pointer;">حفظ ✅</button>
+                </div>
+                <button onclick="startCelebration()" class="btn-celeb">🎊 إطلاق احتفالية الفوز عند الجميع</button>
             </div>
         </div>
 
@@ -94,30 +81,14 @@
             </div>
 
             <div class="panel">
-                <div class="section-title">🏆 أعلى 10 نقاط (عام)</div>
+                <div class="section-title">🏆 المتصدرين (الأكثر نقاطاً)</div>
                 <div id="leaderboard" class="list-container"></div>
             </div>
         </div>
     </div>
 
     <script>
-        function savePrizes() {
-    const p1 = document.getElementById("prize1").value;
-    const p2 = document.getElementById("prize2").value;
-    const p3 = document.getElementById("prize3").value;
-    db.ref('prizes').set({ p1, p2, p3 });
-    alert("تم تحديث قائمة الجوائز!");
-}
-
-function startCelebration() {
-    // إرسال إشارة للاحتفال وتغيير الوقت لضمان التحديث
-    db.ref('celebration').set({
-        timestamp: Date.now(),
-        active: true
-    });
-}
-        
-        // --- ضع هنا بيانات الـ Firebase الخاصة بك ---
+        // --- Firebase Config ---
         const config = { 
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -130,22 +101,40 @@ function startCelebration() {
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        // مصفوفة الـ 30 سؤال (قم بتغيير النصوص هنا لتظهر لك في اللوحة)
+        // مصفوفة الأسئلة الـ 30
         const myQuestions = [
-            { q: "من هو النبي الذي لُقب بكليم الله؟" }, 
-            { q: "ما هي أطول سورة في القرآن الكريم؟" },
-            { q: "أكمل المثل: القرد في عين أمه..." },
-             { q:"حامل ومحمول نصه ناشف ونصفه مبلول ؟", options:["سفينه" ,"سياره ", "دباب"]},
-            { q: "كم عدد أركان الإسلام؟" },
-            { q: "من هو أول الخلفاء الراشدين؟" },
-            { q: "ما هو أكبر كوكب في المجموعة الشمسية؟" },
-            { q: "في أي مدينة ولد النبي محمد ﷺ؟" },
-            { q: "كم عدد سور القرآن الكريم؟" },
-            { q: "ما هو لون العلم السعودي؟" },
-            // أضف نصوص الأسئلة حتى رقم 30 بنفس الطريقة...
+            { q: "من الصحابي الذي جمع القرآن في مصحف واحد أول مرة؟" },
+            { q: "كم عدد السور المكية في القرآن؟" },
+            { q: "ما آخر سورة نزلت كاملة؟" },
+            { q: "من هو الصحابي الملقب بترجمان القرآن؟" },
+            { q: "ما الصلاة التي فُرضت في السماء؟" },
+            { q: "كم سنة استمرت الدعوة السرية؟" },
+            { q: "من هو أول مؤذن في الإسلام؟" },
+            { q: "ما السورة التي نزلت جملة واحدة؟" },
+            { q: "من هو قائد المسلمين في معركة اليرموك؟" },
+            { q: "في أي سنة فُرض صيام رمضان؟" },
+            { q: "من هو آخر من توفي من العشرة المبشرين بالجنة؟" },
+            { q: "ما اسم العام الذي توفي فيه النبي ﷺ؟" },
+            { q: "في أي عام تأسست الدولة السعودية الأولى؟" },
+            { q: "من هو الإمام الذي أسس الدولة السعودية الأولى؟" },
+            { q: "ما اسم المعاهدة التي أنهت الدولة السعودية الأولى؟" },
+            { q: "ما أقدم عاصمة للدولة السعودية؟" },
+            { q: "ما المنطقة التي تُعد مهد الدولة السعودية؟" },
+            { q: "كم عدد أبواب المسجد الحرام حاليًا تقريبًا؟" },
+            { q: "ما اسم الحجر الذي وُضع عليه قدم النبي إبراهيم؟" },
+            { q: "ما الجدار نصف الدائري بجوار الكعبة يسمى؟" },
+            { q: "أين يقع الميزاب في الكعبة؟" },
+            { q: "ما الشيء الذي كلما زاد نقص؟" },
+            { q: "ما الشيء الذي يولد كبيرًا ويموت صغيرًا؟" },
+            { q: "ما الذي لا يُبتل حتى لو دخل الماء؟" },
+            { q: "ما الشيء الذي يقرصك بلا يدين؟" },
+            { q: "ما هو الشيء الذي له أسنان ولا يعض؟" },
+            { q: "ما هو الشيء الذي تذبحه وتبكي عليه؟" },
+            { q: "ما هو الشيء الذي يتكلم كل لغات العالم؟" },
+            { q: "شيء تراه في الليل 3 مرات وفي النهار مرة واحدة؟" },
+            { q: "من هو النبي الذي لُقب بكليم الله؟" }
         ];
 
-        // توليد الأزرار
         const container = document.getElementById("btn-container");
         for(let i=0; i<30; i++) {
             let b = document.createElement("button");
@@ -157,11 +146,23 @@ function startCelebration() {
 
         function sendQ(idx) {
             db.ref('currentQuestion').set(idx);
-            document.getElementById("winner-name").innerText = "---";
+            db.ref('celebration').remove(); // إيقاف الاحتفال عند بدء سؤال جديد
+        }
+
+        function savePrizes() {
+            const p1 = document.getElementById("prize1").value;
+            const p2 = document.getElementById("prize2").value;
+            const p3 = document.getElementById("prize3").value;
+            db.ref('prizes').set({ p1, p2, p3 });
+            alert("تم حفظ الجوائز بنجاح!");
+        }
+
+        function startCelebration() {
+            db.ref('celebration').set({ timestamp: Date.now() });
         }
 
         function resetRound() {
-            if(confirm("هل تريد تصفير ذاكرة الأجهزة للسماح للجميع بالإجابة مرة أخرى؟")) {
+            if(confirm("سيتم تصفير ذاكرة الإجابات للسماح للمتابعين بالمشاركة مرة أخرى. هل أنت متأكد؟")) {
                 db.ref('roundVersion').transaction(v => (v || 0) + 1);
                 db.ref('winners').remove();
                 db.ref('answers_logs').remove();
@@ -171,59 +172,48 @@ function startCelebration() {
         db.ref('currentQuestion').on('value', snap => {
             const idx = snap.val();
             document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
-            
             if(idx !== -1 && idx !== null) {
                 if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
-                
-                // عرض نص السؤال من المصفوفة
                 const qData = myQuestions[idx];
                 document.getElementById("question-text-area").innerText = qData ? qData.q : "سؤال رقم " + (idx+1);
 
-                // مراقبة أسرع 10
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
                     const list = document.getElementById("fastest-list");
                     list.innerHTML = "";
-                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
-                    
+                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار أسرع الإجابات...</p>"; return; }
                     let count = 1;
                     s.forEach(child => {
-                        const data = child.val();
                         list.innerHTML += `<div class="name-item fast-track">
-                            <span>${count}. <b>${data.name}</b></span>
-                            <span style="color:var(--accent)">${count === 1 ? '🥇 الأول' : '✓ جاوب'}</span>
+                            <span>${count}. <b>${child.val().name}</b></span>
+                            <span style="color:var(--accent)">✓ جاوب</span>
                         </div>`;
                         count++;
                     });
                 });
-
-                // مراقبة الفائز بالنقطة
                 db.ref('winners/'+idx).on('value', s => {
                     document.getElementById("winner-name").innerText = s.exists() ? s.val().name : "---";
                 });
-
             } else {
                 document.getElementById("question-text-area").innerText = "المسابقة متوقفة حالياً";
-                document.getElementById("winner-name").innerText = "---";
             }
         });
 
-        // مراقبة المتصدرين العامين
         db.ref('users').on('value', snap => {
             const data = snap.val() || {};
             const sorted = Object.values(data).sort((a,b) => (b.points || 0) - (a.points || 0)).slice(0, 10);
             const list = document.getElementById("leaderboard");
             list.innerHTML = "";
             sorted.forEach((p, i) => {
+                let medal = i===0 ? "🥇 " : i===1 ? "🥈 " : i===2 ? "🥉 " : (i+1)+". ";
                 list.innerHTML += `<div class="name-item leader-track">
-                    <span>${i+1}. <b>${p.name}</b></span>
-                    <span style="color:var(--gold)">${p.points || 0} نقطة</span>
-                    
+                    <span>${medal}<b>${p.name}</b></span>
+                    <span style="color:var(--gold)">${p.points || 0} ن</span>
                 </div>`;
             });
         });
     </script>
     <footer class="footer">
-    تم التصميم بواسطة <a href="https://www.instagram.com/taz7i_/" target="_blank">سامر</a> 🛠️
-</footer>
+        تم التصميم بواسطة <a href="https://www.instagram.com/taz7i_/" target="_blank">سامر</a> 🛠️
+    </footer>
 </body>
 </html>
