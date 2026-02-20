@@ -21,7 +21,9 @@
         
         .section-title { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 15px; color: var(--blue); font-size: 1.1em; font-weight: bold; }
         
-        #question-text-area { margin: 15px 0; font-size: 1.3em; color: #fff; font-weight: bold; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-right: 4px solid var(--blue); min-height: 50px; display: flex; align-items: center; justify-content: center; text-align: center; }
+        #question-text-area { margin: 15px 0; font-size: 1.2em; color: #fff; font-weight: bold; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-right: 4px solid var(--blue); min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+
+        .opt-preview { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 15px; font-size: 0.65em; color: #38bdf8; margin: 2px; display: inline-block; font-weight: normal; }
 
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
         .name-item { display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
@@ -32,9 +34,6 @@
         .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-celeb { background: linear-gradient(45deg, #f59e0b, #ef4444); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
         
-        .footer { margin-top: 30px; padding: 15px; font-size: 0.85em; color: rgba(255, 255, 255, 0.5); text-align: center; }
-        .footer a { color: var(--blue); text-decoration: none; font-weight: bold; }
-
         @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -91,39 +90,66 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        // مصفوفة الأسئلة
         const myQuestions = [
-{ q: "وش الشي اللي يوصلك بيتك ولا يتحرك؟" },
-{ q: "من هو النبي الذي ابتلعه الحوت؟" },
-{ q: "ماركة ساعات فاخرة شعارها تاج، فما هي؟" },
-{ q: "أرسم العين أحياناً رفيع وأحياناً مجنّح ولا أستغني عن القلم الأسود.. فمن أنا؟" },
-{ q: "ما هو اسم الملك الذي كان ينزل بالوحي؟" },
-{ q: "أنا أول خطوة بالميك اب أجهز بشرتك وأخفي المسام وبدوني الميك اب لا يدوّم.. فمن أنا؟" },
-{ q: "من هو الصحابي الذي لقب بالفاروق؟" },
-{ q: "ماركة ملابس شعارها تمساح صغير، فما هي؟" },
-{ q: "أخفي السهر وأمحو العيوب وأجعل الهالات السوداء تختفي.. فمن أنا؟" },
-{ q: "ما هو الأذان الذي لا صلاة له؟" },
-{ q: "أنا بطل الإضاءة أُطبّق فوق عظمة الخد وأجعل وجهك يشع نوراً.. فمن أنا؟" },
-{ q: "كم عدد أسنان القطط؟" },
-{ q: "سيارات ألمانية شهيرة شعارها نجمة كبيرة، فما هي؟" },
-{ q: "أثبت الميك اب وأمنع اللمعان وأجعل بشرتك تبدو كالمخمل.. فمن أنا؟" },
-{ q: "نبي صنع سفينة كبيرة بأمر من الله؟" },
-{ q: "يبكي بلا عينين ويمشي بلا رجلين؟" },
-{ q: "ماهي أول صلاة صليت في الإسلام بعد فرضها؟" },
-{ q: "شركة تقنية أمريكية شعارها تفاحة مقضومة، فما هي؟" },
-{ q: "أمشي بلا قدمين وأبكي بلا عينين وأقتل بلا سكين؟" },
-{ q: "ما عدد أبواب الجنة؟" },
-{ q: "حيوان لون دمه أزرق؟" },
-{ q: "أنشدك عن شيء يمشي ويدفن جرته؟" },
-{ q: "ماهو العمر الافتراضي للكلاب؟" },
-{ q: "في أي قارة تقع السعودية؟" },
-{ q: "ماهو الوزن الطبيعي للقطط الصغيرة عند الولادة؟" },
-{ q: "ما هي الصلاة التي لا تكبير فيها ولا ركوع ولا سجود؟" },
-{ q: "لي شعر ناعم لكنني لست كائناً حياً؟" },
-{ q: "من يأتي بالعسل؟" },
-{ q: "صحراء واسعة تقع في جنوب شرق السعودية وتعتبر من أكبر الصحاري الرملية؟" },
-{ q: "أسود كثيف أطوّل وأكثف رموشك لتصبح مثل عيون الغزال.. فمن أنا؟" }
-    
+            { q: "وش الشي اللي يوصلك بيتك ولا يتحرك؟", options: ["السياره", "الدباب", "الطريق"] },
+
+{ q: "من هو النبي الذي ابتلعه الحوت؟", options: ["موسى", "عيسى", "يونس"] },
+
+{ q: "ماركة ساعات فاخرة شعارها تاج، فما هي؟", options: ["فرزاتشي", "رولكس", "بلنسياقا"] },
+
+{ q: "أرسم العين أحياناً رفيع وأحياناً مجنّح ولا أستغني عن القلم الأسود.. فمن أنا؟", options: ["ايلاينر", "ماسكارا", "اي شادو"] },
+
+{ q: "ما هو اسم الملك الذي كان ينزل بالوحي؟", options: ["جبريل", "ميكايل", "عزرائيل"] },
+
+{ q: "أنا أول خطوة بالميك اب أجهز بشرتك وأخفي المسام وبدوني الميك اب لا يدوّم.. فمن أنا؟", options: ["فونديشن", "برايمر", "هايلايتر"] },
+
+{ q: "من هو الصحابي الذي لقب بالفاروق؟", options: ["ابو بكر", "عمر بن الخطاب", "علي بن ابي طالب"] },
+
+{ q: "ماركة ملابس شعارها تمساح صغير، فما هي؟", options: ["لوكست", "شانيل", "زارا"] },
+            
+{ q: "أخفي السهر وأمحو العيوب وأجعل الهالات السوداء تختفي.. فمن أنا؟", options: ["كونسيلر", "اي شادو", "بلشر"] },
+
+{ q: "ما هو الأذان الذي لا صلاة له؟", options: ["اذان الجمعه", "اذان المولود", "اذان المغرب"] },
+
+{ q: "أنا بطل الإضاءة أُطبّق فوق عظمة الخد وأجعل وجهك يشع نوراً.. فمن أنا؟", options: ["بلشر", "كونتور", "هايلايتر"] },
+
+{ q: "كم عدد أسنان القطط؟", options: ["30", "17", "26"] },
+
+{ q: "سيارات ألمانية شهيرة شعارها نجمة كبيرة، فما هي؟", options: ["مرسيدس بنز", "فيراري", "بورش"] },
+
+{ q: "أثبت الميك اب وأمنع اللمعان وأجعل بشرتك تبدو كالمخمل.. فمن أنا؟", options: ["فونديشن", "كونسيلر", "لوس باودر"] },
+
+{ q: "نبي صنع سفينة كبيرة بأمر من الله؟", options: ["نوح", "صالح", "داود"] },
+
+{ q: "يبكي بلا عينين ويمشي بلا رجلين؟", options: ["الثعبان", "الغيوم", "النجوم"] },
+
+{ q: "ماهي أول صلاة صليت في الإسلام بعد فرضها؟", options: ["الظهر", "العصر", "الفجر"] },
+
+{ q: "شركة تقنية أمريكية شعارها تفاحة مقضومة، فما هي؟", options: ["سامسونج", "مايكروسوفت", "ابل"] },
+
+{ q: "أمشي بلا قدمين وأبكي بلا عينين وأقتل بلا سكين؟", options: ["الوقت", "الريح", "السحاب"] },
+
+{ q: "ما عدد أبواب الجنة؟", options: ["8", "9", "10"] },
+
+{ q: "حيوان لون دمه أزرق؟", options: ["حصان", "دجاجه", "اخطبوط"] },
+
+{ q: "أنشدك عن شيء يمشي ويدفن جرته؟", options: ["الابره و الخيط", "المقلمه", "الجربوع"] },
+
+{ q: "ماهو العمر الافتراضي للكلاب؟", options: ["7", "10", "20"] },
+
+{ q: "في أي قارة تقع السعودية؟", options: ["اسيا", "أفريقيا", "استراليا"] },
+            
+{ q: "ماهو الوزن الطبيعي للقطط الصغيرة عند الولادة؟", options: ["115 جرام", "90 جرام", "75 جرام"] },
+
+{ q: "ما هي الصلاة التي لا تكبير فيها ولا ركوع ولا سجود؟", options: ["صلاة الميت", "الصلاة على الرسول", "صلاة الاستسقاء"] },
+
+{ q: "لي شعر ناعم لكنني لست كائناً حياً؟", options: ["فرشاة شعر", "فرشاة ميك اب", "شعر حويدا"] },
+
+{ q: "من يأتي بالعسل؟", options: ["الانسان", "النحل", "المحل حق العسل"] },
+
+{ q: "صحراء واسعة تقع في جنوب شرق السعودية وتعتبر من أكبر الصحاري الرملية؟", options: ["صحراء الثمامه", "صحراء ربع الخالي", "صحراء طويق"] },
+
+{ q: "أسود كثيف أطوّل وأكثف رموشك لتصبح مثل عيون الغزال.. فمن أنا؟", options: ["كحل", "ماسكارا", "ايلاينر"] }
         ];
 
         const container = document.getElementById("btn-container");
@@ -145,7 +171,7 @@
         }
 
         function resetRound() {
-            if(confirm("سيتم تصفير إجابات الأجهزة للسماح بالمشاركة في السؤال الحالي مرة أخرى. هل أنت متأكد؟")) {
+            if(confirm("سيتم تصفير إجابات الأجهزة (جولة جديدة). هل أنت متأكد؟")) {
                 db.ref('roundVersion').transaction(v => (v || 0) + 1);
                 db.ref('winners').remove();
                 db.ref('answers_logs').remove();
@@ -155,20 +181,32 @@
         db.ref('currentQuestion').on('value', snap => {
             const idx = snap.val();
             document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
+            const displayArea = document.getElementById("question-text-area");
+
             if(idx !== -1 && idx !== null) {
                 if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
                 const qData = myQuestions[idx];
-                document.getElementById("question-text-area").innerText = qData ? qData.q : "سؤال رقم " + (idx+1);
+                
+                // عرض السؤال والخيارات كمعاينة
+                let html = `<div style="margin-bottom:8px">${qData.q}</div><div>`;
+                if(qData.options) {
+                    qData.options.forEach(opt => {
+                        html += `<span class="opt-preview">${opt}</span>`;
+                    });
+                }
+                html += `</div>`;
+                displayArea.innerHTML = html;
 
+                // تحديث قائمة الأسرع
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
                     const list = document.getElementById("fastest-list");
                     list.innerHTML = "";
-                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار أسرع الإجابات...</p>"; return; }
+                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الأسرع...</p>"; return; }
                     let count = 1;
                     s.forEach(child => {
                         list.innerHTML += `<div class="name-item fast-track">
                             <span>${count}. <b>${child.val().name}</b></span>
-                            <span style="color:var(--accent)">✓ جاوب</span>
+                            <span style="color:var(--accent)">✓</span>
                         </div>`;
                         count++;
                     });
@@ -177,7 +215,7 @@
                     document.getElementById("winner-name").innerText = s.exists() ? s.val().name : "---";
                 });
             } else {
-                document.getElementById("question-text-area").innerText = "المسابقة متوقفة حالياً";
+                displayArea.innerText = "المسابقة متوقفة حالياً";
             }
         });
 
