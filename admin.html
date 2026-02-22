@@ -26,10 +26,12 @@
         .opt-preview { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 15px; font-size: 0.65em; color: #38bdf8; margin: 2px; display: inline-block; font-weight: normal; }
 
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
-        .name-item { display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
-        .fast-track { border-right-color: var(--accent); }
+        .name-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 4px solid transparent; }
+        
+        /* ألوان المسارات */
+        .fast-track { border-right-color: var(--accent) !important; background: rgba(16, 185, 129, 0.05); }
+        .wrong-track { border-right-color: var(--red) !important; background: rgba(233, 69, 96, 0.05); }
         .leader-track { border-right-color: var(--gold); }
-        .wrong-track { border-right-color: var(--red); opacity: 0.8; }
 
         .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
@@ -91,6 +93,7 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
+        // [قائمة الأسئلة كما هي في كودك]
         const myQuestions = [
             { q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"] },
             { q: "ما هو الشي الذي يكسر بمجرد نطقه؟", options: ["الصمت", "الأكل", "النوم"] },
@@ -168,7 +171,7 @@
                 html += `</div>`;
                 displayArea.innerHTML = html;
 
-                // تحديث قائمة الإجابات (جميع الإجابات صح وخطأ)
+                // --- التعديل هنا: مراقبة الإجابات وتصنيفها بدقة ---
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').on('value', s => {
                     const list = document.getElementById("fastest-list");
                     list.innerHTML = "";
@@ -176,14 +179,16 @@
                     
                     s.forEach(child => {
                         const val = child.val();
-                        const isCorrect = val.status === "correct";
+                        // فحص الحالة بشكل دقيق (صح أو خطأ)
+                        const isCorrect = (val.status === "correct");
                         const icon = isCorrect ? "✅" : "❌";
                         const trackClass = isCorrect ? "fast-track" : "wrong-track";
-                        const textColor = isCorrect ? "var(--accent)" : "var(--red)";
+                        const color = isCorrect ? "var(--accent)" : "var(--red)";
 
-                        list.innerHTML += `<div class="name-item ${trackClass}">
+                        list.innerHTML += `
+                        <div class="name-item ${trackClass}">
                             <span><b>${val.name}</b></span>
-                            <span style="color:${textColor}; font-weight:bold">${icon}</span>
+                            <span style="color:${color}; font-weight:bold; font-size:1.2em;">${icon}</span>
                         </div>`;
                     });
                 });
