@@ -26,11 +26,11 @@
         .opt-preview { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 15px; font-size: 0.65em; color: #38bdf8; margin: 2px; display: inline-block; font-weight: normal; }
 
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
-        .name-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 4px solid transparent; }
+        .name-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 1em; border-right: 5px solid transparent; transition: 0.2s; }
         
-        /* ألوان الإجابات الصحيحة والخاطئة بناءً على الصور */
-        .fast-track { border-right-color: var(--accent) !important; background: rgba(16, 185, 129, 0.12); }
-        .wrong-track { border-right-color: var(--red) !important; background: rgba(233, 69, 96, 0.12); }
+        /* ألوان الإجابات بناءً على الحالة الحقيقية */
+        .fast-track { border-right-color: var(--accent) !important; background: rgba(16, 185, 129, 0.15) !important; }
+        .wrong-track { border-right-color: var(--red) !important; background: rgba(233, 69, 96, 0.15) !important; }
         .leader-track { border-right-color: var(--gold); }
 
         .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
@@ -80,7 +80,6 @@
     </div>
 
     <script>
-        // ... إعدادات Firebase (نفس التي لديك) ...
         const config = { 
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -93,7 +92,6 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
-        // مصفوفة الأسئلة (نفس التي لديك)
         const myQuestions = [
             { q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"] },
             { q: "ما هو الشي الذي يكسر بمجرد نطقه؟", options: ["الصمت", "الأكل", "النوم"] },
@@ -127,7 +125,6 @@
             { q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"] }
         ];
 
-        // بناء شبكة الأزرار
         const container = document.getElementById("btn-container");
         for(let i=0; i<30; i++) {
             let b = document.createElement("button");
@@ -154,7 +151,6 @@
             }
         }
 
-        // الاستماع لتغيير السؤال وتحديث القائمة
         db.ref('currentQuestion').on('value', snap => {
             const idx = snap.val();
             document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
@@ -172,7 +168,7 @@
                 html += `</div>`;
                 displayArea.innerHTML = html;
 
-                // --- الجزء الحاسم: عرض الإجابات ملونة حسب الحالة ---
+                // التحديث الجوهري: ربط القائمة بحالة الإجابة الحقيقية
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').on('value', s => {
                     list.innerHTML = "";
                     if(!s.exists()) {
@@ -182,7 +178,7 @@
                     
                     s.forEach(child => {
                         const val = child.val();
-                        // فحص الحالة القادمة من كود المتابع
+                        // فحص الحالة القادمة من المتسابق (correct / wrong)
                         const isCorrect = (val.status === "correct");
                         
                         const itemClass = isCorrect ? "fast-track" : "wrong-track";
@@ -207,7 +203,6 @@
             }
         });
 
-        // قائمة المتصدرين
         db.ref('users').on('value', snap => {
             const data = snap.val() || {};
             const sorted = Object.values(data).sort((a,b) => (b.points || 0) - (a.points || 0)).slice(0, 15);
