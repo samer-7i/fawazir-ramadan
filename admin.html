@@ -3,75 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم Remy الاحترافية 👑</title>
+    <title>لوحة تحكم Remy الاحترافية | تطوير سامر 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --text: #ffffff; --accent: #10b981; --gold: #f59e0b; }
         body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; }
-
         .main-layout { display: grid; grid-template-columns: 1fr 350px; gap: 20px; width: 100%; max-width: 1150px; }
         .panel { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
         .admin-logo { width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 10px; }
-
         .q-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 15px 0; }
         .q-btn { background: rgba(255, 255, 255, 0.05); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.3); padding: 12px 5px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85em; transition: 0.3s; }
         .q-btn.active { background: var(--blue); color: #000; box-shadow: 0 0 15px var(--blue); }
-
         .section-title { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 15px; color: var(--blue); font-size: 1.1em; font-weight: bold; }
-
         #question-text-area { margin: 15px 0; font-size: 1.2em; color: #fff; font-weight: bold; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-right: 4px solid var(--blue); min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-
-        .opt-preview { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 15px; font-size: 0.65em; color: #38bdf8; margin: 2px; display: inline-block; font-weight: normal; }
-
+        .opt-preview { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 15px; font-size: 0.65em; color: #38bdf8; margin: 2px; display: inline-block; }
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
         .name-item { display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
         .fast-track { border-right-color: var(--accent); }
         .leader-track { border-right-color: var(--gold); }
-
-        .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-celeb { background: linear-gradient(45deg, #f59e0b, #ef4444); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); }
-
+        .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-celeb { background: linear-gradient(45deg, #f59e0b, #ef4444); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
         @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-
     <div class="main-layout">
         <div class="right-col">
             <div class="panel" style="text-align: center;">
                 <img src="logo.png" class="admin-logo" onerror="this.src='https://via.placeholder.com/70'">
                 <h2 style="margin:0">لوحة تحكم Remy 👑</h2>
-
                 <div style="margin-top: 15px; font-size: 0.9em; color: var(--blue);">السؤال المباشر الآن:</div>
-                <div id="question-text-area">اختر سؤالاً من الشبكة بالأسفل...</div>
+                <div id="question-text-area">اختر سؤالاً من الشبكة...</div>
                 <div style="color: var(--accent); font-weight: bold;">الفائز بالنقطة: <span id="winner-name">---</span></div>
             </div>
-
             <div class="panel">
-                <div class="section-title">🎮 التحكم بالأسئلة (30 سؤال)</div>
+                <div class="section-title">🎮 التحكم بالأسئلة</div>
                 <div class="q-grid" id="btn-container"></div>
                 <button class="btn-danger" onclick="sendQ(-1)">🛑 إيقاف وإخفاء السؤال</button>
-                <button class="btn-warning" onclick="resetRound()">🔄 تصفير إجابات الأجهزة (جولة جديدة)</button>
+                <button class="btn-warning" onclick="resetRound()">🔄 تصفير إجابات الأجهزة</button>
             </div>
-
-            <div class="panel">
-                <button onclick="startCelebration()" class="btn-celeb">🎊 إطلاق احتفالية الفوز عند الجميع</button>
-            </div>
+            <button onclick="startCelebration()" class="btn-celeb">🎊 إطلاق احتفالية الفوز</button>
         </div>
-
         <div class="left-col">
             <div class="panel">
                 <div class="section-title">⚡ أسرع 10 في السؤال الحالي</div>
-                <div id="fastest-list" class="list-container">
-                    <p style="color:#666; font-size: 0.9em; text-align: center;">بانتظار الإجابات...</p>
-                </div>
+                <div id="fastest-list" class="list-container"></div>
             </div>
-
             <div class="panel">
-                <div class="section-title">🏆 المتصدرين (الأكثر نقاطاً)</div>
+                <div class="section-title">🏆 المتصدرين (النقاط)</div>
                 <div id="leaderboard" class="list-container"></div>
             </div>
         </div>
@@ -91,59 +72,62 @@
         const db = firebase.database();
 
         const myQuestions = [
-           
-{ q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"] },
-{ q: "ما هو الشي الذي يكسر بمجرد نطقه؟", options: ["الصمت", "الأكل", "النوم"] },
-{ q: "ما هي عاصمة اليابان؟", options: ["اليابان", "شونق بونق هونق", "طوكيو"] },
-{ q: "شيء طويل عندما يكون جديدًا، ويقصر كلما استخدمته؟", options: ["الشمعة", "المسواك", "الثلج"] },
-{ q: "كم عدد حجرات القلب التي يمتلكها الصرصور؟", options: ["حجرة واحدة", "حجرتين", "لا يملك"] },
-{ q: "أطول سورة في القرآن؟", options: ["آل عمران", "النساء", "البقرة"] },
-{ q: "ما هو الشي الذي يتكلم بدون لسان؟", options: ["الجرس", "القلم", "الباب"] },
-{ q: "عدد إذا تم ضربه في نفسه وجُمع معه يساوي 30؟", options: ["5", "6", "4"] },
-{ q: "شيء حار حتى لو وضعته في الثلاجة لا يبرد؟", options: ["الخيار", "البصل", "الفلفل"] },
-{ q: "مما يتكون النبات بشكل أساسي؟", options: ["الجذور والساق والأوراق والأزهار", "الجذور والساق والأزهار", "الساق والأوراق"] },
-{ q: "ما هو الحيوان الذي لا ينام؟", options: ["الخفاش", "السلحفاة", "الضفدع"] },
-{ q: "ما السورة التي تحتوي على آية الكرسي؟", options: ["النساء", "البقرة", "آل عمران"] },
-{ q: "من هو النبي الذي ألقاه قومه في النار ولم تحرقه؟", options: ["إبراهيم", "موسى", "عيسى"] },
-{ q: "ما هو أعلى جبل في العالم؟", options: ["جبل تهامة", "جبل إيفرست", "جبل طويق"] },
-{ q: "هو الشيء الذي يتبعك في كل مكان ويقلد حركاتك لكن لا يمكنك لمسه؟", options: ["الجني", "ظلك", "الذكريات"] },
-{ q: "ما هي أكبر قارة في العالم من حيث المساحة والسكان؟", options: ["آسيا", "أفريقيا", "أستراليا"] },
-{ q: "ما هو المستحضر الذي يجب تطبيقه قبل الآيشادو لإبراز الألوان وثباتها؟", options: ["الآيلاينر", "برايمر الوجه", "برايمر للعين"] },
-{ q: "كم تبلغ مسافة نظر زرقاء اليمامة؟", options: ["1000 كيلو", "3000 كيلو", "3 أيام"] },
-{ q: "اتبع النمط: الأحد، الإثنين، الأربعاء، السبت، الأربعاء. ما هو اليوم التالي؟", options: ["الإثنين", "الثلاثاء", "الخميس"] },
-{ q: "ما هي أول عملة إسلامية؟", options: ["قروش ذهبية", "دينار ذهبي", "ريال سعودي"] },
-{ q: "أكبر سلسلة مقاهي في العالم، شعارها حورية بحر خضراء ذات ذيلين. ما هي؟", options: ["دانكن", "ستاربكس", "برهنت"] },
-{ q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"] },
-{ q: "كم عدد آيات سورة الفاتحة؟", options: ["7 آيات", "8 آيات", "6 آيات"] },
-{ q: "أين يقع قلب الجمبري؟", options: ["في ظهره", "في بطنه", "في رأسه"] },
-{ q: "أي جزء من النبات نأكله في الجزر؟", options: ["جذورها", "ثمارها", "أوراقها"] },
-{ q: "سلسلة مطاعم عالمية للوجبات السريعة، شعارها حرف M كبير؟", options: ["ماكدونالدز", "هرفي", "برغر كنج"] },
-{ q: "عندما سبق العدّاء اللاعب صاحب المركز الثاني، فما هو مركزه في السباق؟", options: ["الأول", "الثاني", "الثالث"] },
-{ q: "ما هي العناصر الثلاثة الرئيسية التي يحتاجها النبات للنمو؟", options: ["ضوء الشمس والماء والأكسجين", "ضوء الشمس والماء وثاني أكسيد الكربون", "ضوء الشمس والماء"] },
-{ q: "كان هناك سجين في سجن على جزيرة وسط الماء وأراد الهروب لكنه لا يجيد السباحة، كيف هرب؟", options: ["سبح حتى هرب", "انتظر حتى تجمد الماء وهرب", "صنع قاربًا للهروب"] },
-{ q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"] },
+            { q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"] },
+            { q: "ما هو الشي الذي يكسر بمجرد نطقه؟", options: ["الصمت", "الأكل", "النوم"] },
+            { q: "ما هي عاصمة اليابان؟", options: ["اليابان", "شونق بونق هونق", "طوكيو"] },
+            { q: "شيء طويل عندما يكون جديدًا، ويقصر كلما استخدمته؟", options: ["الشمعة", "المسواك", "الثلج"] },
+            { q: "كم عدد حجرات القلب التي يمتلكها الصرصور؟", options: ["حجرة واحدة", "حجرتين", "لا يملك"] },
+            { q: "أطول سورة في القرآن؟", options: ["آل عمران", "النساء", "البقرة"] },
+            { q: "ما هو الشي الذي يتكلم بدون لسان؟", options: ["الجرس", "القلم", "الباب"] },
+            { q: "عدد إذا تم ضربه في نفسه وجُمع معه يساوي 30؟", options: ["5", "6", "4"] },
+            { q: "شيء حار حتى لو وضعته في الثلاجة لا يبرد؟", options: ["الخيار", "البصل", "الفلفل"] },
+            { q: "مما يتكون النبات بشكل أساسي؟", options: ["الجذور والساق والأوراق والأزهار", "الجذور والساق والأزهار", "الساق والأوراق"] },
+            { q: "ما هو الحيوان الذي لا ينام؟", options: ["الخفاش", "السلحفاة", "الضفدع"] },
+            { q: "ما السورة التي تحتوي على آية الكرسي؟", options: ["النساء", "البقرة", "آل عمران"] },
+            { q: "من هو النبي الذي ألقاه قومه في النار ولم تحرقه؟", options: ["إبراهيم", "موسى", "عيسى"] },
+            { q: "ما هو أعلى جبل في العالم؟", options: ["جبل تهامة", "جبل إيفرست", "جبل طويق"] },
+            { q: "هو الشيء الذي يتبعك في كل مكان ويقلد حركاتك لكن لا يمكنك لمسه؟", options: ["الجني", "ظلك", "الذكريات"] },
+            { q: "ما هي أكبر قارة في العالم من حيث المساحة والسكان؟", options: ["آسيا", "أفريقيا", "أستراليا"] },
+            { q: "ما هو المستحضر الذي يجب تطبيقه قبل الآيشادو لإبراز الألوان وثباتها؟", options: ["الآيلاينر", "برايمر الوجه", "برايمر للعين"] },
+            { q: "كم تبلغ مسافة نظر زرقاء اليمامة؟", options: ["1000 كيلو", "3000 كيلو", "3 أيام"] },
+            { q: "اتبع النمط: الأحد، الإثنين، الأربعاء، السبت، الأربعاء. ما هو اليوم التالي؟", options: ["الإثنين", "الثلاثاء", "الخميس"] },
+            { q: "ما هي أول عملة إسلامية؟", options: ["قروش ذهبية", "دينار ذهبي", "ريال سعودي"] },
+            { q: "أكبر سلسلة مقاهي في العالم، شعارها حورية بحر خضراء ذات ذيلين. ما هي؟", options: ["دانكن", "ستاربكس", "برهنت"] },
+            { q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"] },
+            { q: "كم عدد آيات سورة الفاتحة؟", options: ["7 آيات", "8 آيات", "6 آيات"] },
+            { q: "أين يقع قلب الجمبري؟", options: ["في ظهره", "في بطنه", "في رأسه"] },
+            { q: "أي جزء من النبات نأكله في الجزر؟", options: ["جذورها", "ثمارها", "أوراقها"] },
+            { q: "سلسلة مطاعم عالمية للوجبات السريعة، شعارها حرف M كبير؟", options: ["ماكدونالدز", "هرفي", "برغر كنج"] },
+            { q: "عندما سبق العدّاء اللاعب صاحب المركز الثاني، فما هو مركزه في السباق؟", options: ["الأول", "الثاني", "الثالث"] },
+            { q: "ما هي العناصر الثلاثة الرئيسية التي يحتاجها النبات للنمو؟", options: ["ضوء الشمس والماء والأكسجين", "ضوء الشمس والماء وثاني أكسيد الكربون", "ضوء الشمس والماء"] },
+            { q: "كان هناك سجين في سجن على جزيرة وسط الماء وأراد الهروب لكنه لا يجيد السباحة، كيف هرب؟", options: ["سبح حتى هرب", "انتظر حتى تجمد الماء وهرب", "صنع قاربًا للهروب"] },
+            { q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"] }
         ];
 
         const container = document.getElementById("btn-container");
         for(let i=0; i<30; i++) {
             let b = document.createElement("button");
-            b.className = "q-btn"; b.innerText = "س" + (i+1);
-            b.id = "q" + i;
-            b.onclick = () => sendQ(i);
-            container.appendChild(b);
+            b.className = "q-btn"; b.innerText = "س" + (i+1); b.id = "q" + i;
+            b.onclick = () => sendQ(i); container.appendChild(b);
         }
 
+        // التحديث الجوهري: إرسال وقت السيرفر مع كل سؤال
         function sendQ(idx) {
-            db.ref('currentQuestion').set(idx);
+            if (idx === -1) {
+                db.ref('currentQuestion').set(-1);
+                db.ref('questionStartTime').remove();
+            } else {
+                db.ref('currentQuestion').set(idx);
+                // هذا يضمن أن كل المتابعين يبدأ عدادهم في نفس اللحظة التي ضغطت فيها أنت
+                db.ref('questionStartTime').set(firebase.database.ServerValue.TIMESTAMP);
+            }
             db.ref('celebration').remove();
         }
 
-        function startCelebration() {
-            db.ref('celebration').set({ timestamp: Date.now() });
-        }
-
+        function startCelebration() { db.ref('celebration').set({ timestamp: Date.now() }); }
+        
         function resetRound() {
-            if(confirm("سيتم تصفير إجابات الأجهزة (جولة جديدة). هل أنت متأكد؟")) {
+            if(confirm("تصفير الإجابات لبدء سؤال جديد؟")) {
                 db.ref('roundVersion').transaction(v => (v || 0) + 1);
                 db.ref('winners').remove();
                 db.ref('answers_logs').remove();
@@ -158,34 +142,22 @@
             if(idx !== -1 && idx !== null) {
                 if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
                 const qData = myQuestions[idx];
-
-                // عرض السؤال والخيارات كمعاينة
                 let html = `<div style="margin-bottom:8px">${qData.q}</div><div>`;
-                if(qData.options) {
-                    qData.options.forEach(opt => {
-                        html += `<span class="opt-preview">${opt}</span>`;
-                    });
-                }
+                if(qData.options) qData.options.forEach(opt => { html += `<span class="opt-preview">${opt}</span>`; });
                 html += `</div>`;
                 displayArea.innerHTML = html;
 
-                // تحديث قائمة الأسرع
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
                     const list = document.getElementById("fastest-list");
                     list.innerHTML = "";
-                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الأسرع...</p>"; return; }
+                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
                     let count = 1;
                     s.forEach(child => {
-                        list.innerHTML += `<div class="name-item fast-track">
-                            <span>${count}. <b>${child.val().name}</b></span>
-                            <span style="color:var(--accent)">✓</span>
-                        </div>`;
+                        list.innerHTML += `<div class="name-item fast-track"><span>${count}. <b>${child.val().name}</b></span><span style="color:var(--accent)">✓</span></div>`;
                         count++;
                     });
                 });
-                db.ref('winners/'+idx).on('value', s => {
-                    document.getElementById("winner-name").innerText = s.exists() ? s.val().name : "---";
-                });
+                db.ref('winners/'+idx).on('value', s => { document.getElementById("winner-name").innerText = s.exists() ? s.val().name : "---"; });
             } else {
                 displayArea.innerText = "المسابقة متوقفة حالياً";
             }
@@ -198,10 +170,7 @@
             list.innerHTML = "";
             sorted.forEach((p, i) => {
                 let medal = i===0 ? "🥇 " : i===1 ? "🥈 " : i===2 ? "🥉 " : (i+1)+". ";
-                list.innerHTML += `<div class="name-item leader-track">
-                    <span>${medal}<b>${p.name}</b></span>
-                    <span style="color:var(--gold)">${p.points || 0} ن</span>
-                </div>`;
+                list.innerHTML += `<div class="name-item leader-track"><span>${medal}<b>${p.name}</b></span><span style="color:var(--gold)">${p.points || 0} ن</span></div>`;
             });
         });
     </script>
