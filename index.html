@@ -21,6 +21,7 @@
         #timer-progress { width: 100%; height: 100%; background: var(--blue); transition: width 0.1s linear; }
         #delay-timer { color: var(--gold); font-weight: bold; font-size: 1.2em; margin: 10px 0; }
         .opt-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); color: white; border-radius: 12px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.2s; }
+        .opt-btn:hover { background: rgba(56, 189, 248, 0.15); }
         .opt-btn:active:not(:disabled) { transform: scale(0.98); background: var(--blue); color: #000; }
         .opt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         #status-msg { margin-top: 15px; font-weight: bold; font-size: 1.1em; }
@@ -39,7 +40,7 @@
                 <li>✅ متابعة الستريمر ضرورية.</li>
                 <li>✅ تظهر الخيارات بعد 10 ثوانٍ من ظهور السؤال.</li>
                 <li>✅ أسرع إجابة صحيحة تحصل على النقاط.</li>
-                <li>✅ ترتيب الخيارات عشوائي لكل جهاز لمنع الغش.</li>
+                <li>✅ ترتيب الخيارات عشوائي لمنع الغش.</li>
             </div><br>
             <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
@@ -83,7 +84,7 @@
         let userName = localStorage.getItem("remy_name_v4");
         let userID = localStorage.getItem("remy_id_v4");
         let timerInterval, delayInterval;
-        let isSubmitting = false; // لمنع تكرار الإرسال
+        let isSubmitting = false;
 
         const myQuestions = [
             { q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"], correct: 1 },
@@ -112,7 +113,7 @@
             { q: "أين يقع قلب الجمبري؟", options: ["في ظهره", "في بطنه", "في رأسه"], correct: 2 },
             { q: "أي جزء من النبات نأكله في الجزر؟", options: ["جذورها", "ثمارها", "أوراقها"], correct: 0 },
             { q: "سلسلة مطاعم عالمية شعارها حرف M كبير؟", options: ["ماكدونالدز", "هرفي", "برغر كنج"], correct: 0 },
-            { q: "عندما سبق العدّاء صاحب المركز الثاني، فما هو مركزه؟", options: ["الأول", "الثاني", "الثالث"], correct: 1 },
+            { q: "عندما سبق العدّاء اللاعب صاحب المركز الثاني، فما هو مركزه؟", options: ["الأول", "الثاني", "الثالث"], correct: 1 },
             { q: "ما هي العناصر التي يحتاجها النبات للنمو؟", options: ["ضوء الشمس والماء والأكسجين", "ضوء الشمس والماء وثاني أكسيد الكربون", "ضوء الشمس والماء"], correct: 1 },
             { q: "سجين أراد الهروب من جزيرة ولا يجيد السباحة.. كيف هرب؟", options: ["سبح حتى هرب", "انتظر حتى تجمد الماء وهرب", "صنع قاربًا للهروب"], correct: 1 },
             { q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"], correct: 1 }
@@ -131,7 +132,7 @@
         function saveAndStart() {
             const val = document.getElementById("username-input").value.trim();
             if (!val) return alert("اكتب اسمك أولاً!");
-            const newID = "u_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5);
+            const newID = "u_" + Math.random().toString(36).substr(2, 9);
             localStorage.setItem("remy_name_v4", val);
             localStorage.setItem("remy_id_v4", newID);
             userName = val; userID = newID;
@@ -169,7 +170,7 @@
                 } else {
                     document.getElementById("waiting-msg").style.display = "none";
                     document.getElementById("quiz-container").style.display = "block";
-                    isSubmitting = false; // إعادة ضبط حالة الإرسال للسؤال الجديد
+                    isSubmitting = false; 
                     prepareQuestion(idx);
                 }
             });
@@ -214,10 +215,15 @@
         function showFinalOptions(data, idx, isDisabled) {
             const container = document.getElementById("options-container");
             container.innerHTML = "";
-            let options = data.options.map((opt, i) => ({ text: opt, isCorrect: i === data.correct }));
             
-            // ترتيب عشوائي ثابت لكل مستخدم بناءً على معرفه والسؤال لمنع الغش
-            options.sort((a,b) => a.text.length - b.text.length); 
+            // تحضير الخيارات مع ربطها بمعامل صح/خطأ بناءً على الـ correct index
+            let options = data.options.map((text, i) => ({ text: text, isCorrect: i === data.correct }));
+            
+            // ترتيب عشوائي (خوارزمية فيشر-ييتس) لضمان عدم الغش
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
 
             options.forEach((item) => {
                 const b = document.createElement("button");
@@ -239,7 +245,7 @@
         }
 
         function submitAnswer(isCorrect, qIdx) {
-            if (isSubmitting) return; // منع النقر المتعدد
+            if (isSubmitting) return;
             isSubmitting = true;
 
             clearInterval(timerInterval);
@@ -248,10 +254,12 @@
             disableAll("جاري التحقق...");
             document.getElementById("delay-timer").innerText = "";
 
-            // إرسال السجل فوراً (صح أو خطأ) ليراه الأدمن
+            // --- التعديل الجوهري هنا ---
+            const statusStr = isCorrect ? "correct" : "wrong";
+
             db.ref('answers_logs/' + qIdx).push({ 
                 name: userName, 
-                status: isCorrect ? "correct" : "wrong", 
+                status: statusStr, 
                 timestamp: firebase.database.ServerValue.TIMESTAMP 
             });
 
@@ -261,14 +269,13 @@
                 return;
             }
 
-            // إذا كانت صحيحة، حاول أن تكون الفائز بالنقاط
             db.ref('winners/' + qIdx).transaction(curr => {
                 if (curr === null) return { name: userName, id: userID };
                 return;
             }, (err, comm) => {
                 if (comm) {
                     document.getElementById("status-msg").innerText = "كفو! أنت الأول 🎉";
-                    document.getElementById("status-msg").style.color = "var(--blue)";
+                    document.getElementById("status-msg").style.color = "var(--accent)";
                     db.ref('users/' + userID + '/points').transaction(p => (p || 0) + 1);
                 } else {
                     document.getElementById("status-msg").innerText = "صح، لكن غيرك أسرع 💨";
@@ -283,16 +290,7 @@
         }
 
         function launchConfetti() {
-            var duration = 5 * 1000;
-            var animationEnd = Date.now() + duration;
-            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 3000 };
-            var interval = setInterval(function() {
-                var timeLeft = animationEnd - Date.now();
-                if (timeLeft <= 0) return clearInterval(interval);
-                var particleCount = 50 * (timeLeft / duration);
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random() * 0.2 + 0.1, y: Math.random() - 0.2 } }));
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random() * 0.2 + 0.7, y: Math.random() - 0.2 } }));
-            }, 250);
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 3000 });
         }
     </script>
 
