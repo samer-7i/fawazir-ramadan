@@ -142,26 +142,29 @@
                 html += `</div>`;
                 displayArea.innerHTML = html;
 
-                // --- التعديل هنا: جلب أسرع 10 مع عرض (صح/خطأ) ---
-                db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
-                    const list = document.getElementById("fastest-list");
-                    list.innerHTML = "";
-                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
-                    
-                    let count = 1;
-                    s.forEach(child => {
-                        const log = child.val();
-                        const color = log.correct ? 'var(--accent)' : 'var(--red)';
-                        const icon = log.correct ? '✅' : '❌';
-                        
-                        list.innerHTML += `
-                            <div class="name-item" style="border-right-color: ${color}">
-                                <span>${count}. <b>${log.name}</b></span>
-                                <span style="color:${color}; font-weight:bold;">${icon}</span>
-                            </div>`;
-                        count++;
-                    });
-                });
+              // التحديث المصلح لعرض الصح والخطأ بدقة
+db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
+    const list = document.getElementById("fastest-list");
+    list.innerHTML = "";
+    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
+    
+    let count = 1;
+    s.forEach(child => {
+        const log = child.val();
+        
+        // التأكد من قراءة قيمة correct بشكل صحيح (True/False)
+        const isCorrect = log.correct === true; 
+        const statusColor = isCorrect ? 'var(--accent)' : 'var(--red)';
+        const statusIcon = isCorrect ? '✅' : '❌';
+        
+        list.innerHTML += `
+            <div class="name-item" style="border-right: 4px solid ${statusColor}; background: rgba(255,255,255,0.05); margin-bottom: 5px;">
+                <span style="color: white;">${count}. <b>${log.name}</b></span>
+                <span style="color:${statusColor}; font-weight:bold; font-size: 1.2em;">${statusIcon}</span>
+            </div>`;
+        count++;
+    });
+});
                 
                 db.ref('winners/'+idx).on('value', s => { document.getElementById("winner-name").innerText = s.exists() ? s.val().name : "---"; });
             } else {
