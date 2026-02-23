@@ -84,7 +84,6 @@
         let timerInterval, delayInterval;
         let serverStartTime = 0;
 
-        // مصفوفة الأسئلة (مطابقة تماماً للأدمن)
         const myQuestions = [
             { q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"], correct: 1 },
             { q: "ما هو الشي الذي يكسر بمجرد نطقه؟", options: ["الصمت", "الأكل", "النوم"], correct: 0 },
@@ -142,6 +141,7 @@
             db.ref('users/' + userID + '/name').set(userName);
             db.ref('celebration').on('value', snap => { if (snap.exists()) launchConfetti(); });
 
+            // الاستماع للسؤال ووقت البداية الموحد
             db.ref('currentQuestion').on('value', snap => {
                 const idx = snap.val();
                 if (idx === -1 || idx === null) {
@@ -165,6 +165,7 @@
         function prepareQuestion(idx) {
             const data = myQuestions[idx];
             clearInterval(timerInterval); clearInterval(delayInterval);
+            
             document.getElementById("question-text").innerText = data.q;
             const container = document.getElementById("options-container");
             const delayArea = document.getElementById("delay-timer");
@@ -178,10 +179,12 @@
                 return;
             }
 
+            // نظام العد الموحد
             delayInterval = setInterval(() => {
                 const now = Date.now();
                 const diff = Math.floor((now - serverStartTime) / 1000);
                 const remaining = 10 - diff;
+
                 if (remaining <= 0) {
                     clearInterval(delayInterval);
                     delayArea.innerText = "أجب الآن! 🔥";
@@ -223,20 +226,13 @@
             disableAll("جاري التحقق...");
             document.getElementById("delay-timer").innerText = "";
 
-            // إرسال الإجابة وحالتها للأدمن
-            db.ref('answers_logs/' + qIdx).push({ 
-                name: userName, 
-                correct: isCorrect, 
-                timestamp: firebase.database.ServerValue.TIMESTAMP 
-            });
-
             if (!isCorrect) {
                 document.getElementById("status-msg").innerText = "خطأ ❌";
                 document.getElementById("status-msg").style.color = "#e94560";
                 return;
             }
 
-            // فحص الفوز بالنقطة (أول واحد صح)
+            db.ref('answers_logs/' + qIdx).push({ name: userName, timestamp: firebase.database.ServerValue.TIMESTAMP });
             db.ref('winners/' + qIdx).transaction(curr => {
                 if (curr === null) return { name: userName, id: userID };
                 return;
