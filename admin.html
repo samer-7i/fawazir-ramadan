@@ -28,9 +28,9 @@
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
         .name-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 4px solid transparent; }
         
-        /* التعديل: تحسين الألوان لتطابق الصور */
-        .fast-track { border-right-color: var(--accent) !important; background: rgba(16, 185, 129, 0.15); color: #fff; }
-        .wrong-track { border-right-color: var(--red) !important; background: rgba(233, 69, 96, 0.15); color: #fff; }
+        /* ألوان الإجابات الصحيحة والخاطئة بناءً على الصور */
+        .fast-track { border-right-color: var(--accent) !important; background: rgba(16, 185, 129, 0.12); }
+        .wrong-track { border-right-color: var(--red) !important; background: rgba(233, 69, 96, 0.12); }
         .leader-track { border-right-color: var(--gold); }
 
         .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
@@ -58,7 +58,7 @@
                 <button class="btn-danger" onclick="sendQ(-1)">🛑 إيقاف وإخفاء السؤال</button>
                 <button class="btn-warning" onclick="resetRound()">🔄 تصفير إجابات الأجهزة (جولة جديدة)</button>
             </div>
-
+            
             <div class="panel">
                 <button onclick="startCelebration()" class="btn-celeb">🎊 إطلاق احتفالية الفوز عند الجميع</button>
             </div>
@@ -80,6 +80,7 @@
     </div>
 
     <script>
+        // ... إعدادات Firebase (نفس التي لديك) ...
         const config = { 
             apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
             authDomain: "fawazir-jaco.firebaseapp.com",
@@ -92,6 +93,7 @@
         firebase.initializeApp(config);
         const db = firebase.database();
 
+        // مصفوفة الأسئلة (نفس التي لديك)
         const myQuestions = [
             { q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"] },
             { q: "ما هو الشي الذي يكسر بمجرد نطقه؟", options: ["الصمت", "الأكل", "النوم"] },
@@ -125,6 +127,7 @@
             { q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"] }
         ];
 
+        // بناء شبكة الأزرار
         const container = document.getElementById("btn-container");
         for(let i=0; i<30; i++) {
             let b = document.createElement("button");
@@ -137,8 +140,6 @@
         function sendQ(idx) {
             db.ref('currentQuestion').set(idx);
             db.ref('celebration').remove();
-            // مسح القائمة عند تغيير السؤال لبدء استقبال الجديد
-            document.getElementById("fastest-list").innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>";
         }
 
         function startCelebration() {
@@ -146,21 +147,19 @@
         }
 
         function resetRound() {
-            if(confirm("تصفير إجابات الأجهزة؟ (النقاط ستبقى)")) {
+            if(confirm("سيتم تصفير إجابات الأجهزة فقط. هل أنت متأكد؟")) {
                 db.ref('roundVersion').transaction(v => (v || 0) + 1);
                 db.ref('winners').remove();
                 db.ref('answers_logs').remove();
             }
         }
 
+        // الاستماع لتغيير السؤال وتحديث القائمة
         db.ref('currentQuestion').on('value', snap => {
             const idx = snap.val();
             document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
             const displayArea = document.getElementById("question-text-area");
             const list = document.getElementById("fastest-list");
-
-            // إلغاء الاستماع القديم لتجنب تكرار البيانات
-            db.ref('answers_logs').off(); 
 
             if(idx !== -1 && idx !== null) {
                 if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
@@ -173,24 +172,28 @@
                 html += `</div>`;
                 displayArea.innerHTML = html;
 
-                // الاستماع للإجابات في السؤال الحالي فقط
+                // --- الجزء الحاسم: عرض الإجابات ملونة حسب الحالة ---
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').on('value', s => {
                     list.innerHTML = "";
-                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
+                    if(!s.exists()) {
+                        list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>";
+                        return;
+                    }
                     
                     s.forEach(child => {
                         const val = child.val();
-                        // الفحص الجوهري: إذا كانت الحالة "correct" يظهر صح، غير ذلك خطأ
+                        // فحص الحالة القادمة من كود المتابع
                         const isCorrect = (val.status === "correct");
+                        
+                        const itemClass = isCorrect ? "fast-track" : "wrong-track";
+                        const statusLabel = isCorrect ? "صح" : "خطأ";
                         const icon = isCorrect ? "✅" : "❌";
-                        const trackClass = isCorrect ? "fast-track" : "wrong-track";
-                        const label = isCorrect ? "صح" : "خطأ";
-                        const labelColor = isCorrect ? "#10b981" : "#e94560";
+                        const color = isCorrect ? "var(--accent)" : "var(--red)";
 
                         list.innerHTML += `
-                        <div class="name-item ${trackClass}">
+                        <div class="name-item ${itemClass}">
                             <span><b>${val.name}</b></span>
-                            <span style="color:${labelColor}; font-weight:bold;">${label} ${icon}</span>
+                            <span style="color:${color}; font-weight:bold;">${statusLabel} ${icon}</span>
                         </div>`;
                     });
                 });
@@ -204,6 +207,7 @@
             }
         });
 
+        // قائمة المتصدرين
         db.ref('users').on('value', snap => {
             const data = snap.val() || {};
             const sorted = Object.values(data).sort((a,b) => (b.points || 0) - (a.points || 0)).slice(0, 15);
@@ -220,6 +224,3 @@
     </script>
 </body>
 </html>
-
-
-
