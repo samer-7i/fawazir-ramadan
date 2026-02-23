@@ -40,7 +40,7 @@
                 <li>✅ متابعة الستريمر ضرورية.</li>
                 <li>✅ تظهر الخيارات بعد 10 ثوانٍ من ظهور السؤال.</li>
                 <li>✅ أسرع إجابة صحيحة تحصل على النقاط.</li>
-                <li>✅ ترتيب الخيارات عشوائي لمنع الغش.</li>
+                <li>✅ ترتيب الخيارات عشوائي لكل جهاز لمنع الغش.</li>
             </div><br>
             <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
@@ -115,8 +115,7 @@
             { q: "سلسلة مطاعم عالمية شعارها حرف M كبير؟", options: ["ماكدونالدز", "هرفي", "برغر كنج"], correct: 0 },
             { q: "عندما سبق العدّاء اللاعب صاحب المركز الثاني، فما هو مركزه؟", options: ["الأول", "الثاني", "الثالث"], correct: 1 },
             { q: "ما هي العناصر التي يحتاجها النبات للنمو؟", options: ["ضوء الشمس والماء والأكسجين", "ضوء الشمس والماء وثاني أكسيد الكربون", "ضوء الشمس والماء"], correct: 1 },
-            { q: "سجين أراد الهروب من جزيرة ولا يجيد السباحة.. كيف هرب؟", options: ["سبح حتى هرب", "انتظر حتى تجمد الماء وهرب", "صنع قاربًا للهروب"], correct: 1 },
-            { q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"], correct: 1 }
+            { q: "سجين أراد الهروب من جزيرة ولا يجيد السباحة.. كيف هرب؟", options: ["سبح حتى هرب", "انتظر حتى تجمد الماء وهرب", "صنع قاربًا للهروب"], correct: 1 }
         ];
 
         window.onload = () => {
@@ -143,6 +142,14 @@
             document.getElementById("setup-overlay").style.display = "none";
             document.getElementById("display-name").innerText = userName;
 
+            db.ref('roundVersion').on('value', snap => {
+                const sVer = snap.val() || 0;
+                if (localStorage.getItem("remy_v") != sVer) {
+                    for(let key in localStorage) { if(key.startsWith("ans_")) localStorage.removeItem(key); }
+                    localStorage.setItem("remy_v", sVer);
+                }
+            });
+
             db.ref('users/' + userID + '/points').on('value', snap => {
                 const p = snap.val() || 0;
                 document.getElementById("my-points").innerText = p;
@@ -157,6 +164,8 @@
                 if (idx === -1 || idx === null) {
                     document.getElementById("quiz-container").style.display = "none";
                     document.getElementById("waiting-msg").style.display = "block";
+                    clearInterval(timerInterval);
+                    clearInterval(delayInterval);
                 } else {
                     document.getElementById("waiting-msg").style.display = "none";
                     document.getElementById("quiz-container").style.display = "block";
@@ -169,39 +178,55 @@
         function prepareQuestion(idx) {
             const data = myQuestions[idx];
             if (!data) return;
-            clearInterval(timerInterval); clearInterval(delayInterval);
-            
+            clearInterval(timerInterval);
+            clearInterval(delayInterval);
+
             document.getElementById("question-text").innerText = data.q;
+            const delayArea = document.getElementById("delay-timer");
+            const statusMsg = document.getElementById("status-msg");
             document.getElementById("options-container").innerHTML = ""; 
-            document.getElementById("status-msg").innerText = "";
+            statusMsg.innerText = "";
             document.getElementById("timer-progress").style.width = "100%";
 
+            const answered = localStorage.getItem("ans_" + idx);
+            if (answered) {
+                delayArea.innerText = "";
+                statusMsg.innerText = "تمت الإجابة مسبقاً ✋";
+                showFinalOptions(data, idx, true);
+                return;
+            }
+
             let timeLeft = 10; 
-            document.getElementById("delay-timer").innerText = `تظهر الخيارات خلال ${timeLeft}`;
+            delayArea.innerText = `تجهز.. تظهر الخيارات خلال ${timeLeft}`;
             delayInterval = setInterval(() => {
                 timeLeft--;
                 if (timeLeft <= 0) {
                     clearInterval(delayInterval);
-                    document.getElementById("delay-timer").innerText = "أجب الآن! 🔥";
-                    showOptions(data, idx);
+                    delayArea.innerText = "أجب الآن! 🔥";
+                    showFinalOptions(data, idx, false);
                     startTimer();
                 } else {
-                    document.getElementById("delay-timer").innerText = `تظهر الخيارات خلال ${timeLeft}`;
+                    delayArea.innerText = `تجهز.. تظهر الخيارات خلال ${timeLeft}`;
                 }
             }, 1000);
         }
 
-        function showOptions(data, idx) {
+        function showFinalOptions(data, idx, isDisabled) {
             const container = document.getElementById("options-container");
+            container.innerHTML = "";
             let options = data.options.map((text, i) => ({ text: text, isCorrect: i === data.correct }));
             
-            // ترتيب عشوائي للخيارات
-            options.sort(() => Math.random() - 0.5);
+            // ترتيب عشوائي (خوارزمية فيشر-ييتس) لمنع الغش
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
 
             options.forEach((item) => {
                 const b = document.createElement("button");
                 b.className = "opt-btn";
                 b.innerText = item.text;
+                if (isDisabled) b.disabled = true;
                 b.onclick = () => submitAnswer(item.isCorrect, idx);
                 container.appendChild(b);
             });
@@ -219,8 +244,12 @@
         function submitAnswer(isCorrect, qIdx) {
             if (isSubmitting) return;
             isSubmitting = true;
+
             clearInterval(timerInterval);
+            clearInterval(delayInterval);
+            localStorage.setItem("ans_" + qIdx, "true");
             disableAll("جاري التحقق...");
+            document.getElementById("delay-timer").innerText = "";
 
             const statusStr = isCorrect ? "correct" : "wrong";
 
@@ -260,5 +289,9 @@
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 3000 });
         }
     </script>
+
+    <footer class="footer">
+        تم التصميم بواسطة <a href="https://www.instagram.com/taz7i_/" target="_blank">سامر</a> 🛠️
+    </footer>
 </body>
 </html>
