@@ -28,8 +28,9 @@
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
         .name-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 4px solid transparent; }
         
-        .fast-track { border-right-color: var(--accent) !important; background: rgba(16, 185, 129, 0.08); }
-        .wrong-track { border-right-color: var(--red) !important; background: rgba(233, 69, 96, 0.08); }
+        /* التعديل: تحسين الألوان لتطابق الصور */
+        .fast-track { border-right-color: var(--accent) !important; background: rgba(16, 185, 129, 0.15); color: #fff; }
+        .wrong-track { border-right-color: var(--red) !important; background: rgba(233, 69, 96, 0.15); color: #fff; }
         .leader-track { border-right-color: var(--gold); }
 
         .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
@@ -65,7 +66,7 @@
 
         <div class="left-col">
             <div class="panel">
-                <div class="section-title">📊 جميع إجابات المتابعين (الآن)</div>
+                <div class="section-title">📊 إجابات المتابعين (صح ✅ وغلط ❌)</div>
                 <div id="fastest-list" class="list-container">
                     <p style="color:#666; font-size: 0.9em; text-align: center;">بانتظار الإجابات...</p>
                 </div>
@@ -136,6 +137,8 @@
         function sendQ(idx) {
             db.ref('currentQuestion').set(idx);
             db.ref('celebration').remove();
+            // مسح القائمة عند تغيير السؤال لبدء استقبال الجديد
+            document.getElementById("fastest-list").innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>";
         }
 
         function startCelebration() {
@@ -143,7 +146,7 @@
         }
 
         function resetRound() {
-            if(confirm("سيتم تصفير إجابات الأجهزة فقط، المتصدرين ونقاطهم ستبقى كما هي. هل أنت متأكد؟")) {
+            if(confirm("تصفير إجابات الأجهزة؟ (النقاط ستبقى)")) {
                 db.ref('roundVersion').transaction(v => (v || 0) + 1);
                 db.ref('winners').remove();
                 db.ref('answers_logs').remove();
@@ -154,6 +157,10 @@
             const idx = snap.val();
             document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("active"));
             const displayArea = document.getElementById("question-text-area");
+            const list = document.getElementById("fastest-list");
+
+            // إلغاء الاستماع القديم لتجنب تكرار البيانات
+            db.ref('answers_logs').off(); 
 
             if(idx !== -1 && idx !== null) {
                 if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
@@ -161,31 +168,29 @@
                 
                 let html = `<div style="margin-bottom:8px">${qData.q}</div><div>`;
                 if(qData.options) {
-                    qData.options.forEach(opt => {
-                        html += `<span class="opt-preview">${opt}</span>`;
-                    });
+                    qData.options.forEach(opt => { html += `<span class="opt-preview">${opt}</span>`; });
                 }
                 html += `</div>`;
                 displayArea.innerHTML = html;
 
-                // --- التعديل الموحد: عرض جميع الإجابات في قائمة واحدة ملونة ---
+                // الاستماع للإجابات في السؤال الحالي فقط
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').on('value', s => {
-                    const list = document.getElementById("fastest-list");
                     list.innerHTML = "";
                     if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
                     
                     s.forEach(child => {
                         const val = child.val();
-                        // فحص الحالة من البيانات المرسلة
+                        // الفحص الجوهري: إذا كانت الحالة "correct" يظهر صح، غير ذلك خطأ
                         const isCorrect = (val.status === "correct");
                         const icon = isCorrect ? "✅" : "❌";
                         const trackClass = isCorrect ? "fast-track" : "wrong-track";
-                        const textColor = isCorrect ? "var(--accent)" : "var(--red)";
+                        const label = isCorrect ? "صح" : "خطأ";
+                        const labelColor = isCorrect ? "#10b981" : "#e94560";
 
                         list.innerHTML += `
                         <div class="name-item ${trackClass}">
                             <span><b>${val.name}</b></span>
-                            <span style="color:${textColor}; font-weight:bold;">${isCorrect ? 'صح' : 'خطأ'} ${icon}</span>
+                            <span style="color:${labelColor}; font-weight:bold;">${label} ${icon}</span>
                         </div>`;
                     });
                 });
@@ -195,7 +200,7 @@
                 });
             } else {
                 displayArea.innerText = "المسابقة متوقفة حالياً";
-                document.getElementById("fastest-list").innerHTML = "<p style='text-align:center; color:#666'>لا يوجد سؤال نشط</p>";
+                list.innerHTML = "<p style='text-align:center; color:#666'>لا يوجد سؤال نشط</p>";
             }
         });
 
@@ -215,3 +220,6 @@
     </script>
 </body>
 </html>
+
+
+
