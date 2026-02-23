@@ -19,7 +19,9 @@
         #question-text-area { margin: 15px 0; font-size: 1.2em; color: #fff; font-weight: bold; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-right: 4px solid var(--blue); min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .opt-preview { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 15px; font-size: 0.65em; color: #38bdf8; margin: 2px; display: inline-block; }
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
-        .name-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
+        .name-item { display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
+        .fast-track { border-right-color: var(--accent); }
+        .leader-track { border-right-color: var(--gold); }
         .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-celeb { background: linear-gradient(45deg, #f59e0b, #ef4444); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
@@ -34,7 +36,7 @@
                 <h2 style="margin:0">لوحة تحكم Remy 👑</h2>
                 <div style="margin-top: 15px; font-size: 0.9em; color: var(--blue);">السؤال المباشر الآن:</div>
                 <div id="question-text-area">اختر سؤالاً من الشبكة...</div>
-                <div style="color: var(--accent); font-weight: bold;">الفائز بالنقطة (أول صح): <span id="winner-name">---</span></div>
+                <div style="color: var(--accent); font-weight: bold;">الفائز بالنقطة: <span id="winner-name">---</span></div>
             </div>
             <div class="panel">
                 <div class="section-title">🎮 التحكم بالأسئلة</div>
@@ -46,7 +48,7 @@
         </div>
         <div class="left-col">
             <div class="panel">
-                <div class="section-title">⚡ أسرع 10 متفاعلين (صح وخطأ)</div>
+                <div class="section-title">⚡ أسرع 10 في السؤال الحالي</div>
                 <div id="fastest-list" class="list-container"></div>
             </div>
             <div class="panel">
@@ -72,33 +74,33 @@
         const myQuestions = [
             { q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"] },
             { q: "ما هو الشي الذي يكسر بمجرد نطقه؟", options: ["الصمت", "الأكل", "النوم"] },
-            { q: "ما هي عاصمة اليابان؟", options: ["اليابان", "طوكيو", "سيول"] },
+            { q: "ما هي عاصمة اليابان؟", options: ["اليابان", "شونق بونق هونق", "طوكيو"] },
             { q: "شيء طويل عندما يكون جديدًا، ويقصر كلما استخدمته؟", options: ["الشمعة", "المسواك", "الثلج"] },
-            { q: "كم عدد حجرات القلب التي يمتلكها الصرصور؟", options: ["13 حجرة", "حجرتين", "لا يملك"] },
+            { q: "كم عدد حجرات القلب التي يمتلكها الصرصور؟", options: ["حجرة واحدة", "حجرتين", "لا يملك"] },
             { q: "أطول سورة في القرآن؟", options: ["آل عمران", "النساء", "البقرة"] },
             { q: "ما هو الشي الذي يتكلم بدون لسان؟", options: ["الجرس", "القلم", "الباب"] },
             { q: "عدد إذا تم ضربه في نفسه وجُمع معه يساوي 30؟", options: ["5", "6", "4"] },
             { q: "شيء حار حتى لو وضعته في الثلاجة لا يبرد؟", options: ["الخيار", "البصل", "الفلفل"] },
-            { q: "مما يتكون النبات بشكل أساسي؟", options: ["الجذور والساق والأوراق", "الجذور والساق والأزهار", "الساق والأوراق"] },
+            { q: "مما يتكون النبات بشكل أساسي؟", options: ["الجذور والساق والأوراق والأزهار", "الجذور والساق والأزهار", "الساق والأوراق"] },
             { q: "ما هو الحيوان الذي لا ينام؟", options: ["الخفاش", "السلحفاة", "الضفدع"] },
             { q: "ما السورة التي تحتوي على آية الكرسي؟", options: ["النساء", "البقرة", "آل عمران"] },
             { q: "من هو النبي الذي ألقاه قومه في النار ولم تحرقه؟", options: ["إبراهيم", "موسى", "عيسى"] },
             { q: "ما هو أعلى جبل في العالم؟", options: ["جبل تهامة", "جبل إيفرست", "جبل طويق"] },
-            { q: "هو الشيء الذي يتبعك في كل مكان ويقلد حركاتك؟", options: ["الجني", "ظلك", "الذكريات"] },
+            { q: "هو الشيء الذي يتبعك في كل مكان ويقلد حركاتك لكن لا يمكنك لمسه؟", options: ["الجني", "ظلك", "الذكريات"] },
             { q: "ما هي أكبر قارة في العالم من حيث المساحة والسكان؟", options: ["آسيا", "أفريقيا", "أستراليا"] },
-            { q: "ما هو المستحضر الذي يجب تطبيقه قبل الآيشادو لإبراز الألوان؟", options: ["الآيلاينر", "برايمر الوجه", "برايمر للعين"] },
+            { q: "ما هو المستحضر الذي يجب تطبيقه قبل الآيشادو لإبراز الألوان وثباتها؟", options: ["الآيلاينر", "برايمر الوجه", "برايمر للعين"] },
             { q: "كم تبلغ مسافة نظر زرقاء اليمامة؟", options: ["1000 كيلو", "3000 كيلو", "3 أيام"] },
-            { q: "اتبع النمط: الأحد، الإثنين، الأربعاء، السبت.. ما هو اليوم التالي؟", options: ["الإثنين", "الثلاثاء", "الخميس"] },
+            { q: "اتبع النمط: الأحد، الإثنين، الأربعاء، السبت، الأربعاء. ما هو اليوم التالي؟", options: ["الإثنين", "الثلاثاء", "الخميس"] },
             { q: "ما هي أول عملة إسلامية؟", options: ["قروش ذهبية", "دينار ذهبي", "ريال سعودي"] },
-            { q: "أكبر سلسلة مقاهي في العالم شعارها حورية خضراء؟", options: ["دانكن", "ستاربكس", "بارنيز"] },
+            { q: "أكبر سلسلة مقاهي في العالم، شعارها حورية بحر خضراء ذات ذيلين. ما هي؟", options: ["دانكن", "ستاربكس", "برهنت"] },
             { q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"] },
             { q: "كم عدد آيات سورة الفاتحة؟", options: ["7 آيات", "8 آيات", "6 آيات"] },
             { q: "أين يقع قلب الجمبري؟", options: ["في ظهره", "في بطنه", "في رأسه"] },
             { q: "أي جزء من النبات نأكله في الجزر؟", options: ["جذورها", "ثمارها", "أوراقها"] },
-            { q: "سلسلة مطاعم عالمية شعارها حرف M كبير؟", options: ["ماكدونالدز", "هرفي", "برغر كنج"] },
-            { q: "عندما سبق العدّاء صاحب المركز الثاني، فما هو مركزه؟", options: ["الأول", "الثاني", "الثالث"] },
-            { q: "ما هي العناصر التي يحتاجها النبات للنمو؟", options: ["ضوء الشمس والماء والأكسجين", "ضوء الشمس والماء وثاني أكسيد الكربون", "ضوء الشمس والماء"] },
-            { q: "سجين أراد الهروب من جزيرة ولا يجيد السباحة.. كيف هرب؟", options: ["سبح حتى هرب", "انتظر حتى تجمد الماء وهرب", "صنع قاربًا للهروب"] },
+            { q: "سلسلة مطاعم عالمية للوجبات السريعة، شعارها حرف M كبير؟", options: ["ماكدونالدز", "هرفي", "برغر كنج"] },
+            { q: "عندما سبق العدّاء اللاعب صاحب المركز الثاني، فما هو مركزه في السباق؟", options: ["الأول", "الثاني", "الثالث"] },
+            { q: "ما هي العناصر الثلاثة الرئيسية التي يحتاجها النبات للنمو؟", options: ["ضوء الشمس والماء والأكسجين", "ضوء الشمس والماء وثاني أكسيد الكربون", "ضوء الشمس والماء"] },
+            { q: "كان هناك سجين في سجن على جزيرة وسط الماء وأراد الهروب لكنه لا يجيد السباحة، كيف هرب؟", options: ["سبح حتى هرب", "انتظر حتى تجمد الماء وهرب", "صنع قاربًا للهروب"] },
             { q: "ما هو الشيء الذي يتجمد بالحرارة؟", options: ["الثلج", "البيض", "الخبز"] }
         ];
 
@@ -109,12 +111,14 @@
             b.onclick = () => sendQ(i); container.appendChild(b);
         }
 
+        // التحديث الجوهري: إرسال وقت السيرفر مع كل سؤال
         function sendQ(idx) {
             if (idx === -1) {
                 db.ref('currentQuestion').set(-1);
                 db.ref('questionStartTime').remove();
             } else {
                 db.ref('currentQuestion').set(idx);
+                // هذا يضمن أن كل المتابعين يبدأ عدادهم في نفس اللحظة التي ضغطت فيها أنت
                 db.ref('questionStartTime').set(firebase.database.ServerValue.TIMESTAMP);
             }
             db.ref('celebration').remove();
@@ -124,6 +128,7 @@
         
         function resetRound() {
             if(confirm("تصفير الإجابات لبدء سؤال جديد؟")) {
+                db.ref('roundVersion').transaction(v => (v || 0) + 1);
                 db.ref('winners').remove();
                 db.ref('answers_logs').remove();
             }
@@ -142,35 +147,19 @@
                 html += `</div>`;
                 displayArea.innerHTML = html;
 
-              // التحديث المصلح لعرض الصح والخطأ بدقة
-db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
-    const list = document.getElementById("fastest-list");
-    list.innerHTML = "";
-    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
-    
-    let count = 1;
-    s.forEach(child => {
-        const log = child.val();
-        
-        // التأكد من قراءة قيمة correct بشكل صحيح (True/False)
-        const isCorrect = log.correct === true; 
-        const statusColor = isCorrect ? 'var(--accent)' : 'var(--red)';
-        const statusIcon = isCorrect ? '✅' : '❌';
-        
-        list.innerHTML += `
-            <div class="name-item" style="border-right: 4px solid ${statusColor}; background: rgba(255,255,255,0.05); margin-bottom: 5px;">
-                <span style="color: white;">${count}. <b>${log.name}</b></span>
-                <span style="color:${statusColor}; font-weight:bold; font-size: 1.2em;">${statusIcon}</span>
-            </div>`;
-        count++;
-    });
-});
-                
+                db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
+                    const list = document.getElementById("fastest-list");
+                    list.innerHTML = "";
+                    if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
+                    let count = 1;
+                    s.forEach(child => {
+                        list.innerHTML += `<div class="name-item fast-track"><span>${count}. <b>${child.val().name}</b></span><span style="color:var(--accent)">✓</span></div>`;
+                        count++;
+                    });
+                });
                 db.ref('winners/'+idx).on('value', s => { document.getElementById("winner-name").innerText = s.exists() ? s.val().name : "---"; });
             } else {
                 displayArea.innerText = "المسابقة متوقفة حالياً";
-                document.getElementById("fastest-list").innerHTML = "";
-                document.getElementById("winner-name").innerText = "---";
             }
         });
 
@@ -181,7 +170,7 @@ db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('val
             list.innerHTML = "";
             sorted.forEach((p, i) => {
                 let medal = i===0 ? "🥇 " : i===1 ? "🥈 " : i===2 ? "🥉 " : (i+1)+". ";
-                list.innerHTML += `<div class="name-item" style="border-right-color: var(--gold)"><span>${medal}<b>${p.name}</b></span><span style="color:var(--gold)">${p.points || 0} ن</span></div>`;
+                list.innerHTML += `<div class="name-item leader-track"><span>${medal}<b>${p.name}</b></span><span style="color:var(--gold)">${p.points || 0} ن</span></div>`;
             });
         });
     </script>
