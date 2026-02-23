@@ -84,6 +84,7 @@
         let timerInterval, delayInterval;
         let serverStartTime = 0;
 
+        // مصفوفة الأسئلة (مطابقة تماماً للأدمن)
         const myQuestions = [
             { q: "غازي عالمي، لونه أحمر، واسمه يتكون من كلمتين؟", options: ["ببسي", "كوكاكولا", "فانتا"], correct: 1 },
             { q: "ما هو الشي الذي يكسر بمجرد نطقه؟", options: ["الصمت", "الأكل", "النوم"], correct: 0 },
@@ -216,14 +217,13 @@
             }, 100);
         }
 
-        // --- الجزء المعدل لإرسال (صح / خطأ) ---
         function submitAnswer(isCorrect, qIdx) {
             clearInterval(timerInterval);
             localStorage.setItem("ans_" + qIdx, "true");
             disableAll("جاري التحقق...");
             document.getElementById("delay-timer").innerText = "";
 
-            // إرسال الإجابة مع حالتها (صح أو خطأ) فوراً
+            // إرسال الإجابة وحالتها للأدمن
             db.ref('answers_logs/' + qIdx).push({ 
                 name: userName, 
                 correct: isCorrect, 
@@ -236,7 +236,7 @@
                 return;
             }
 
-            // إذا كانت صحيحة، فحص من الفائز الأول
+            // فحص الفوز بالنقطة (أول واحد صح)
             db.ref('winners/' + qIdx).transaction(curr => {
                 if (curr === null) return { name: userName, id: userID };
                 return;
