@@ -141,7 +141,6 @@
             db.ref('users/' + userID + '/name').set(userName);
             db.ref('celebration').on('value', snap => { if (snap.exists()) launchConfetti(); });
 
-            // الاستماع للسؤال ووقت البداية الموحد
             db.ref('currentQuestion').on('value', snap => {
                 const idx = snap.val();
                 if (idx === -1 || idx === null) {
@@ -165,7 +164,6 @@
         function prepareQuestion(idx) {
             const data = myQuestions[idx];
             clearInterval(timerInterval); clearInterval(delayInterval);
-            
             document.getElementById("question-text").innerText = data.q;
             const container = document.getElementById("options-container");
             const delayArea = document.getElementById("delay-timer");
@@ -179,12 +177,10 @@
                 return;
             }
 
-            // نظام العد الموحد
             delayInterval = setInterval(() => {
                 const now = Date.now();
                 const diff = Math.floor((now - serverStartTime) / 1000);
                 const remaining = 10 - diff;
-
                 if (remaining <= 0) {
                     clearInterval(delayInterval);
                     delayArea.innerText = "أجب الآن! 🔥";
@@ -220,11 +216,19 @@
             }, 100);
         }
 
+        // --- الجزء المعدل لإرسال (صح / خطأ) ---
         function submitAnswer(isCorrect, qIdx) {
             clearInterval(timerInterval);
             localStorage.setItem("ans_" + qIdx, "true");
             disableAll("جاري التحقق...");
             document.getElementById("delay-timer").innerText = "";
+
+            // إرسال الإجابة مع حالتها (صح أو خطأ) فوراً
+            db.ref('answers_logs/' + qIdx).push({ 
+                name: userName, 
+                correct: isCorrect, 
+                timestamp: firebase.database.ServerValue.TIMESTAMP 
+            });
 
             if (!isCorrect) {
                 document.getElementById("status-msg").innerText = "خطأ ❌";
@@ -232,7 +236,7 @@
                 return;
             }
 
-            db.ref('answers_logs/' + qIdx).push({ name: userName, timestamp: firebase.database.ServerValue.TIMESTAMP });
+            // إذا كانت صحيحة، فحص من الفائز الأول
             db.ref('winners/' + qIdx).transaction(curr => {
                 if (curr === null) return { name: userName, id: userID };
                 return;
