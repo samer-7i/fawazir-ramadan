@@ -28,14 +28,9 @@
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
         .name-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 4px solid transparent; }
         
-        /* ألوان المسارات */
         .fast-track { border-right-color: var(--accent) !important; background: rgba(16, 185, 129, 0.08); }
         .wrong-track { border-right-color: var(--red) !important; background: rgba(233, 69, 96, 0.08); }
         .leader-track { border-right-color: var(--gold); }
-
-        .group-header { font-size: 0.85em; font-weight: bold; margin: 10px 0 5px 0; padding: 5px; border-radius: 5px; display: block; text-align: center; }
-        .header-correct { background: rgba(16, 185, 129, 0.2); color: var(--accent); }
-        .header-wrong { background: rgba(233, 69, 96, 0.2); color: var(--red); }
 
         .btn-danger { background: var(--red); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
@@ -51,7 +46,6 @@
             <div class="panel" style="text-align: center;">
                 <img src="logo.png" class="admin-logo" onerror="this.src='https://via.placeholder.com/70'">
                 <h2 style="margin:0">لوحة تحكم Remy 👑</h2>
-                
                 <div style="margin-top: 15px; font-size: 0.9em; color: var(--blue);">السؤال المباشر الآن:</div>
                 <div id="question-text-area">اختر سؤالاً من الشبكة بالأسفل...</div>
                 <div style="color: var(--accent); font-weight: bold;">الفائز بالنقطة: <span id="winner-name">---</span></div>
@@ -71,7 +65,7 @@
 
         <div class="left-col">
             <div class="panel">
-                <div class="section-title">📊 إجابات المتابعين (صح ✅ وغلط ❌)</div>
+                <div class="section-title">📊 جميع إجابات المتابعين (الآن)</div>
                 <div id="fastest-list" class="list-container">
                     <p style="color:#666; font-size: 0.9em; text-align: center;">بانتظار الإجابات...</p>
                 </div>
@@ -174,44 +168,26 @@
                 html += `</div>`;
                 displayArea.innerHTML = html;
 
-                // --- التعديل المطلب: عرض المصنفين (صح وغلط) ---
+                // --- التعديل الموحد: عرض جميع الإجابات في قائمة واحدة ملونة ---
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').on('value', s => {
                     const list = document.getElementById("fastest-list");
                     list.innerHTML = "";
                     if(!s.exists()) { list.innerHTML = "<p style='text-align:center; color:#666'>بانتظار الإجابات...</p>"; return; }
                     
-                    let corrects = [];
-                    let wrongs = [];
-
                     s.forEach(child => {
                         const val = child.val();
-                        if(val.status === "correct") corrects.push(val);
-                        else wrongs.push(val);
+                        // فحص الحالة من البيانات المرسلة
+                        const isCorrect = (val.status === "correct");
+                        const icon = isCorrect ? "✅" : "❌";
+                        const trackClass = isCorrect ? "fast-track" : "wrong-track";
+                        const textColor = isCorrect ? "var(--accent)" : "var(--red)";
+
+                        list.innerHTML += `
+                        <div class="name-item ${trackClass}">
+                            <span><b>${val.name}</b></span>
+                            <span style="color:${textColor}; font-weight:bold;">${isCorrect ? 'صح' : 'خطأ'} ${icon}</span>
+                        </div>`;
                     });
-
-                    // إضافة الإجابات الصحيحة أولاً
-                    if(corrects.length > 0) {
-                        list.innerHTML += `<div class="group-header header-correct">✅ إجابات صحيحة (${corrects.length})</div>`;
-                        corrects.forEach(val => {
-                            list.innerHTML += `
-                            <div class="name-item fast-track">
-                                <span><b>${val.name}</b></span>
-                                <span style="color:var(--accent); font-weight:bold;">✅ صح</span>
-                            </div>`;
-                        });
-                    }
-
-                    // إضافة الإجابات الخاطئة ثانياً
-                    if(wrongs.length > 0) {
-                        list.innerHTML += `<div class="group-header header-wrong">❌ إجابات خاطئة (${wrongs.length})</div>`;
-                        wrongs.forEach(val => {
-                            list.innerHTML += `
-                            <div class="name-item wrong-track">
-                                <span><b>${val.name}</b></span>
-                                <span style="color:var(--red); font-weight:bold;">❌ خطأ</span>
-                            </div>`;
-                        });
-                    }
                 });
 
                 db.ref('winners/'+idx).on('value', s => {
