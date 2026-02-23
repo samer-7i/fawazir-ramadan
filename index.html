@@ -215,7 +215,7 @@
             let time = 15;
             timerInterval = setInterval(() => {
                 time -= 0.1;
-                document.getElementById("timer-progress").style.width = (time / 7) * 100 + "%";
+                document.getElementById("timer-progress").style.width = (time / 15) * 100 + "%";
                 if (time <= 0) { clearInterval(timerInterval); disableAll("انتهى الوقت! ⏱️"); }
             }, 100);
         }
@@ -262,4 +262,5 @@
     </footer>
 </body>
 </html>
+
 
