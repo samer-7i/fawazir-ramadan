@@ -40,7 +40,10 @@
             color: white;
         }
         /* ----------------------- */
-
+#question-text-area, #question-text {
+    font-size: 2em; /* تكبير النص عشان الإيموجي يوضح */
+    line-height: 1.5;
+}
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
         .name-item { display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
         .fast-track { border-right-color: var(--accent); }
@@ -49,6 +52,7 @@
         .btn-warning { background: var(--gold); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-celeb { background: linear-gradient(45deg, #f59e0b, #ef4444); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
         @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+        
     </style>
 </head>
 <body>
