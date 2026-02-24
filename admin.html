@@ -17,7 +17,30 @@
         .q-btn.active { background: var(--blue); color: #000; box-shadow: 0 0 15px var(--blue); }
         .section-title { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 15px; color: var(--blue); font-size: 1.1em; font-weight: bold; }
         #question-text-area { margin: 15px 0; font-size: 1.2em; color: #fff; font-weight: bold; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-right: 4px solid var(--blue); min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .opt-preview { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 12px; border-radius: 15px; font-size: 0.65em; color: #38bdf8; margin: 2px; display: inline-block; }
+        
+        /* --- تأثير التغبيش الجديد --- */
+        .opt-preview { 
+            background: rgba(56, 189, 248, 0.1); 
+            border: 1px solid rgba(56, 189, 248, 0.3); 
+            padding: 6px 15px; 
+            border-radius: 15px; 
+            font-size: 0.75em; 
+            color: #38bdf8; 
+            margin: 4px; 
+            display: inline-block; 
+            filter: blur(6px); /* التغبيش */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .opt-preview.revealed { 
+            filter: blur(0); 
+            background: rgba(16, 185, 129, 0.2); 
+            border-color: var(--accent);
+            color: white;
+        }
+        /* ----------------------- */
+
         .list-container { max-height: 400px; overflow-y: auto; text-align: right; }
         .name-item { display: flex; justify-content: space-between; padding: 10px 12px; margin-bottom: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; font-size: 0.95em; border-right: 3px solid transparent; }
         .fast-track { border-right-color: var(--accent); }
@@ -111,14 +134,12 @@
             b.onclick = () => sendQ(i); container.appendChild(b);
         }
 
-        // التحديث الجوهري: إرسال وقت السيرفر مع كل سؤال
         function sendQ(idx) {
             if (idx === -1) {
                 db.ref('currentQuestion').set(-1);
                 db.ref('questionStartTime').remove();
             } else {
                 db.ref('currentQuestion').set(idx);
-                // هذا يضمن أن كل المتابعين يبدأ عدادهم في نفس اللحظة التي ضغطت فيها أنت
                 db.ref('questionStartTime').set(firebase.database.ServerValue.TIMESTAMP);
             }
             db.ref('celebration').remove();
@@ -142,9 +163,15 @@
             if(idx !== -1 && idx !== null) {
                 if(document.getElementById("q"+idx)) document.getElementById("q"+idx).classList.add("active");
                 const qData = myQuestions[idx];
-                let html = `<div style="margin-bottom:8px">${qData.q}</div><div>`;
-                if(qData.options) qData.options.forEach(opt => { html += `<span class="opt-preview">${opt}</span>`; });
-                html += `</div>`;
+                
+                // تعديل عرض السؤال والخيارات المغمشة
+                let html = `<div style="margin-bottom:12px; font-size:1.1em;">${qData.q}</div><div>`;
+                if(qData.options) {
+                    qData.options.forEach(opt => { 
+                        html += `<span class="opt-preview" onclick="this.classList.toggle('revealed')">${opt}</span>`; 
+                    });
+                }
+                html += `</div><small style="color:gray; display:block; margin-top:10px;">(انقر على الخيار للكشف)</small>`;
                 displayArea.innerHTML = html;
 
                 db.ref('answers_logs/' + idx).orderByChild('timestamp').limitToFirst(10).on('value', s => {
@@ -160,6 +187,7 @@
                 db.ref('winners/'+idx).on('value', s => { document.getElementById("winner-name").innerText = s.exists() ? s.val().name : "---"; });
             } else {
                 displayArea.innerText = "المسابقة متوقفة حالياً";
+                document.getElementById("fastest-list").innerHTML = "";
             }
         });
 
