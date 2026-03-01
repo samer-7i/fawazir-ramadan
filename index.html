@@ -8,15 +8,14 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --text: #ffffff; --accent: #10b981; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow-x: hidden; }
         .container { width: 90%; max-width: 500px; background: var(--card); padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); border: 1px solid rgba(56, 189, 248, 0.2); text-align: center; }
-        .logo { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 15px; }
-        input { width: 100%; padding: 15px; margin: 15px 0; border-radius: 12px; border: 1px solid var(--blue); background: rgba(0,0,0,0.2); color: white; text-align: center; font-size: 1.1em; box-sizing: border-box; }
-        .q-box { display: none; margin-top: 20px; animation: fadeIn 0.5s; }
-        .opt-btn { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(255,255,255,0.05); color: white; cursor: pointer; font-size: 1em; transition: 0.3s; }
-        .opt-btn:hover { background: var(--blue); color: #000; }
-        .opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .correct-anim { background: var(--accent) !important; color: white !important; }
+        .logo { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 15px; box-shadow: 0 0 20px var(--blue); }
+        input { width: 100%; padding: 15px; margin: 15px 0; border-radius: 12px; border: 1px solid var(--blue); background: rgba(0,0,0,0.2); color: white; text-align: center; font-size: 1.1em; box-sizing: border-box; outline: none; }
+        .q-box { display: none; margin-top: 20px; animation: fadeIn 0.5s ease; }
+        .opt-btn { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(255,255,255,0.05); color: white; cursor: pointer; font-size: 1.1em; transition: 0.3s; font-weight: bold; }
+        .opt-btn:hover { background: var(--blue); color: #000; transform: scale(1.02); }
+        .correct-anim { background: var(--accent) !important; color: white !important; border-color: white; }
         .wrong-anim { background: var(--red) !important; animation: shake 0.3s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -24,17 +23,17 @@
 </head>
 <body>
 
-<div class="container" id="main-card">
-    <img src="logo.png" class="logo" onerror="this.src='https://via.placeholder.com/80'">
-    <h2 id="status-title">انتظر بدء السؤال... ⏳</h2>
+<div class="container">
+    <img src="https://i.ibb.co/v4m3YvX/remy-logo.png" class="logo" id="logo-img">
+    <h2 id="status-title">جاري الاتصال بالمسابقة...</h2>
     
     <div id="login-section">
         <input type="text" id="username" placeholder="اكتب اسمك الثلاثي هنا..." maxlength="25">
-        <p style="font-size: 0.8em; color: var(--blue);">ادخل اسمك لمرة واحدة فقط</p>
+        <p style="font-size: 0.8em; color: var(--blue);">سجّل اسمك لتتمكن من الإجابة</p>
     </div>
 
     <div id="question-section" class="q-box">
-        <h3 id="question-text" style="color: var(--blue); margin-bottom: 20px;"></h3>
+        <h3 id="question-text" style="color: var(--blue); margin-bottom: 20px; line-height: 1.6;"></h3>
         <div id="options-container"></div>
     </div>
 </div>
@@ -78,7 +77,7 @@
         { q: "٢٣/ما هو الشيء الذي لا يأكل ولا يشرب، ومع ذلك ذكر في القرآن أنه \"يتنفس\"؟", options: ["الجنين", "الصبح", "الجبال"], correct: 1 },
         { q: "٢٤/سيارة رياضية شعارها \"الثور الهائج\"؟", options: ["موستنج", "لامبورجيني", "فيراري"], correct: 1 },
         { q: "٢٥/ما هي اخر سورة نزلت بالقرأن ؟", options: ["النصر", "الفلق", "الاخلاص"], correct: 0 },
-        { q: "٢٦/شيء موجود في الشنطة وظيفته يرفع السيارة عشان تغير الكفر؟", options: ["العفريتة", "المفتاح", "القمع"], correct: 1 },
+        { q: "٢٦/شيء موجود في الشنطة وظيفته يرفع السيارة عشان تغير الكفر؟", options: ["المفتاح", "العفريتة", "القمع"], correct: 1 },
         { q: "٢٧/كم عدد فقرات العمود الفقري؟", options: ["33", "34", "40"], correct: 0 },
         { q: "٢٨/من هو النبي الذي كانت معجزته \"الناقة\" التي خرجت من الصخر؟", options: ["سيدنا هود عليه السلام", "سيدنا صالح عليه السلام", "سيدنا شعيب عليه السلام"], correct: 1 },
         { q: "٢٩/سورة في القرآن الكريم ذُكر فيها \"الذباب\" و \"البعوض\"؟", options: ["سورة النحل", "سورة البقرة", "سورة الفيل"], correct: 1 },
@@ -86,9 +85,7 @@
     ];
 
     let currentQIdx = -1;
-    let hasAnsweredCorrectly = false;
 
-    // مراقبة السؤال الحالي
     db.ref('currentQuestion').on('value', snap => {
         const idx = snap.val();
         currentQIdx = idx;
@@ -97,11 +94,10 @@
         const statusTitle = document.getElementById('status-title');
 
         if (idx !== -1 && idx !== null) {
-            hasAnsweredCorrectly = false; // إعادة التعيين لسؤال جديد
             statusTitle.innerText = "أجب بسرعة! 🚀";
             loginSection.style.display = "none";
             qSection.style.display = "block";
-            loadQuestion(idx);
+            renderOptions(idx);
         } else {
             statusTitle.innerText = "انتظر بدء السؤال... ⏳";
             loginSection.style.display = "block";
@@ -109,48 +105,39 @@
         }
     });
 
-    function loadQuestion(idx) {
-        const qData = myQuestions[idx];
-        document.getElementById('question-text').innerText = qData.q;
+    function renderOptions(idx) {
         const container = document.getElementById('options-container');
+        const qText = document.getElementById('question-text');
         container.innerHTML = "";
+        qText.innerText = myQuestions[idx].q;
 
-        qData.options.forEach((opt, i) => {
-            const btn = document.createElement('button');
-            btn.className = "opt-btn";
-            btn.innerText = opt;
-            btn.onclick = () => checkAnswer(i, btn);
-            container.appendChild(btn);
+        myQuestions[idx].options.forEach((opt, i) => {
+            const b = document.createElement('button');
+            b.className = "opt-btn";
+            b.innerText = opt;
+            b.onclick = () => handleAnswer(i, b);
+            container.appendChild(b);
         });
     }
 
-    function checkAnswer(choice, btn) {
+    function handleAnswer(choice, btn) {
         const name = document.getElementById('username').value.trim();
-        if (!name) { alert("لطفاً اكتب اسمك أولاً!"); return; }
+        if(!name) { alert("اكتب اسمك أولاً!"); return; }
         
-        const correctIdx = myQuestions[currentQIdx].correct;
-
-        if (choice === correctIdx) {
+        if(choice === myQuestions[currentQIdx].correct) {
             btn.classList.add('correct-anim');
-            disableAllButtons();
-            // إرسال الإجابة الصحيحة فقط لـ Firebase
+            const allBtns = document.querySelectorAll('.opt-btn');
+            allBtns.forEach(b => b.disabled = true);
             db.ref('answers_logs/' + currentQIdx).push({
                 name: name,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
-            document.getElementById('status-title').innerText = "إجابة صحيحة! تم تسجيل اسمك ✅";
+            document.getElementById('status-title').innerText = "تم تسجيل إجابتك! ✅";
         } else {
             btn.classList.add('wrong-anim');
             setTimeout(() => btn.classList.remove('wrong-anim'), 400);
-            alert("إجابة خاطئة! حاول مرة أخرى");
         }
     }
-
-    function disableAllButtons() {
-        const btns = document.querySelectorAll('.opt-btn');
-        btns.forEach(b => b.disabled = true);
-    }
 </script>
-
 </body>
 </html>
