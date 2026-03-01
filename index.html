@@ -36,15 +36,14 @@
     <div id="setup-overlay" class="overlay">
         <div class="setup-card" id="rules-step">
             <h2 style="color: var(--blue);">📜 قوانين المسابقة</h2>
-            <div style="text-align: right; font-size: 0.9em; line-height: 1.6;">
-                 <li>✅ متابعة الستريمر ضرورية .</li>
+            <div style="text-align: right; font-size: 0.9em; line-height: 1.6; list-style: none;">
+                <li>✅ متابعة الستريمر ضرورية .</li>
                 <li>✅ الالتزام بالوقت المحدد للإجابة على كل فزورة.</li>
                 <li>✅ أسرع إجابة صحيحة تحصل على النقاط.</li>
                 <li>✅ يتم توزيع الهدايا بعد رمضان .</li>
                 <li>✅ يمنع الغش بجميع أشكاله.</li>
                 <li>✅ يمنع تغيير المتصفح لضمان حفظ النقاط.</li>
                 <li>✅ يتم تحديد المراكز حسب عدد النقاط المجمعة خلال المسابقة .</li>
-
             </div><br>
             <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
         </div>
@@ -116,7 +115,7 @@
             { q: "ما هو اسم ناقة النبي محمد ﷺ؟", options: ["القصواء", "الكحيلة", "اليمامة"], correct: 0 },
             { q: "ما هو اسم والدة النبي محمد ﷺ؟", options: ["حليمة السعدية", "آمنة بنت وهب", "خديجة بنت خويلد"], correct: 1 },
             { q: "ما الذي يُستخدم لإعطاء الشفاه مظهراً لامعاً ورطباً؟", options: ["الروج السحري", "ملمع الشفاه", "محدد الشفاه"], correct: 1 },
-            { q: "سالم الدوسري يلعب في أي مركز؟", options: ["حارس مرمى", "جناح/مهاجم", "مدافع"], correct: 1 },
+            { q: "سالم الدوسري يلعب في أي مركز? ", options: ["حارس مرمى", "جناح/مهاجم", "مدافع"], correct: 1 },
             { q: "ما هو أطول نهر في العالم؟", options: ["نهر النيل", "نهر الأمازون", "نهر ميسيسيبي"], correct: 0 },
             { q: "شيء يمتلك أوراقاً ولكنه ليس نباتاً؟", options: ["الكتاب", "الخريف", "البنك"], correct: 0 },
             { q: "ما هو لقب عمر بن الخطاب رضي الله عنه؟", options: ["الصديق", "الفاروق", "ذو النورين"], correct: 1 },
@@ -183,21 +182,38 @@
             container.innerHTML = ""; 
             document.getElementById("status-msg").innerText = "";
 
+            // التحقق من الذاكرة المحلية أولاً
             if (localStorage.getItem("ans_" + idx)) {
-                delayArea.innerText = "";
-                progressBar.style.width = "0%";
-                document.getElementById("status-msg").innerText = "تمت الإجابة مسبقاً ✋";
-                showFinalOptions(data, idx, true);
+                lockQuiz("تمت الإجابة مسبقاً ✋", data, idx);
                 return;
             }
 
-            // مؤقت الانتظار (10 ثواني) مع تحريك البار
+            // التحقق من الفايربيس (لمنع الغش عن طريق التحديث)
+            db.ref('attempts/' + idx + '/' + userID).once('value', snap => {
+                if (snap.exists()) {
+                    lockQuiz("حاولت الإجابة مسبقاً! 🚫", data, idx);
+                } else {
+                    runCountdown(data, idx);
+                }
+            });
+        }
+
+        function lockQuiz(msg, data, idx) {
+            document.getElementById("delay-timer").innerText = "";
+            document.getElementById("timer-progress").style.width = "0%";
+            document.getElementById("status-msg").innerText = msg;
+            showFinalOptions(data, idx, true);
+        }
+
+        function runCountdown(data, idx) {
+            const delayArea = document.getElementById("delay-timer");
+            const progressBar = document.getElementById("timer-progress");
+            
             delayInterval = setInterval(() => {
                 const now = Date.now();
                 const diff = (now - serverStartTime) / 1000;
                 const remaining = 10 - diff;
                 
-                // تحريك البار باللون الذهبي
                 let progress = (remaining / 10) * 100;
                 progressBar.style.width = Math.max(0, progress) + "%";
                 progressBar.style.background = "var(--gold)";
@@ -205,7 +221,7 @@
                 if (remaining <= 0) {
                     clearInterval(delayInterval);
                     delayArea.innerText = "أجب الآن! 🔥";
-                    progressBar.style.background = "var(--blue)"; // قلب اللون للأزرق وقت الإجابة
+                    progressBar.style.background = "var(--blue)";
                     showFinalOptions(data, idx, false);
                     startTimer();
                 } else {
@@ -229,16 +245,14 @@
         }
 
         function startTimer() {
-            let duration = 5000; // 5 ثواني
+            let duration = 5000;
             let startTime = Date.now();
             
             timerInterval = setInterval(() => {
                 let elapsed = Date.now() - startTime;
                 let remaining = duration - elapsed;
                 let progress = (remaining / duration) * 100;
-                
                 document.getElementById("timer-progress").style.width = Math.max(0, progress) + "%";
-                
                 if (remaining <= 0) {
                     clearInterval(timerInterval);
                     disableAll("انتهى الوقت! ⏱️");
@@ -248,6 +262,10 @@
 
         function submitAnswer(isCorrect, qIdx) {
             clearInterval(timerInterval);
+            
+            // تسجيل محاولة الإجابة فوراً في الفايربيس لغلق الثغرة
+            db.ref('attempts/' + qIdx + '/' + userID).set(true);
+            
             localStorage.setItem("ans_" + qIdx, "true");
             document.getElementById("timer-progress").style.width = "0%";
             disableAll("جاري التحقق...");
@@ -285,7 +303,3 @@
     </script>
 </body>
 </html>
-
-
-
-
