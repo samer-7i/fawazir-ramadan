@@ -7,34 +7,31 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --accent: #10b981; --text: #ffffff; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --accent: #10b981; }
+        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 15px; }
         .container { width: 100%; max-width: 450px; background: var(--card); padding: 30px; border-radius: 25px; text-align: center; border: 1px solid rgba(56, 189, 248, 0.2); box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        .logo { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 20px; box-shadow: 0 0 15px var(--blue); background: #000; }
+        .logo { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 20px; box-shadow: 0 0 15px var(--blue); }
         input { width: 100%; padding: 15px; margin-bottom: 20px; border-radius: 12px; border: 2px solid var(--blue); background: rgba(0,0,0,0.3); color: #fff; text-align: center; font-size: 1.1em; outline: none; box-sizing: border-box; }
         #question-area { display: none; }
         .timer-msg { font-size: 1.1em; color: #ff9800; font-weight: bold; margin: 15px 0; }
         .opt-btn { width: 100%; padding: 16px; margin: 10px 0; border-radius: 12px; border: 1px solid rgba(56,189,248,0.3); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.2s; display: none; }
-        .opt-btn:active { transform: scale(0.98); }
-        .correct { background: var(--accent) !important; border-color: #fff; }
-        .wrong { background: var(--red) !important; animation: shake 0.3s; }
-        @keyframes shake { 0%,100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        .correct { background: var(--accent) !important; }
+        .wrong { background: var(--red) !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <img src="logo.png" class="logo" id="main-logo" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Remy'">
-    
-    <h2 id="status">جاري الاتصال... ⏳</h2>
+    <img src="logo.png" class="logo" onerror="this.src='https://i.ibb.co/v4m3YvX/remy-logo.png'">
+    <h2 id="status">جاري المزامنة... ⏳</h2>
 
     <div id="login-area">
-        <input type="text" id="username" placeholder="أدخل اسمك هنا..." maxlength="25">
-        <p style="color: var(--blue); font-size: 0.85em;">سجّل اسمك الآن لمرة واحدة فقط</p>
+        <input type="text" id="username" placeholder="اكتب اسمك الثلاثي هنا..." maxlength="25">
+        <p style="color: var(--blue); font-size: 0.8em;">سجل اسمك مرة واحدة للمشاركة</p>
     </div>
 
     <div id="question-area">
-        <h3 id="q-text" style="color: var(--blue); line-height: 1.5; margin-bottom: 10px;"></h3>
+        <h3 id="q-text" style="color: var(--blue); line-height: 1.5;"></h3>
         <div id="timer-box" class="timer-msg"></div>
         <div id="options-container"></div>
     </div>
@@ -81,20 +78,19 @@
         { q: "٢٥/ما هي اخر سورة نزلت بالقرأن ؟", options: ["النصر", "الفلق", "الاخلاص"], correct: 0 },
         { q: "٢٦/شيء موجود في الشنطة وظيفته يرفع السيارة عشان تغير الكفر؟", options: ["المفتاح", "العفريتة", "القمع"], correct: 1 },
         { q: "٢٧/كم عدد فقرات العمود الفقري؟", options: ["33", "34", "40"], correct: 0 },
-        { q: "٢٨/من هو النبي الذي كانت معجزته \"الناقة\" التي خرجت من الصخر؟", options: ["سيدنا هود عليه السلام", "سيدنا صالح عليه السلام", "سيدنا شعيب عليه السلام"], correct: 1 },
+        { q: "٢٨/من هو النبي الذي كانت معجزته \"الناقة\" التي خرجت من الصخر? ", options: ["سيدنا هود عليه السلام", "سيدنا صالح عليه السلام", "سيدنا شعيب عليه السلام"], correct: 1 },
         { q: "٢٩/سورة في القرآن الكريم ذُكر فيها \"الذباب\" و \"البعوض\"؟", options: ["سورة النحل", "سورة البقرة", "سورة الفيل"], correct: 1 },
         { q: "٣٠/أنشدك عن رجلٍ سريع الخطاوي.. يمشي على كبده ولا له رجلين؟", options: ["القطار", "السيول", "الرعد"], correct: 0 }
     ];
 
     let currentQIdx = -1;
-
-    // استعادة الاسم من الذاكرة إن وجد
-    if(localStorage.getItem('saved_name')) {
-        document.getElementById('username').value = localStorage.getItem('saved_name');
-    }
+    let nameSaved = localStorage.getItem('remy_player_name') || "";
+    if(nameSaved) document.getElementById('username').value = nameSaved;
 
     db.ref('currentQuestion').on('value', snap => {
         const val = snap.val();
+        if (val === currentQIdx) return; // منع التكرار إذا لم يتغير السؤال
+        
         currentQIdx = val;
         const qArea = document.getElementById('question-area');
         const loginArea = document.getElementById('login-area');
@@ -103,13 +99,12 @@
         if (val !== -1 && val !== null) {
             loginArea.style.display = "none";
             qArea.style.display = "block";
-            status.innerText = "أجب بسرعة! 📢";
+            status.innerText = "سؤال جديد! 📢";
             startQuestionProcess(val);
         } else {
             qArea.style.display = "none";
             loginArea.style.display = "block";
             status.innerText = "انتظر بدء السؤال... ⏳";
-            document.getElementById('timer-box').innerText = "";
         }
     });
 
@@ -117,12 +112,10 @@
         const qData = myQuestions[index];
         const container = document.getElementById('options-container');
         const timerBox = document.getElementById('timer-box');
-        
         document.getElementById('q-text').innerText = qData.q;
         container.innerHTML = "";
         
-        // وقت الانتظار قبل ظهور الخيارات (مثلاً 4 ثوانٍ)
-        let countdown = 4; 
+        let countdown = 3; 
         timerBox.innerText = `تظهر الخيارات خلال ${countdown}`;
 
         const interval = setInterval(() => {
@@ -131,7 +124,7 @@
                 timerBox.innerText = `تظهر الخيارات خلال ${countdown}`;
             } else {
                 clearInterval(interval);
-                timerBox.innerText = "اختر الإجابة الصحيحة الآن!";
+                timerBox.innerText = "أجب الآن!";
                 renderOptions(qData);
             }
         }, 1000);
@@ -139,6 +132,7 @@
 
     function renderOptions(qData) {
         const container = document.getElementById('options-container');
+        container.innerHTML = "";
         qData.options.forEach((opt, idx) => {
             const btn = document.createElement('button');
             btn.className = "opt-btn";
@@ -151,24 +145,20 @@
 
     function handleChoice(choice, btn) {
         const nameInput = document.getElementById('username').value.trim();
-        if(!nameInput) { alert("أدخل اسمك أولاً!"); return; }
-        
-        // حفظ الاسم للاستخدام لاحقاً
-        localStorage.setItem('saved_name', nameInput);
+        if(!nameInput) { alert("لطفاً اكتب اسمك أولاً!"); return; }
+        localStorage.setItem('remy_player_name', nameInput);
 
         if(choice === myQuestions[currentQIdx].correct) {
             btn.classList.add('correct');
             document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
-            
-            // إرسال الإجابة لـ Firebase
             db.ref('answers_logs/' + currentQIdx).push({
                 name: nameInput,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
-            document.getElementById('status').innerText = "✅ تم تسجيل إجابتك!";
+            document.getElementById('status').innerText = "✅ إجابة صحيحة!";
         } else {
             btn.classList.add('wrong');
-            setTimeout(() => btn.classList.remove('wrong'), 400);
+            setTimeout(() => btn.classList.remove('wrong'), 500);
         }
     }
 </script>
