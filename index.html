@@ -1,63 +1,99 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مسابقة Remy 👑</title>
+    <title>مسابقة Remy 🎮</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --red: #e94560; --accent: #10b981; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 15px; overflow: hidden; }
-        .container { width: 100%; max-width: 450px; background: var(--card); padding: 25px; border-radius: 20px; text-align: center; border: 1px solid rgba(56, 189, 248, 0.2); position: relative; }
-        .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--blue); margin-bottom: 10px; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; border: 2px solid var(--blue); background: rgba(0,0,0,0.3); color: #fff; text-align: center; font-size: 1.1em; outline: none; }
-        #question-area { display: none; }
-        .timer-msg { font-size: 1.2em; color: #ff9800; font-weight: bold; margin: 10px 0; }
-        .ans-timer { font-size: 2em; color: var(--red); font-weight: bold; margin: 10px 0; }
-        .opt-btn { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(56,189,248,0.3); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.2s; }
-        .correct { background: var(--accent) !important; box-shadow: 0 0 15px var(--accent); }
-        .wrong { background: var(--red) !important; opacity: 0.7; }
-        .disabled { pointer-events: none; opacity: 0.6; }
+        :root { --bg: #0a1120; --card: #162136; --blue: #38bdf8; --text: #ffffff; --red: #e94560; --gold: #f59e0b; --accent: #10b981; }
+        body { margin: 0; padding: 20px; background: var(--bg); color: var(--text); font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        
+        #question-text { font-size: 2.2em; line-height: 1.4; margin-bottom: 20px; font-weight: bold; }
+        
+        .user-logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--blue); margin-bottom: 20px; object-fit: cover; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .setup-card { background: var(--card); padding: 30px; border-radius: 25px; border: 2px solid var(--blue); max-width: 400px; width: 85%; text-align: center; }
+        input { width: 90%; padding: 15px; border-radius: 12px; border: 1px solid var(--blue); background: #0a1120; color: white; text-align: center; font-size: 1.1em; margin: 15px 0; outline: none; }
+        .btn-action { background: var(--blue); color: var(--bg); border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        .main-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); max-width: 500px; width: 100%; display: none; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        .user-info { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid rgba(56,189,248,0.2); font-size: 0.9em; }
+        .timer-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.1); margin-bottom: 20px; border-radius: 4px; overflow: hidden; }
+        #timer-progress { width: 100%; height: 100%; background: var(--gold); transition: width 0.1s linear; }
+        #delay-timer { color: var(--gold); font-weight: bold; font-size: 1.2em; margin: 10px 0; }
+        .opt-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid var(--blue); background: rgba(56, 189, 248, 0.05); color: white; border-radius: 12px; cursor: pointer; font-size: 1.1em; font-weight: bold; transition: 0.2s; }
+        .opt-btn:active { transform: scale(0.98); background: var(--blue); color: #000; }
+        .opt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        #status-msg { margin-top: 15px; font-weight: bold; font-size: 1.1em; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <img src="logo.png" class="logo" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=Remy'">
-    <h2 id="status">انتظر... ⏳</h2>
+    <img src="logo.png" class="user-logo" onerror="this.style.display='none'">
 
-    <div id="login-area">
-        <input type="text" id="username" placeholder="اكتب اسمك الثلاثي..." maxlength="25">
-        <p style="color: var(--blue); font-size: 0.8em;">سجل اسمك مرة واحدة فقط</p>
+    <div id="setup-overlay" class="overlay">
+        <div class="setup-card" id="rules-step">
+            <h2 style="color: var(--blue);">📜 قوانين المسابقة</h2>
+            <div style="text-align: right; font-size: 0.9em; line-height: 1.6; list-style: none;">
+                <li>✅ متابعة الستريمر ضرورية .</li>
+                <li>✅ الالتزام بالوقت المحدد للإجابة على كل فزورة.</li>
+                <li>✅ أسرع إجابة صحيحة تحصل على النقاط.</li>
+                <li>✅ يتم توزيع الهدايا بعد رمضان .</li>
+                <li>✅ يمنع الغش بجميع أشكاله.</li>
+                <li>✅ يمنع تغيير المتصفح لضمان حفظ النقاط.</li>
+                <li>✅ يتم تحديد المراكز حسب عدد النقاط المجمعة خلال المسابقة .</li>
+            </div><br>
+            <button class="btn-action" onclick="showNameInput()">موافق ✅</button>
+        </div>
+        <div class="setup-card" id="name-step" style="display: none;">
+            <h2>سجل اسمك 🎮</h2>
+            <input type="text" id="username-input" placeholder="اسمك في جاكو...">
+            <button class="btn-action" onclick="saveAndStart()">دخول المسابقة 🚀</button>
+        </div>
     </div>
 
-    <div id="question-area">
-        <div id="countdown-msg" class="timer-msg"></div>
-        <div id="answer-timer" class="ans-timer"></div>
-        <h3 id="q-text" style="color: var(--blue); margin-bottom: 20px;"></h3>
+    <div id="waiting-msg" style="display:none; text-align:center; width: 100%; max-width: 500px;">
+        <h3 style="color: var(--blue);">بانتظار أن يبدأ remy السؤال... ⌛</h3>
+        <p>نقاطك الحالية: <span id="wait-points" style="font-weight: bold; color: var(--gold);">0</span></p>
+    </div>
+
+    <div id="quiz-container" class="main-card">
+        <div class="timer-bar"><div id="timer-progress"></div></div>
+        <div class="user-info">
+            <span id="display-name" style="color: var(--blue); font-weight: bold;">---</span>
+            <span>نقاطي: <span id="my-points" style="color: var(--blue); font-weight: bold;">0</span> ن</span>
+        </div>
+        <div id="question-text"></div>
+        <div id="delay-timer"></div>
         <div id="options-container"></div>
+        <div id="status-msg"></div>
     </div>
-</div>
 
-<script>
-    const config = { 
-        apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
-        authDomain: "fawazir-jaco.firebaseapp.com",
-        databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "fawazir-jaco",
-        storageBucket: "fawazir-jaco.firebasestorage.app",
-        messagingSenderId: "862747657100",
-        appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
-    };
-    firebase.initializeApp(config);
-    const db = firebase.database();
+    <script>
+        const config = { 
+            apiKey: "AIzaSyBxqfLt3o3JWy_vwnpwSQPIVdtEDGoYB6k",
+            authDomain: "fawazir-jaco.firebaseapp.com",
+            databaseURL: "https://fawazir-jaco-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "fawazir-jaco",
+            storageBucket: "fawazir-jaco.firebasestorage.app",
+            messagingSenderId: "862747657100",
+            appId: "1:862747657100:web:d52ecee9373a5e33fd8ca9"
+        };
+        firebase.initializeApp(config);
+        const db = firebase.database();
 
-    const myQuestions = [
+        let userName = localStorage.getItem("remy_name_v4");
+        let userID = localStorage.getItem("remy_id_v4");
+        let timerInterval, delayInterval;
+        let serverStartTime = 0;
+
+        const myQuestions = [
         { q: "١/ما هو الشي الذي تمسكه دون ان تلمسه؟", options: ["الوعد", "النفس", "الجني"], correct: 0 },
         { q: "٢/ما هو الشيء الذي يُستخدم لتوحيد لون البشرة وإخفاء العيوب؟", options: ["الفاونديشن", "الهايلايتر", "التونر"], correct: 0 },
-        { q: "٣/سيارة \"تيسلا\" (Tesla) مشهورة بأنها تعمل بـماذا؟", options: ["البنزين", "الكهرباء", "الفحم"], correct: 1 },
-        { q: "٤/خمن المثل من الايموجي: 🫲🔥🫲💧؟", options: ["اللي يده في النار مو مثل اللي يده في المويا", "اللي يده محترقه مو مثل اللي يده مثلجه", "اللي يده ملتهبه مو مثل اللي يده في البراد"], correct: 0 },
+        { q: "٣/سيارة تيسلا' Tesla' مشهورة بأنها تعمل بـماذا؟", options: ["البنزين", "الكهرباء", "الفحم"], correct: 1 },
+        { q: "٤/خمن المثل من الايموجي: 🔥💧؟", options: ["اللي يده محترقه مو مثل اللي يده مثلجه", "اللي يده في النار مو مثل اللي يده في المويا", "اللي يده ملتهبه مو مثل اللي يده في البراد"], correct: 1 },
         { q: "٥/خمن الاكله من الايموجي: 🐈😘؟", options: ["بسبوسه", "بسه تحب البسبوسه", "الانسان يحب ياكل البسه"], correct: 0 },
         { q: "٦/نادي الاتحاد، ما هو الحيوان الموجود في شعاره ويلقب به؟", options: ["الصقر", "النمر", "الذئب"], correct: 1 },
         { q: "٧/أين يقع البحر الذي لا يوجد فيه قطرة ماء؟", options: ["في الفضاء", "على الخريطة", "في الصحراء الكبرى"], correct: 1 },
@@ -75,111 +111,206 @@
         { q: "١٩/ما هو الطير الذي يمكنه الطير الى الخلف ؟", options: ["الخفاش", "الطنان", "البومة"], correct: 1 },
         { q: "٢٠/إذا كان هناك 3 تفاحات وأخذت منهم تفاحتين، فكم تفاحة معك؟", options: ["تفاحتين اللي معاي", "تفاحه", "٣ تفاحات"], correct: 0 },
         { q: "٢١/من اول من استخدم البوصله؟", options: ["الصين", "السعوديه", "الكويت"], correct: 0 },
-        { q: "٢٢/خمن المثل: 🐱 + 🐭 + 🏠 = ؟", options: ["ان غاب القط العب يا فار", "ان غاب القط العب يا كلب", "ان غاب الفار العب يا قط"], correct: 0 },
-        { q: "٢٣/ما هو الشيء الذي لا يأكل ولا يشرب، ومع ذلك ذكر في القرآن أنه \"يتنفس\"؟", options: ["الجنين", "الصبح", "الجبال"], correct: 1 },
-        { q: "٢٤/سيارة رياضية شعارها \"الثور الهائج\"؟", options: ["موستنج", "لامبورجيني", "فيراري"], correct: 1 },
+        { q: "٢٢/خمن المثل: 🐱+🐭+🏠=؟", options: ["ان غاب القط العب يا فار", "ان غاب القط العب يا كلب", "ان غاب الفار العب يا قط"], correct: 0 },
+        { q: "٢٣/ما هو الشيء الذي لا يأكل ولا يشرب، ومع ذلك ذكر في القرآن أنه يـتنفس؟", options: ["الجنين", "الصبح", "الجبال"], correct: 1 },
+        { q: "٢٤/سيارة رياضية شعارها الثور الهائج؟", options: ["موستنج", "لامبورجيني", "فيراري"], correct: 1 },
         { q: "٢٥/ما هي اخر سورة نزلت بالقرأن ؟", options: ["النصر", "الفلق", "الاخلاص"], correct: 0 },
         { q: "٢٦/شيء موجود في الشنطة وظيفته يرفع السيارة عشان تغير الكفر؟", options: ["المفتاح", "العفريتة", "القمع"], correct: 1 },
         { q: "٢٧/كم عدد فقرات العمود الفقري؟", options: ["33", "34", "40"], correct: 0 },
-        { q: "٢٨/من هو النبي الذي كانت معجزته \"الناقة\" التي خرجت من الصخر؟", options: ["سيدنا هود عليه السلام", "سيدنا صالح عليه السلام", "سيدنا شعيب عليه السلام"], correct: 1 },
-        { q: "٢٩/سورة في القرآن الكريم ذُكر فيها \"الذباب\" و \"البعوض\"؟", options: ["سورة النحل", "سورة البقرة", "سورة الفيل"], correct: 1 },
-        { q: "٣٠/أنشدك عن رجلٍ سريع الخطاوي.. يمشي على كبده ولا له رجلين؟", options: ["القطار", "السيول", "الرعد"], correct: 0 }
-    ];
+        { q: "٢٨/من هو النبي الذي كانت معجزته الناقة التي خرجت من الصخر؟", options: ["سيدنا هود عليه السلام", "سيدنا صالح عليه السلام", "سيدنا شعيب عليه السلام"], correct: 1 },
+        { q: "٢٩/سورة في القرآن الكريم ذُكر فيها الذباب و البعوض؟", options: ["سورة النحل", "سورة البقرة", "سورة الفيل"], correct: 1 },
+        { q: "٣٠/أنشدك عن رجل سريع الخطاوي يمشي على كبده ولا له رجلين؟", options: ["القطار", "السيول", "الرعد"], correct: 0 },
+        { q: "٣١/ما هو الحيوان الذي علم الانسان كيف يدفن الميت ؟", options: ["الغراب", "النسر", "العصفور"], correct: 0 },
+        { q: "٣٢/أنشدك عن شيءٍ يطول بليّا روح ويموت إذا شرب الموية؟", options: ["البصل", "النار", "الشمعه"], correct: 1 },
+        { q: "٣٣/سورة في القرآن الكريم تعادل ثلث القرآن في الأجر؟", options: ["سورة الفاتحة", "سورة يس", "سورة الإخلاص"], correct: 2 },
+        { q: "٣٤/ماء مبارك نبع من تحت قدمي سيدنا إسماعيل وهو رضيع؟", options: ["ماء النيل", "ماء زمزم", "ماء الكوثر"], correct: 1 },
+        { q: "٣٥/من هو اللاعب الذي فاز بأكبر عدد من كرات الكرة الذهبية؟", options: ["كريستيانو رونالدو", "ليونيل ميسي", "زين الدين زيدان"], correct: 1 },
+        { q: "٣٦/ما هو أسرع كائن حي على وجه الأرض في السماء؟", options: ["صقر الشاهين", "الفهد الصياد", "النسر الذهبي"], correct: 0 },
+        { q: "٣٧/ما هو الحصن التاريخي الذي فتحه الملك عبدالعزيز عام 1319هـ؟", options: ["قصر المصمك", "قصر المربع", "قصر سلوى"], correct: 0 },
+        { q: "٣٨/ما هو الفيتامين الذي نحصل عليه من أشعة الشمس؟", options: ["فيتامين C", "فيتامين D", "فيتامين A"], correct: 1 },
+        { q: "٣٩/ما هي الدولة التي تعتبر الموطن الأصلي لشاي الماتشا؟", options: ["الهند", "اليابان", "البرازيل"], correct: 1 },
+        { q: "٤٠/ما هو المعدن الوحيد الذي يكون في حالة سائلة عند درجة حرارة الغرفة؟", options: ["الحديد", "الزئبق", "النحاس"], correct: 1 },
+        { q: "٤١/أي مدينة سعودية تُلقب بـمدينة التمور؟", options: ["القصيم", "الأحساء", "المدينة المنورة"], correct: 1 }
+        ];
 
-    let currentQIdx = -1;
-    let timerInterval;
+        window.onload = () => { (userName && userID) ? startApp() : document.getElementById("setup-overlay").style.display = "flex"; };
 
-    // استعادة الاسم
-    if(localStorage.getItem('p_name')) document.getElementById('username').value = localStorage.getItem('p_name');
+        function showNameInput() { document.getElementById("rules-step").style.display = "none"; document.getElementById("name-step").style.display = "block"; }
 
-    db.ref('currentQuestion').on('value', snap => {
-        const val = snap.val();
-        if (val === null || val === -1) {
-            resetUI();
-            return;
+        function saveAndStart() {
+            const val = document.getElementById("username-input").value.trim();
+            if (!val) return alert("اكتب اسمك أولاً!");
+            userID = "u_" + Date.now();
+            localStorage.setItem("remy_name_v4", val); localStorage.setItem("remy_id_v4", userID);
+            userName = val; startApp();
         }
-        currentQIdx = val;
-        setupQuestion(val);
-    });
 
-    function resetUI() {
-        document.getElementById('question-area').style.display = "none";
-        document.getElementById('login-area').style.display = "block";
-        document.getElementById('status').innerText = "انتظر بدء السؤال... ⏳";
-        clearInterval(timerInterval);
-    }
+        function startApp() {
+            document.getElementById("setup-overlay").style.display = "none";
+            document.getElementById("display-name").innerText = userName;
 
-    function setupQuestion(idx) {
-        document.getElementById('login-area').style.display = "none";
-        document.getElementById('question-area').style.display = "block";
-        document.getElementById('status').innerText = "ركز في السؤال! 🧐";
-        document.getElementById('q-text').innerText = myQuestions[idx].q;
-        document.getElementById('options-container').innerHTML = "";
-        document.getElementById('answer-timer').innerText = "";
-        
-        // عد تنازلي قبل الخيارات (3 ثواني)
-        let cd = 3;
-        const msg = document.getElementById('countdown-msg');
-        msg.innerText = `تظهر الخيارات بعد ${cd}`;
-        
-        const intro = setInterval(() => {
-            cd--;
-            msg.innerText = `تظهر الخيارات بعد ${cd}`;
-            if(cd <= 0) {
-                clearInterval(intro);
-                msg.innerText = "أجب الآن!";
-                startAnswering(idx);
-            }
-        }, 1000);
-    }
-
-    function startAnswering(idx) {
-        const container = document.getElementById('options-container');
-        myQuestions[idx].options.forEach((opt, i) => {
-            const btn = document.createElement('button');
-            btn.className = "opt-btn";
-            btn.innerText = opt;
-            btn.onclick = () => handleAnswer(i, btn);
-            container.appendChild(btn);
-        });
-
-        // عد تنازلي لانتهاء السؤال (15 ثانية للإجابة)
-        let timeLimit = 15;
-        const timerDisp = document.getElementById('answer-timer');
-        timerDisp.innerText = timeLimit;
-
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            timeLimit--;
-            timerDisp.innerText = timeLimit;
-            if(timeLimit <= 0) {
-                clearInterval(timerInterval);
-                timerDisp.innerText = "انتهى الوقت! ⏰";
-                document.querySelectorAll('.opt-btn').forEach(b => b.classList.add('disabled'));
-            }
-        }, 1000);
-    }
-
-    function handleAnswer(choice, btn) {
-        const name = document.getElementById('username').value.trim();
-        if(!name) { alert("اكتب اسمك أولاً!"); return; }
-        localStorage.setItem('p_name', name);
-
-        clearInterval(timerInterval); // إيقاف العداد عند الإجابة
-        document.querySelectorAll('.opt-btn').forEach(b => b.classList.add('disabled'));
-
-        if(choice === myQuestions[currentQIdx].correct) {
-            btn.classList.add('correct');
-            db.ref('answers_logs/' + currentQIdx).push({
-                name: name,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+            db.ref('users/' + userID + '/points').on('value', snap => {
+                const p = snap.val() || 0;
+                document.getElementById("my-points").innerText = p;
+                document.getElementById("wait-points").innerText = p;
             });
-            document.getElementById('status').innerText = "إجابة صحيحة! تم الإرسال ✅";
-        } else {
-            btn.classList.add('wrong');
-            document.getElementById('status').innerText = "للأسف إجابة خاطئة! ❌";
+
+            db.ref('roundVersion').on('value', () => {
+                for (let key in localStorage) { if (key.startsWith("ans_")) localStorage.removeItem(key); }
+            });
+
+            db.ref('users/' + userID + '/name').set(userName);
+            db.ref('celebration').on('value', snap => { if (snap.exists()) launchConfetti(); });
+
+            db.ref('currentQuestion').on('value', snap => {
+                const idx = snap.val();
+                if (idx === -1 || idx === null) {
+                    toggleQuiz(false);
+                } else {
+                    db.ref('questionStartTime').once('value', timeSnap => {
+                        serverStartTime = timeSnap.val() || Date.now();
+                        toggleQuiz(true);
+                        prepareQuestion(idx);
+                    });
+                }
+            });
         }
-    }
-</script>
+
+        function toggleQuiz(show) {
+            document.getElementById("quiz-container").style.display = show ? "block" : "none";
+            document.getElementById("waiting-msg").style.display = show ? "none" : "block";
+            if(!show) { clearInterval(timerInterval); clearInterval(delayInterval); }
+        }
+
+        function prepareQuestion(idx) {
+            const data = myQuestions[idx];
+            clearInterval(timerInterval); clearInterval(delayInterval);
+            document.getElementById("question-text").innerText = data.q;
+            const container = document.getElementById("options-container");
+            const delayArea = document.getElementById("delay-timer");
+            const progressBar = document.getElementById("timer-progress");
+            
+            container.innerHTML = ""; 
+            document.getElementById("status-msg").innerText = "";
+
+            // التحقق من الذاكرة المحلية أولاً
+            if (localStorage.getItem("ans_" + idx)) {
+                lockQuiz("تمت الإجابة مسبقاً ✋", data, idx);
+                return;
+            }
+
+            // التحقق من الفايربيس (لمنع الغش عن طريق التحديث)
+            db.ref('attempts/' + idx + '/' + userID).once('value', snap => {
+                if (snap.exists()) {
+                    lockQuiz("حاولت الإجابة مسبقاً! 🚫", data, idx);
+                } else {
+                    runCountdown(data, idx);
+                }
+            });
+        }
+
+        function lockQuiz(msg, data, idx) {
+            document.getElementById("delay-timer").innerText = "";
+            document.getElementById("timer-progress").style.width = "0%";
+            document.getElementById("status-msg").innerText = msg;
+            showFinalOptions(data, idx, true);
+        }
+
+        function runCountdown(data, idx) {
+            const delayArea = document.getElementById("delay-timer");
+            const progressBar = document.getElementById("timer-progress");
+            
+            delayInterval = setInterval(() => {
+                const now = Date.now();
+                const diff = (now - serverStartTime) / 1000;
+                const remaining = 10 - diff;
+                
+                let progress = (remaining / 10) * 100;
+                progressBar.style.width = Math.max(0, progress) + "%";
+                progressBar.style.background = "var(--gold)";
+
+                if (remaining <= 0) {
+                    clearInterval(delayInterval);
+                    delayArea.innerText = "أجب الآن! 🔥";
+                    progressBar.style.background = "var(--blue)";
+                    showFinalOptions(data, idx, false);
+                    startTimer();
+                } else {
+                    delayArea.innerText = `تجهز.. تظهر الخيارات خلال ${Math.ceil(remaining)}`;
+                }
+            }, 50);
+        }
+
+        function showFinalOptions(data, idx, isDisabled) {
+            const container = document.getElementById("options-container");
+            container.innerHTML = "";
+            let options = data.options.map((opt, i) => ({ text: opt, isCorrect: i === data.correct }));
+            options.sort(() => Math.random() - 0.5);
+            options.forEach(item => {
+                const b = document.createElement("button");
+                b.className = "opt-btn"; b.innerText = item.text;
+                if (isDisabled) b.disabled = true;
+                b.onclick = () => submitAnswer(item.isCorrect, idx);
+                container.appendChild(b);
+            });
+        }
+
+        function startTimer() {
+            let duration = 5000;
+            let startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let remaining = duration - elapsed;
+                let progress = (remaining / duration) * 100;
+                document.getElementById("timer-progress").style.width = Math.max(0, progress) + "%";
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    disableAll("انتهى الوقت! ⏱️");
+                }
+            }, 50);
+        }
+
+        function submitAnswer(isCorrect, qIdx) {
+            clearInterval(timerInterval);
+            
+            // تسجيل محاولة الإجابة فوراً في الفايربيس لغلق الثغرة
+            db.ref('attempts/' + qIdx + '/' + userID).set(true);
+            
+            localStorage.setItem("ans_" + qIdx, "true");
+            document.getElementById("timer-progress").style.width = "0%";
+            disableAll("جاري التحقق...");
+            document.getElementById("delay-timer").innerText = "";
+
+            if (!isCorrect) {
+                document.getElementById("status-msg").innerText = "خطأ ❌";
+                document.getElementById("status-msg").style.color = "#e94560";
+                return;
+            }
+
+            db.ref('answers_logs/' + qIdx).push({ name: userName, timestamp: firebase.database.ServerValue.TIMESTAMP });
+            db.ref('winners/' + qIdx).transaction(curr => {
+                if (curr === null) return { name: userName, id: userID };
+                return;
+            }, (err, comm) => {
+                const msg = document.getElementById("status-msg");
+                if (comm) {
+                    msg.innerText = "كفو! أنت الأول 🎉"; msg.style.color = "#38bdf8";
+                    db.ref('users/' + userID + '/points').transaction(p => (p || 0) + 1);
+                } else {
+                    msg.innerText = "صح، لكن غيرك أسرع 💨"; msg.style.color = "#f59e0b";
+                }
+            });
+        }
+
+        function disableAll(msg) {
+            document.querySelectorAll(".opt-btn").forEach(b => b.disabled = true);
+            if(msg) document.getElementById("status-msg").innerText = msg;
+        }
+
+        function launchConfetti() {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, zIndex: 3000 });
+        }
+    </script>
 </body>
 </html>
